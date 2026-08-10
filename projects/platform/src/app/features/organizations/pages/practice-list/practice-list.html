@@ -1,0 +1,44 @@
+<app-page-header subtitle="Every practice on the platform.">
+  <app-add-practice-button [link]="onboardLink" />
+</app-page-header>
+
+<div class="practice-list">
+  <!--
+    Unconditional. There is no list route, so there is no count to branch on -
+    see the class comment. Do not put a `hasItems` check here.
+  -->
+  <section class="empty-state">
+    <span class="empty-state__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path
+          d="M5 20.5V8.6l7-4 7 4v11.9"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M12 10.4v4.6M9.7 12.7h4.6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </svg>
+    </span>
+
+    <h2 class="empty-state__headline">No practices yet</h2>
+
+    <p class="empty-state__body">
+      Adding a practice creates it along with its branches and its staff, in one step.
+    </p>
+
+    <app-add-practice-button [link]="onboardLink" [large]="true" />
+
+    <!--
+      The blocked note ships. It is the honest thing to have on a screen that is
+      deliberately incomplete, and it is deleted by the first line of P-04.
+    -->
+    <p class="empty-state__note">P-04 blocked · list route not agreed</p>
+  </section>
+</div>

@@ -1,0 +1,18 @@
+<a [class]="large() ? 'add-practice add-practice--large' : 'add-practice'" [routerLink]="link()">
+  <!--
+    Decorative. The label beside it is the accessible name, and announcing "plus"
+    before it would add nothing.
+  -->
+  <span class="add-practice__tile" aria-hidden="true">
+    <svg viewBox="0 0 12 12" focusable="false">
+      <path
+        d="M6 2.4v7.2M2.4 6h7.2"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      />
+    </svg>
+  </span>
+  <span class="add-practice__label">Add a practice</span>
+</a>

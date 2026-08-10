@@ -1,0 +1,55 @@
+.practice-list {
+  max-inline-size: 75rem;
+  margin-inline: auto;
+  padding: var(--space-3);
+}
+
+// Unhurried, not sparse: the spacing above and below is what stops a screen with
+// one thing on it reading as a screen that failed to load.
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-3);
+  text-align: center;
+}
+
+.empty-state__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 0.75rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.empty-state__icon svg {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+}
+
+.empty-state__headline {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.empty-state__body {
+  max-inline-size: 26rem;
+  margin: 0;
+  color: var(--color-muted-text);
+}
+
+// Mono, because it names a ticket. In this console an identifier is set in mono
+// and prose never is - and this rule stops at the platform console: staff and
+// patient never show a raw code or a ticket reference.
+.empty-state__note {
+  margin: 0;
+  color: var(--color-subtle-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+}
