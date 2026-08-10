@@ -1,0 +1,103 @@
+// The console's own chrome: the environment edge, the wordmark, the account
+// mark. The frame itself - the header band, the skip link, the content region -
+// belongs to `ui`'s shell and is not restyled here.
+
+// No shadow anywhere in this application; Stylelint rejects one in
+// projects/platform. Depth is the tonal step between the white bands
+// (--color-surface-raised) and the canvas (--color-surface).
+
+// ---------------------------------------------------------------------------
+// The environment edge
+// ---------------------------------------------------------------------------
+
+// `.console-edge` itself declares nothing. The height lives on the tone
+// modifiers, so an environment that does not carry an edge leaves this element
+// in the document with nothing in it and no space taken.
+
+// The edge repeats the chip's tone rather than being one colour for "not
+// production": staging and production are the two environments that look real,
+// and the strip is the mark a tired reader takes in before reading anything.
+.console-edge--warning {
+  block-size: 0.1875rem;
+  background-color: var(--color-warning-mark);
+}
+
+.console-edge--danger {
+  block-size: 0.1875rem;
+  background-color: var(--color-danger-mark);
+}
+
+// ---------------------------------------------------------------------------
+// The wordmark
+// ---------------------------------------------------------------------------
+
+.console-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.console-brand:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.console-brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: 0.4375rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.console-brand__mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+// Not a flex row: the space between the two words is a text node, because it is
+// part of the wordmark's accessible name rather than a gap between two boxes.
+.console-brand__name {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-tight);
+}
+
+.console-brand__name-strong {
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.console-brand__name-quiet {
+  color: var(--color-muted-text);
+  font-weight: var(--font-weight-regular);
+}
+
+// ---------------------------------------------------------------------------
+// Environment and account
+// ---------------------------------------------------------------------------
+
+.console-account-area {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.console-account {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}

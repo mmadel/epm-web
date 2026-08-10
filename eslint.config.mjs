@@ -42,7 +42,7 @@ export default tseslint.config(
   // Application component/directive selectors use the `app` prefix.
   {
     name: 'epm/ts-apps',
-    files: ['projects/staff/**/*.ts', 'projects/patient/**/*.ts'],
+    files: ['projects/staff/**/*.ts', 'projects/patient/**/*.ts', 'projects/platform/**/*.ts'],
     rules: {
       '@angular-eslint/component-selector': [
         'error',

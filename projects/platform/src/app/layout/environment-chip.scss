@@ -1,0 +1,62 @@
+// The environment chip.
+
+// Four tones, one shape. Each tone is a `-surface` / `-text` / `-mark` triple
+// from the token file, so the tint, the word and the dot of any one tone were
+// chosen against each other rather than assembled here.
+
+.environment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+
+  // Pill. Reserved, in this console, for a status and for the one primary
+  // action per screen - so the shape itself says "this means something".
+  border-radius: 1.25rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+}
+
+.environment-chip__dot {
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  border-radius: 50%;
+}
+
+.environment-chip--neutral {
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+}
+
+.environment-chip--neutral .environment-chip__dot {
+  background-color: var(--color-subtle-text);
+}
+
+.environment-chip--info {
+  background-color: var(--color-info-surface);
+  color: var(--color-info-text);
+}
+
+.environment-chip--info .environment-chip__dot {
+  background-color: var(--color-info-mark);
+}
+
+.environment-chip--warning {
+  background-color: var(--color-warning-surface);
+  color: var(--color-warning-text);
+}
+
+.environment-chip--warning .environment-chip__dot {
+  background-color: var(--color-warning-mark);
+}
+
+.environment-chip--danger {
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger-text);
+}
+
+.environment-chip--danger .environment-chip__dot {
+  background-color: var(--color-danger-mark);
+}

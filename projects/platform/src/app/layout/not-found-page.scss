@@ -1,0 +1,21 @@
+.not-found {
+  max-inline-size: 75rem;
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-3);
+}
+
+.not-found__body {
+  max-inline-size: 34rem;
+  margin: 0 0 var(--space-3);
+  color: var(--color-muted-text);
+}
+
+.not-found__link {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.not-found__link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

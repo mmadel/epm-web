@@ -245,7 +245,10 @@
                 "input": "projects/platform/public"
               }
             ],
-            "styles": ["projects/platform/src/styles.scss"]
+            "styles": ["projects/platform/src/styles.scss"],
+            "stylePreprocessorOptions": {
+              "includePaths": ["dist"]
+            }
           },
           "configurations": {
             "production": {

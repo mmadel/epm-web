@@ -1,0 +1,70 @@
+// The page header band.
+
+// Full-bleed white on the canvas, which is why the frame's content region has no
+// padding of its own: the band's gutter is here, and it has to be able to reach
+// the edges. See the shell's template in `ui`.
+
+:host {
+  display: block;
+  background-color: var(--color-surface-raised);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+
+  // The content cap, so the title stays with the wordmark above it on a wide
+  // screen instead of drifting to the middle of a 2560px display.
+  max-inline-size: 75rem;
+  margin-inline: auto;
+  padding: var(--space-3);
+}
+
+.page-header__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-block-end: var(--space-1);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.page-header__back:hover {
+  text-decoration: underline;
+}
+
+.page-header__back:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.page-header__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.015em;
+  line-height: var(--line-height-tight);
+}
+
+// The heading is focused after every navigation, and a focus ring that only
+// appears for keyboard users is the whole point of `:focus-visible` - a mouse
+// click on a link would otherwise leave a box around the next page's title.
+.page-header__title:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.page-header__subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+}
+
+.page-header__action {
+  flex: none;
+}

@@ -1,8 +1,23 @@
 <!doctype html>
-<html lang="en">
+<!--
+  `lang="en"` is fixed, and there is nothing in this application that changes it.
+  The platform console is English-only and LTR-only, permanently; that is a
+  decision recorded in MILESTONE-F1-PLATFORM.md §6 and in the Stylelint override
+  for projects/platform, not an omission.
+
+  `data-app="platform"` selects this console's theme from the token file in `ui`
+  - the deep sea green accent, the white-on-canvas surfaces and the compact type
+  scale. It is here rather than in a stylesheet so that no raw colour value ever
+  needs to appear in an application stylesheet.
+-->
+<html lang="en" data-app="platform">
   <head>
     <meta charset="utf-8" />
-    <title>Platform</title>
+    <!--
+      A starting value only. Every navigation rewrites it as
+      `<page> · EPM Platform · <Environment>`; see PlatformTitleStrategy.
+    -->
+    <title>EPM Platform</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />

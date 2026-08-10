@@ -1,1 +1,35 @@
-/* You can add global styles to this file, and also import other style files */
+// The design tokens live in the `ui` library and are pulled in here, once, for
+// the whole application. `ui/styles` resolves through `dist` (the Sass load path
+// this application's build adds) to `dist/ui/styles/_index.scss`, so the
+// libraries must be built first - exactly as they must be for `import … from 'ui'`.
+
+// THERE IS NO PALETTE IN THIS FILE. This console's accent, surfaces and compact
+// type scale are a `:root[data-app='platform']` block inside the token file
+// itself, which index.html opts into with one attribute. That keeps every raw
+// value in the one file allowed to hold one, and it keeps the console's theme a
+// reassignment of the workspace's roles rather than a second set of names that
+// only this application understands.
+
+@use 'ui/styles';
+
+// The one utility this console needs: text that is present for a screen reader
+// and absent on screen. It is here rather than in a component because three
+// components use it - the environment chip's "Environment:", the account mark's
+// full name, and the live region the frame announces navigations through.
+
+// Clip-based rather than `display: none` or `visibility: hidden`, both of which
+// remove the text from the accessibility tree along with the layout.
+
+// `clip-path` and not the old `clip: rect(...)` plus a `-1px` margin: the margin
+// existed to defeat a bug in browsers that no longer ship, and it is a pixel
+// value in a spacing property, which the workspace rules rightly reject.
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,16 @@
+<span [class]="'environment-chip environment-chip--' + presentation.tone">
+  <!--
+    The dot is decorative: it repeats what the word already says, for a reader
+    scanning rather than reading, so it is hidden from assistive technology
+    instead of being announced twice.
+  -->
+  <span class="environment-chip__dot" aria-hidden="true"></span>
+
+  <!--
+    "Production" on its own, read out in the middle of a header, does not say
+    what it is production OF. The tint and the position answer that for a
+    sighted reader; this answers it for everyone else.
+  -->
+  <span class="visually-hidden">Environment:</span>
+  <span class="environment-chip__label">{{ presentation.label }}</span>
+</span>
