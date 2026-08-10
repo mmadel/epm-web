@@ -214,3 +214,36 @@ Three things about that block are deliberate:
 - **It works because the line heights are unitless.** A unitless multiplier
   re-multiplies every size on the scale; a `px` line height would have been correct at
   exactly one font size.
+
+## Numerals: decided, and closed
+
+**Western numerals (1, 2, 3) everywhere, in both languages.** This is a settled product
+decision, not a default that nobody got round to changing. It is written down here so
+that it does not get reopened every time someone new sees Arabic text with Western
+digits and assumes it is a bug.
+
+The reasons, in the order they mattered:
+
+- **One rendering path.** Every number - a dose, a date, an invoice total, a patient
+  identifier - is drawn the same way in every language. There is no second numeral
+  system to test, to line up in a table, or to get wrong in a printed document.
+- **No per-market branch.** Numeral preference varies across the Arabic-speaking world,
+  so "the Arabic numerals" is not one answer: choosing per-language would immediately
+  become choosing per-country, and then per-tenant.
+- **It matches the interfaces these users already read.** Most Gulf digital and medical
+  interfaces - banking apps, government portals, lab reports, medication packaging -
+  already present Western numerals.
+- **It removes a clinical misreading risk.** A user who reads Egyptian conventions and
+  a user who reads Gulf conventions must not be able to interpret the same rendered
+  figure differently. With one numeral system, a dose or a measurement reads the same
+  to both.
+
+**There is no numeral-conversion layer in this codebase, and none should be added.** No
+digit-mapping table, no locale-aware number formatter switched by language, no
+`Intl.NumberFormat` with an `-u-nu-arab` extension. The implementation of this decision
+is the deliberate absence of code, which is why it needs to be documented: absent code
+leaves no trace for the next person to find.
+
+The same decision is recorded in the workspace `README.md` and in
+`projects/ui/src/lib/i18n/translations/README.md`, since those are the other two places
+somebody would look before reaching for a conversion function.
