@@ -70,3 +70,29 @@ from the two without checking anything.
 
 There are no warning or success tokens. They get added by the first ticket that
 actually renders a warning or a success, rather than being guessed at now.
+
+## Spacing
+
+One scale, six steps, used for every margin, padding and gap in the product.
+
+| Token       | Value     |
+| ----------- | --------- |
+| `--space-1` | `0.25rem` |
+| `--space-2` | `0.5rem`  |
+| `--space-3` | `1rem`    |
+| `--space-4` | `1.5rem`  |
+| `--space-5` | `2rem`    |
+| `--space-6` | `3rem`    |
+
+**The intent is that picking a value is not a decision.** Six steps is the whole
+point, not a starting position to be grown later. A scale with twelve steps turns
+every gap into a judgement call and every review into an argument about whether 18px
+or 20px was right; with six, adjacent steps are far enough apart that the right one is
+obvious at a glance, and "it sits between two steps" is answered by taking the smaller
+one. The cost is that some spacing ends up a couple of pixels off what a pixel-perfect
+mockup asked for, which is the cheaper of the two mistakes.
+
+The steps are roughly 1.5x apart and expressed in `rem` so they scale with the user's
+browser font size. A clinical console gets used by people who have turned their
+default text size up, and a `px` scale silently ignores them - which is also why
+Stylelint rejects a `px` length in a spacing property outside this file.

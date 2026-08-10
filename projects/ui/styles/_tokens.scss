@@ -58,4 +58,29 @@
   // control can be built from the pair without checking anything.
   --color-muted-surface: #e8ecf1;
   --color-muted-text: #5c6a78;
+
+  // ---------------------------------------------------------------------------
+  // Spacing
+  // ---------------------------------------------------------------------------
+
+  // One scale. Every margin, padding and gap in the product is one of these six
+  // values, and Stylelint rejects a `px` length in a spacing property so that it
+  // stays that way.
+
+  // Six steps is deliberate. A scale with twelve steps makes every gap a
+  // decision and every review an argument about whether 18px or 20px was right;
+  // with six, adjacent steps are far enough apart that the correct one is
+  // obvious at a glance, and "between two steps" is answered by taking the
+  // smaller. The cost is that some spacing is 2px off what a pixel-perfect
+  // mockup asked for. That is the cheaper mistake.
+
+  // The steps are roughly 1.5x apart, in `rem` so they scale with the user's
+  // browser font size - a physiotherapy console gets used by people who have
+  // turned their default text size up, and a `px` scale silently ignores them.
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
 }
