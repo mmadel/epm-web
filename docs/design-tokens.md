@@ -215,6 +215,45 @@ Three things about that block are deliberate:
   re-multiplies every size on the scale; a `px` line height would have been correct at
   exactly one font size.
 
+## Enforcement
+
+A token scale is only a single source of truth if nothing is allowed to bypass it. A
+hardcoded colour or a hardcoded pixel gap is not a style mistake; it is a value that now
+lives in two places, and the component is the copy nobody looks at when the palette or
+the density changes. So it is enforced rather than reviewed for, in the one workspace
+`stylelint.config.mjs`:
+
+| Rule                                        | What it rejects                                                                       |
+| ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `color-no-hex`                              | `#b3261e`                                                                             |
+| `color-named`                               | `red`, `white`, …                                                                     |
+| `function-disallowed-list`                  | `rgb()`, `rgba()`, `hsl()`, `hsla()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()` |
+| `declaration-property-unit-disallowed-list` | a `px` length in `margin*`, `padding*`, `inset*`, `gap`, `row-gap`, `column-gap`      |
+
+Three rules for colour rather than one, because a colour literal has three spellings and
+all three have to be closed: `#b3261e`, `rgb(179 38 30)` and `red` are the same mistake,
+and a rule that catches only the first teaches people to write the second.
+
+Every message names the tokens to use instead and points at this document, so the error
+tells you what to do rather than only what not to.
+
+What stays legal, reading the rule as "no hardcoded colour or pixel **spacing** value":
+
+- `border: 1px solid var(--color-border)` - a border is not spacing, and a border
+  measured in scale steps would be absurd.
+- `outline-offset: 2px`, `border-radius: 0.25rem`, `grid-template-columns: 16rem 1fr` -
+  sizes, not spacing.
+- `margin: 0`, `gap: 0` - no unit, nothing to object to.
+- `@media (width <= 60rem)` - the rule inspects declarations, and a breakpoint lives in a
+  media query's parameters.
+- `color-mix(in srgb, var(--color-primary) 10%, transparent)` - deliberately absent from
+  the function list, because it composes tokens rather than spelling a colour out.
+
+**One file is exempt**: `projects/ui/styles/_tokens.scss`, where the raw values are the
+definitions rather than copies of them. The exemption is written as a path to that single
+file rather than a folder glob, so a second stylesheet cannot acquire it by being dropped
+next to it - `projects/ui/styles/_base.scss`, in the same folder, is fully linted.
+
 ## Numerals: decided, and closed
 
 **Western numerals (1, 2, 3) everywhere, in both languages.** This is a settled product

@@ -12,6 +12,60 @@ const RTL_REASON =
   'product. A mirrored RTL stylesheet would be a second place every layout rule lives; the two ' +
   'drift and the Arabic version quietly becomes the worse one. Use logical properties instead.';
 
+// The other half of this file is the design token rules. A hardcoded colour or a
+// hardcoded pixel gap is not a style mistake, it is a value that now lives in two
+// places: the token file says one thing and the component says another, and the
+// component is the one nobody looks at when the palette or the density changes.
+// The tokens are only a single source of truth if nothing is allowed to bypass
+// them, so this is enforced rather than reviewed for.
+//
+// Exactly one file is exempt - the file that defines the tokens. Its raw values
+// are the definitions, not duplicates of them.
+const TOKEN_DEFINITION_FILE = 'projects/ui/styles/_tokens.scss';
+
+/** The colour roles, in the order docs/design-tokens.md lists them. */
+const COLOUR_TOKENS = [
+  '--color-surface',
+  '--color-surface-raised',
+  '--color-text',
+  '--color-text-inverse',
+  '--color-border',
+  '--color-primary',
+  '--color-primary-hover',
+  '--color-danger',
+  '--color-danger-hover',
+  '--color-muted-surface',
+  '--color-muted-text',
+];
+
+/** The spacing scale, with the value of each step so the message is actionable. */
+const SPACING_TOKENS = [
+  '--space-1 (0.25rem)',
+  '--space-2 (0.5rem)',
+  '--space-3 (1rem)',
+  '--space-4 (1.5rem)',
+  '--space-5 (2rem)',
+  '--space-6 (3rem)',
+];
+
+/**
+ * Properties whose lengths are spacing, so a `px` value in one bypasses the scale.
+ *
+ * Read from the ticket literally - "no hardcoded colour or pixel SPACING value" -
+ * so a `1px` border, a `2px` outline offset and a `16rem` column stay legal: they
+ * are not spacing, and a border measured in scale steps would be absurd. `0` stays
+ * legal everywhere because it has no unit for this rule to object to. Breakpoints
+ * are untouched too: this rule only inspects declarations, and a breakpoint lives
+ * in a media query's parameters.
+ */
+const SPACING_PROPERTIES = ['/^margin/', '/^padding/', '/^inset/', 'gap', 'row-gap', 'column-gap'];
+
+const COLOUR_MESSAGE =
+  `Use a colour token instead: ${COLOUR_TOKENS.map((token) => `var(${token})`).join(', ')}. ` +
+  `They are defined in ${TOKEN_DEFINITION_FILE}, which is the only file allowed to hold a raw ` +
+  'colour value; see docs/design-tokens.md for what each role means. If no role fits, add one ' +
+  'there - named for its role and never for its hue.';
+
 /** Physical property -> the logical property that replaces it. */
 const LOGICAL_EQUIVALENT = {
   'margin-left': 'margin-inline-start',
@@ -52,6 +106,38 @@ export default {
       },
     ],
 
+    // -------------------------------------------------------------------------
+    // Design tokens: no hardcoded colour, no hardcoded pixel spacing.
+    // -------------------------------------------------------------------------
+
+    // Three rules rather than one, because a colour literal has three spellings
+    // and all three have to be closed - `#b3261e`, `rgb(179 38 30)` and `red` are
+    // the same mistake, and a rule that catches only the first teaches people to
+    // write the second.
+    'color-no-hex': [true, { message: `Hardcoded hex colour. ${COLOUR_MESSAGE}` }],
+    'color-named': ['never', { message: `Hardcoded named colour. ${COLOUR_MESSAGE}` }],
+
+    'function-disallowed-list': [
+      ['rgb', 'rgba', 'hsl', 'hsla', 'hwb', 'lab', 'lch', 'oklab', 'oklch'],
+      {
+        message: (name) => `Hardcoded colour from "${name}()". ${COLOUR_MESSAGE}`,
+      },
+    ],
+    // `color-mix()` is deliberately absent from that list: it composes tokens
+    // (`color-mix(in srgb, var(--color-primary) 10%, transparent)`) rather than
+    // spelling a colour out, so it is a use of the palette, not a bypass of it.
+
+    'declaration-property-unit-disallowed-list': [
+      Object.fromEntries(SPACING_PROPERTIES.map((property) => [property, ['px']])),
+      {
+        message: (property, unit) =>
+          `"${property}" must not be measured in "${unit}". Use a spacing token: ` +
+          `${SPACING_TOKENS.join(', ')}. One scale means a change of density is one edit; a ` +
+          'stray pixel value is a place the product quietly stops agreeing with itself. `0` ' +
+          'needs no token, and this does not apply to borders, outlines or breakpoints.',
+      },
+    ],
+
     // The scaffold uses plain kebab-case class names; the preset's stricter
     // pattern rules are not what this ticket is about.
     'selector-class-pattern': null,
@@ -60,4 +146,21 @@ export default {
     // The generated component stylesheets start out empty and that is fine.
     'no-empty-source': null,
   },
+
+  overrides: [
+    {
+      // The one exemption, and it is the file the rules exist to protect: raw
+      // values here are the definitions the rest of the workspace points at, not
+      // copies of them. Kept as a path to a single file rather than a folder
+      // glob, so a second stylesheet cannot quietly acquire the exemption by
+      // being dropped next to this one.
+      files: [TOKEN_DEFINITION_FILE],
+      rules: {
+        'color-no-hex': null,
+        'color-named': null,
+        'function-disallowed-list': null,
+        'declaration-property-unit-disallowed-list': null,
+      },
+    },
+  ],
 };
