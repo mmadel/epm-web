@@ -86,6 +86,28 @@ the left side**: the frame is a CSS grid whose template puts `nav` before `main`
 inline axis, so Arabic mirrors it with no direction-specific CSS. The header's language
 switch writes through `LanguageService` and never touches `dir` or `lang` itself.
 
+### Checking direction by eye
+
+A unit test can prove the shell writes no `dir` attribute and that its stylesheet is
+free of physical properties. It cannot prove the navigation actually lands on the right
+in Arabic, that nothing is clipped, or that the header controls sit somewhere sensible.
+Those need looking at:
+
+```bash
+npm run capture:screenshots
+```
+
+That builds the libraries and the staff console, serves the built bundle, drives the
+shell's own language switch in a real browser, and writes `docs/screenshots/shell-en-ltr.png`
+and `docs/screenshots/shell-ar-rtl.png`. It prints the measured position and width of
+the navigation and content in each direction, and fails outright if the navigation is
+not on the side the direction calls for - so a broken frame is loud before anyone opens
+the files. **The images are still there to be looked at**; the assertion only catches
+the one failure it knows the name of.
+
+The screenshots are committed because GitHub has no API for attaching an image to a
+pull request body, so a committed file linked by URL is the only way to put one there.
+
 ## Development server
 
 This is a multi-application workspace, so a bare `ng serve` cannot pick a project.
