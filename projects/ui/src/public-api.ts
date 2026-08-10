@@ -2,6 +2,7 @@
  * Public API Surface of ui
  */
 
+export * from './lib/errors/error-message';
 export * from './lib/errors/error-message-keys';
 export * from './lib/errors/problem';
 export * from './lib/i18n/translate-pipe';
