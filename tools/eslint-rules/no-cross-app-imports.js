@@ -22,6 +22,16 @@ const path = require('path');
 // known application or library. Add an application here in the same change that
 // adds it to angular.json - `applications match angular.json` in the tests
 // fails the build if you forget.
+//
+// `platform` -> `staff` IS NOT A TIDINESS RULE. DO NOT RELAX IT.
+//
+// PRODUCT.md places platform administrators outside every practice so that
+// "whoever runs the platform must never be able to open a patient's chart" is
+// structural rather than a rule someone could relax. A single import from
+// `platform` into `staff` pulls the staff surface into the platform bundle and
+// leaves that boundary one role-gating defect away from failing. The other five
+// directions are about shipping separately; this one is about patient data.
+// If you think you need it, the shared code belongs in `ui` or `core`.
 const APP_PROJECTS = new Set(['staff', 'patient', 'platform']);
 const LIBRARY_PROJECTS = new Set(['core', 'ui', 'api-client']);
 
