@@ -9,5 +9,8 @@
     "types": []
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["**/*.spec.ts"]
+  // `*.fixture.ts` holds test-only helpers. Excluded here so they cannot be
+  // published in the library or reached from application code; the spec tsconfig
+  // still picks them up through the specs that import them.
+  "exclude": ["**/*.spec.ts", "**/*.fixture.ts"]
 }
