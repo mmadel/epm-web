@@ -1,0 +1,8 @@
+# Prettier is the single source of truth for formatting and it writes LF.
+# Normalising line endings in the working tree - not just in the object store -
+# keeps `npm run format:check` and the pre-commit hook honest on Windows
+# checkouts, where core.autocrlf would otherwise hand Prettier CRLF files it
+# will always report as unformatted.
+* text=auto eol=lf
+
+*.ico binary

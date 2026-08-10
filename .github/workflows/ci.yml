@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  # Consumed by ticket F-01's build-time environment check. It is declared here,
+  # one ticket early, so that `main` does not go red the moment F-01 merges.
+  EPM_API_BASE_URL: https://api.epm.invalid
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: ESLint + Stylelint
+        run: npm run lint
+      - name: Prettier
+        run: npm run format:check
+      - name: Custom ESLint rule tests
+        run: npm run test:lint-rules
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # Deliberately `npm run build` rather than a loop over `ng build`: the
+      # build order (libraries before the applications that resolve them through
+      # dist/<name>) lives in the npm script, in one place, so CI and a developer
+      # run the same thing. It also means npm lifecycle hooks fire here - later
+      # tickets hang build-time checks off `prebuild`, and a loop over `npx ng`
+      # would silently skip them.
+      - name: Build every project (libraries first)
+        run: npm run build
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # The root tsconfig maps api-client, core and ui to ./dist/<name>, so any
+      # spec in an application that imports a library cannot resolve it until the
+      # libraries are built. This job runs on its own runner with an empty
+      # workspace, so it has to build them itself - the build job's dist/ is not
+      # shared.
+      - name: Build libraries (application specs resolve them through dist/)
+        run: npm run build:libs
+
+      # `ng test` with no project fans out across every project in the workspace
+      # (unlike `ng build`, which cannot pick one). Going through the npm script
+      # keeps lifecycle hooks in play for the same reason as the build job above.
+      - name: Unit tests for every project
+        run: npm test -- --no-watch
