@@ -56,7 +56,57 @@ service. Stylesheets must use logical properties (`margin-inline-start`, not
 `margin-left`) - Stylelint enforces this - so one stylesheet serves both directions.
 
 Numerals are Western (1, 2, 3) in both languages, by product decision. There is no
-numeral conversion anywhere and none should be added.
+numeral conversion anywhere and none should be added. The reasoning is recorded in
+`docs/design-tokens.md`.
+
+## Design tokens and the application shell
+
+Every colour, space and type value comes from a token. The tokens are CSS custom
+properties in one file - `projects/ui/styles/_tokens.scss` - and that file is the only
+place in the workspace allowed to hold a raw colour or a `px` spacing value; Stylelint
+rejects both everywhere else and its message names the token to use instead. See
+`docs/design-tokens.md` for the scales, the Arabic font stack and the reasoning.
+
+An application picks the tokens up with one line in its `styles.scss`:
+
+```scss
+@use 'ui/styles';
+```
+
+That resolves through `dist`, which each application's build adds to the Sass load
+path, to the `styles/` folder `ng build ui` copies into `dist/ui`. It is the same
+specifier and the same build order as `import { … } from 'ui'`, so `npm run build:libs`
+comes first for stylesheets exactly as it does for types.
+
+The application frame - header, navigation, content area - is the `Shell` component in
+`ui`, mounted by the staff console in `app.html`. It knows nothing about any one
+application: navigation entries are an input of translation keys and links, and the
+content is projected with `<ng-content>`. **Its navigation is on the start side, not
+the left side**: the frame is a CSS grid whose template puts `nav` before `main` on the
+inline axis, so Arabic mirrors it with no direction-specific CSS. The header's language
+switch writes through `LanguageService` and never touches `dir` or `lang` itself.
+
+### Checking direction by eye
+
+A unit test can prove the shell writes no `dir` attribute and that its stylesheet is
+free of physical properties. It cannot prove the navigation actually lands on the right
+in Arabic, that nothing is clipped, or that the header controls sit somewhere sensible.
+Those need looking at:
+
+```bash
+npm run capture:screenshots
+```
+
+That builds the libraries and the staff console, serves the built bundle, drives the
+shell's own language switch in a real browser, and writes `docs/screenshots/shell-en-ltr.png`
+and `docs/screenshots/shell-ar-rtl.png`. It prints the measured position and width of
+the navigation and content in each direction, and fails outright if the navigation is
+not on the side the direction calls for - so a broken frame is loud before anyone opens
+the files. **The images are still there to be looked at**; the assertion only catches
+the one failure it knows the name of.
+
+The screenshots are committed because GitHub has no API for attaching an image to a
+pull request body, so a committed file linked by URL is the only way to put one there.
 
 ## Development server
 

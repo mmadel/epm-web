@@ -1,0 +1,28 @@
+// The smallest amount of applied CSS that makes the tokens actually take effect.
+
+// This is separate from _tokens.scss because the two are different kinds of
+// thing: _tokens.scss declares values and emits nothing that styles an element,
+// and this file styles elements and declares no values. That split is what lets
+// Stylelint exempt exactly one file from the "no raw colour, no px spacing"
+// rules - this file, like every other stylesheet in the workspace, is subject to
+// them, and only references tokens.
+
+// It stays deliberately thin: a reset that opinionates margins away from every
+// element is a reset that every component then fights. Box sizing and the body's
+// own typography are the two things that genuinely belong to the document.
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}

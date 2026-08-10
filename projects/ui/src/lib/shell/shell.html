@@ -1,0 +1,57 @@
+<header class="shell-header">
+  <!--
+    First focusable thing on the page, hidden until it is focused. A keyboard user
+    should not have to tab through every navigation entry on every screen to reach
+    the content, and in this product "every navigation entry" grows with the ticket
+    backlog. It targets the main region's id, which is why that id is spelled out
+    twice in this file rather than being generated.
+  -->
+  <a class="shell-skip-link" href="#shell-main">{{ 'shell.header.skip-to-content' | translate }}</a>
+
+  <span class="shell-title">{{ 'shell.header.title' | translate }}</span>
+
+  <div class="shell-language">
+    <label class="shell-language__label" for="shell-language-select">
+      {{ 'shell.language.label' | translate }}
+    </label>
+    <select
+      id="shell-language-select"
+      class="shell-language__select"
+      [value]="language()"
+      (change)="onLanguageChange($event)"
+    >
+      @for (option of languageOptions; track option.value) {
+        <option [value]="option.value" [selected]="option.value === language()">
+          {{ option.labelKey | translate }}
+        </option>
+      }
+    </select>
+  </div>
+</header>
+
+<nav class="shell-nav" [attr.aria-label]="'shell.nav.label' | translate">
+  <ul class="shell-nav__list">
+    @for (item of navigation(); track item.link) {
+      <li>
+        <a
+          class="shell-nav__link"
+          [routerLink]="item.link"
+          routerLinkActive="shell-nav__link--active"
+          #active="routerLinkActive"
+          [attr.aria-current]="active.isActive ? 'page' : null"
+        >
+          {{ item.labelKey | translate }}
+        </a>
+      </li>
+    }
+  </ul>
+</nav>
+
+<!--
+  `tabindex="-1"` so the skip link above can actually move focus here; without it
+  the browser scrolls to the region and leaves focus where it was, which is the
+  most common way a skip link is broken while looking like it works.
+-->
+<main id="shell-main" class="shell-main" tabindex="-1">
+  <ng-content />
+</main>

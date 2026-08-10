@@ -29,7 +29,10 @@
                 "input": "projects/staff/public"
               }
             ],
-            "styles": ["projects/staff/src/styles.scss"]
+            "styles": ["projects/staff/src/styles.scss"],
+            "stylePreprocessorOptions": {
+              "includePaths": ["dist"]
+            }
           },
           "configurations": {
             "production": {
@@ -95,7 +98,10 @@
                 "input": "projects/patient/public"
               }
             ],
-            "styles": ["projects/patient/src/styles.scss"]
+            "styles": ["projects/patient/src/styles.scss"],
+            "stylePreprocessorOptions": {
+              "includePaths": ["dist"]
+            }
           },
           "configurations": {
             "production": {
