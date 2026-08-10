@@ -9,5 +9,6 @@ export * from './lib/i18n/language';
 export * from './lib/i18n/language-service';
 export * from './lib/i18n/language-storage';
 export * from './lib/i18n/provide-language';
+export * from './lib/session/provide-mock-session';
 export * from './lib/session/session';
 export * from './lib/session/session-source';
