@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { LanguageService } from 'core';
+import { LANGUAGE_STORAGE, LanguageService } from 'core';
 
 import { TranslationService, TRANSLATIONS_SOURCE } from './translation-service';
 import { TRANSLATIONS_FIXTURE } from './translations.fixture';
@@ -13,7 +13,12 @@ describe('TranslationService', () => {
     warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     TestBed.configureTestingModule({
-      providers: [{ provide: TRANSLATIONS_SOURCE, useValue: TRANSLATIONS_FIXTURE }],
+      providers: [
+        { provide: TRANSLATIONS_SOURCE, useValue: TRANSLATIONS_FIXTURE },
+        // No storage: a language chosen in one test must not be remembered by the
+        // next one. Persistence is covered by core's own specs.
+        { provide: LANGUAGE_STORAGE, useValue: null },
+      ],
     });
     translations = TestBed.inject(TranslationService);
     language = TestBed.inject(LanguageService);
@@ -95,7 +100,7 @@ describe('TranslationService', () => {
 
   it('falls back to the shipped translations when nothing is provided', () => {
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [{ provide: LANGUAGE_STORAGE, useValue: null }] });
 
     expect(TestBed.inject(TranslationService).translate('shell.header.title')).toBe(
       'Elite Physical Medicine',

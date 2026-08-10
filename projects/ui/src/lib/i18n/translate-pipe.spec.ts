@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { LanguageService } from 'core';
+import { LANGUAGE_STORAGE, LanguageService } from 'core';
 
 import { TranslatePipe } from './translate-pipe';
 import { TRANSLATIONS_SOURCE } from './translation-service';
@@ -31,7 +31,12 @@ describe('TranslatePipe', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     TestBed.configureTestingModule({
-      providers: [{ provide: TRANSLATIONS_SOURCE, useValue: TRANSLATIONS_FIXTURE }],
+      providers: [
+        { provide: TRANSLATIONS_SOURCE, useValue: TRANSLATIONS_FIXTURE },
+        // No storage: a language chosen in one test must not be remembered by the
+        // next one. Persistence is covered by core's own specs.
+        { provide: LANGUAGE_STORAGE, useValue: null },
+      ],
     });
     fixture = TestBed.createComponent(TranslateHost);
     language = TestBed.inject(LanguageService);
