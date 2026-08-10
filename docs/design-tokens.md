@@ -146,3 +146,71 @@ kept separate from the token file because they are different kinds of thing - on
 declares values and styles nothing, the other styles elements and declares no values -
 and that split is what lets Stylelint exempt exactly one file from the hardcoded-value
 rules.
+
+## Typography (Arabic)
+
+### The font stack
+
+```
+'SF Arabic', 'Geeza Pro', 'Dubai', 'Segoe UI', 'Tahoma',
+'Noto Naskh Arabic', 'Noto Sans Arabic', sans-serif
+```
+
+This is **not the Latin stack with a family swapped in**. The Latin stack is a chain of
+Latin UI faces; asking it for Arabic gets whatever the platform happens to substitute,
+which is a different decision on every machine and frequently a badly hinted fallback.
+Each entry below is a real Arabic face, and the order is "best available on this
+platform, then the next platform down".
+
+| Family              | Where it comes from, and why it is in the list                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SF Arabic`         | macOS 12+ and iOS 16+ system Arabic face. Apple's own Arabic companion to the system UI font, so Arabic text matches the rest of the operating system.         |
+| `Geeza Pro`         | The Arabic system face on earlier macOS/iOS, still installed. Covers Macs and iPads that predate SF Arabic.                                                    |
+| `Dubai`             | Ships with Windows 10/11 and Office. An Arabic-**first** Naskh design, so it is preferred _over_ Segoe UI where it exists rather than being a fallback for it. |
+| `Segoe UI`          | The Windows UI font, on every Windows install, with Arabic coverage. The guaranteed Windows step for machines without Office.                                  |
+| `Tahoma`            | Older Windows. For years the readable default for Arabic UI text on Windows; kept as the last Windows step.                                                    |
+| `Noto Naskh Arabic` | The Android system Arabic face, and the usual Linux one. Naskh is the expected style for running body text, which is most of what this product renders.        |
+| `Noto Sans Arabic`  | Newer Android and Linux, and the face present in most CI container images.                                                                                     |
+| `sans-serif`        | The platform's own default, so the last resort is still a face the platform chose for the script - rather than a Latin family with no Arabic coverage at all.  |
+
+Every one of these is a **system font**. Nothing is downloaded, and no network request
+is added. An Arabic webfont is a large file - Arabic needs up to four contextual forms
+per letter plus ligatures - and making Arabic the language that waits on a download
+would make the Arabic build the slower one.
+
+### Arabic needs more line height than Latin at the same size
+
+Arabic letterforms hang below the baseline and reach well above the x-height, words
+connect into long unbroken strokes, and vowel marks sit above and below the letters. At
+the Latin `1.5`, descenders of one line touch the ascenders of the next and a paragraph
+becomes a wall. Each Arabic line height is about a quarter more than the Latin value it
+replaces:
+
+| Token                  | Latin | Arabic |
+| ---------------------- | ----- | ------ |
+| `--line-height-tight`  | `1.2` | `1.5`  |
+| `--line-height-normal` | `1.5` | `1.85` |
+| `--line-height-loose`  | `1.7` | `2.05` |
+
+The override is four declarations at the bottom of `_tokens.scss`:
+
+```scss
+:root[lang='ar'] {
+  --font-family-base: var(--font-family-arabic);
+  --line-height-tight: 1.5;
+  --line-height-normal: 1.85;
+  --line-height-loose: 2.05;
+}
+```
+
+Three things about that block are deliberate:
+
+- **It is keyed off `lang`, not `dir`.** The reason Arabic needs more leading is the
+  script, not the direction it runs in. `lang` is written by `LanguageService` in
+  `core`, which is the only thing in the workspace that writes `lang`/`dir`.
+- **It is not a second stylesheet.** It sits in the same file as the values it
+  overrides, so there is no mirrored Arabic stylesheet to drift out of sync with the
+  Latin one - the same argument that makes logical properties mandatory here.
+- **It works because the line heights are unitless.** A unitless multiplier
+  re-multiplies every size on the scale; a `px` line height would have been correct at
+  exactly one font size.

@@ -125,4 +125,79 @@
   --line-height-tight: 1.2; // headings, where a loose leading looks disconnected
   --line-height-normal: 1.5; // body text
   --line-height-loose: 1.7; // long-form paragraphs
+
+  // ---------------------------------------------------------------------------
+  // Typography - Arabic
+  // ---------------------------------------------------------------------------
+
+  // A separate stack of real Arabic faces, not the Latin stack with one family
+  // swapped in. The Latin stack is a chain of Latin UI faces; asking it for
+  // Arabic gets you whatever the platform substitutes, which is a different
+  // decision on every machine and often a poorly hinted fallback.
+
+  // Every entry earns its place, and the order is "best available per platform,
+  // then the next platform down":
+
+  //   'SF Arabic'          macOS 12+ / iOS 16+ system Arabic face. Apple's own
+  //                        Arabic companion to the system UI font, so Arabic
+  //                        text matches the rest of the OS.
+  //   'Geeza Pro'          The Arabic system face on earlier macOS/iOS, still
+  //                        installed. Covers Macs and iPads that predate SF Arabic.
+  //   'Dubai'              Ships with Windows 10/11 and Office. An Arabic-FIRST
+  //                        Naskh design, so it is preferred over Segoe UI where
+  //                        it exists, rather than being a fallback for it.
+  //   'Segoe UI'           The Windows UI font, present on every Windows install
+  //                        and carrying Arabic coverage. The guaranteed Windows
+  //                        step, for machines without Office.
+  //   'Tahoma'             Older Windows. For years the readable default for
+  //                        Arabic UI text on Windows; kept as the last Windows step.
+  //   'Noto Naskh Arabic'  The Android system Arabic face, and the usual Linux
+  //                        one. Naskh is the expected style for running body
+  //                        text, which is what this product is mostly made of.
+  //   'Noto Sans Arabic'   Newer Android and Linux, and the face present in most
+  //                        CI container images.
+  //   sans-serif           The platform's own default, so the last resort is
+  //                        still something the platform chose for its script -
+  //                        never a Latin face with no Arabic coverage.
+
+  // All system fonts. Nothing here is downloaded: an Arabic webfont is a large
+  // file (Arabic needs four contextual forms per letter plus ligatures), and
+  // making Arabic the language that waits for a network request would make the
+  // Arabic build the slower one.
+  --font-family-arabic:
+    'SF Arabic', 'Geeza Pro', 'Dubai', 'Segoe UI', 'Tahoma', 'Noto Naskh Arabic',
+    'Noto Sans Arabic', sans-serif;
+}
+
+// ---------------------------------------------------------------------------
+// The Arabic overrides
+// ---------------------------------------------------------------------------
+
+// Keyed off the `lang` attribute, which `LanguageService` in `core` sets on the
+// document element - the one place in the workspace that writes `lang`/`dir`.
+// That makes this a per-LANGUAGE override rather than a per-direction one, which
+// is the honest distinction: the reason Arabic needs more leading is the script,
+// not the direction it runs in.
+
+// This is not a second stylesheet. It is four declarations in the same file as
+// the values they override, so there is no mirrored Arabic stylesheet to drift
+// out of sync with the Latin one - which is the same reason the workspace
+// requires logical properties everywhere.
+
+// Arabic needs MORE LINE HEIGHT THAN LATIN AT THE SAME SIZE. Arabic letterforms
+// hang below the baseline and reach well above the x-height, words connect into
+// long unbroken strokes, and vowel marks sit above and below the letters. At
+// 1.5 the descenders of one line touch the ascenders of the next and the text
+// becomes a wall. The multipliers below are each about a quarter more than the
+// Latin value they replace.
+
+// The line heights are unitless, so these substitutions re-multiply every font
+// size on the scale rather than being fixed at whichever size they were tuned
+// against.
+
+:root[lang='ar'] {
+  --font-family-base: var(--font-family-arabic);
+  --line-height-tight: 1.5; // Latin 1.2
+  --line-height-normal: 1.85; // Latin 1.5
+  --line-height-loose: 2.05; // Latin 1.7
 }
