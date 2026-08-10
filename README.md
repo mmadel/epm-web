@@ -2,6 +2,33 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.3.
 
+## Environment configuration
+
+The API base URL is supplied at build time and is never relative or same-origin: the
+staff console and the patient app (which ships as a Capacitor bundle served from a
+`capacitor://` origin) are deployed separately from the API.
+
+Set `EPM_API_BASE_URL` to an absolute `http:`/`https:` URL before building, starting or
+testing. Either export it in the environment, or copy `.env.example` to `.env` at the
+workspace root and fill it in:
+
+```bash
+cp .env.example .env
+# EPM_API_BASE_URL=https://api.example.com
+```
+
+`npm run build`, `npm start` and `npm test` run `scripts/generate-environment.mjs`
+first. That script writes `projects/<app>/src/environments/environment.generated.ts`
+for each application (git-ignored, never edited by hand) and exits with a non-zero
+status before Angular starts if `EPM_API_BASE_URL` is missing or invalid.
+
+Applications do not read the environment file directly; only each app's
+`app.config.ts` does, passing the value to `provideApiBaseUrl()` from the `core`
+library. Components and services inject the `API_BASE_URL` token instead. The token has
+no default, so a missing provider is a hard injection failure.
+
+CI must define `EPM_API_BASE_URL` for build and test jobs.
+
 ## Development server
 
 To start a local development server, run:
