@@ -2,6 +2,8 @@ import { Language } from 'core';
 
 import { commonAr } from './common.ar';
 import { commonEn } from './common.en';
+import { errorsAr } from './errors.ar';
+import { errorsEn } from './errors.en';
 import { shellAr } from './shell.ar';
 import { shellEn } from './shell.en';
 
@@ -12,7 +14,7 @@ import { shellEn } from './shell.en';
 // TO ADD AN AREA: create `<area>.en.ts` and `<area>.ar.ts` next to these (copy
 // the shape of shell.en.ts / shell.ar.ts), then add the two spreads below. That
 // is the whole procedure - there is no registration list, no asset glob and no
-// build step. F-04 adds an `errors` area this way.
+// build step. The `errors` area was added exactly this way.
 //
 // Conventions are documented in ./README.md, including the reason the Arabic
 // files currently hold English.
@@ -20,11 +22,13 @@ import { shellEn } from './shell.en';
 
 const en = {
   ...commonEn,
+  ...errorsEn,
   ...shellEn,
 };
 
 const ar = {
   ...commonAr,
+  ...errorsAr,
   ...shellAr,
 };
 
