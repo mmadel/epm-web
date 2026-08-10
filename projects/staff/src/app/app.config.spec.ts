@@ -1,3 +1,4 @@
+import { ApplicationRef, DOCUMENT } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { API_BASE_URL } from 'core';
 
@@ -18,5 +19,20 @@ describe('staff appConfig', () => {
     expect(apiBaseUrl.trim().length).toBeGreaterThan(0);
     expect(['http:', 'https:']).toContain(new URL(apiBaseUrl).protocol);
     expect(apiBaseUrl.endsWith('/')).toBe(false);
+  });
+});
+
+describe('staff appConfig language', () => {
+  it('labels the document with lang and dir at bootstrap', () => {
+    const documentRef = document.implementation.createHTMLDocument('test');
+
+    TestBed.configureTestingModule({
+      providers: [{ provide: DOCUMENT, useValue: documentRef }, ...appConfig.providers],
+    });
+    TestBed.inject(ApplicationRef);
+    TestBed.tick();
+
+    expect(documentRef.documentElement.getAttribute('lang')).toBe('en');
+    expect(documentRef.documentElement.getAttribute('dir')).toBe('ltr');
   });
 });

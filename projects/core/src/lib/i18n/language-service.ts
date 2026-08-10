@@ -1,5 +1,6 @@
-import { Injectable, Signal, signal } from '@angular/core';
+import { DOCUMENT, effect, inject, Injectable, Signal, signal } from '@angular/core';
 
+import { applyDocumentLanguage } from './document-language';
 import { DEFAULT_LANGUAGE, Language } from './language';
 
 /**
@@ -18,10 +19,24 @@ import { DEFAULT_LANGUAGE, Language } from './language';
  */
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
+  // Injected rather than reaching for the global `document`, so the effect below is
+  // testable against a throwaway document instead of the one the test runner shares.
+  private readonly documentRef = inject(DOCUMENT);
+
   private readonly current = signal<Language>(DEFAULT_LANGUAGE);
 
   /** The active language. Read-only: change it through {@link setLanguage}. */
   readonly language: Signal<Language> = this.current.asReadonly();
+
+  constructor() {
+    // One effect, one call, both attributes. `applyDocumentLanguage` sets `lang` and
+    // `dir` together from a single language value, and this is its only caller, so
+    // the document cannot end up with one attribute updated and the other stale -
+    // there is no code path that sets a direction without also setting a language.
+    // This also covers the initial state: the effect runs once on creation, so the
+    // document is labelled correctly before anything is rendered.
+    effect(() => applyDocumentLanguage(this.documentRef, this.current()));
+  }
 
   /** Switches the active language. Setting the language already in use is a no-op. */
   setLanguage(language: Language): void {
