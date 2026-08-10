@@ -43,6 +43,12 @@ __screenshots__/
 .env
 projects/*/src/environments/environment.generated.ts
 
+# Local tooling scratch. Agent worktrees are created here: each one is a second
+# checkout of this repository with its own node_modules, so a leftover shows up
+# as thousands of untracked files in an editor and buries anything real in
+# `git status`.
+.claude/
+
 # System files
 .DS_Store
 Thumbs.db
