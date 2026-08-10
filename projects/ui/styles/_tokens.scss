@@ -83,4 +83,46 @@
   --space-4: 1.5rem;
   --space-5: 2rem;
   --space-6: 3rem;
+
+  // ---------------------------------------------------------------------------
+  // Typography - Latin
+  // ---------------------------------------------------------------------------
+
+  // A system font stack, not a webfont. The product is a clinical console used
+  // over hospital and clinic connections; a webfont is a render-blocking network
+  // dependency and a flash of unstyled text in exchange for nothing a user of
+  // this product would notice.
+  // Family names are quoted so their capitalisation survives Stylelint's
+  // lower-casing of unquoted value keywords; `-apple-system` must stay a bare
+  // keyword, and `sans-serif` is a generic family rather than a name.
+  --font-family-latin:
+    -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+
+  // What everything actually references. It points at the Latin stack here and
+  // is repointed at the Arabic stack by the `[lang='ar']` block below, so no
+  // component ever names a language-specific family.
+  --font-family-base: var(--font-family-latin);
+
+  // Six size steps, for the same reason the spacing scale has six: enough to
+  // build a hierarchy with, few enough that choosing one is not a decision.
+  // `rem` throughout, so the whole scale follows the user's browser font size.
+  --font-size-xs: 0.75rem; // fine print, table footnotes
+  --font-size-sm: 0.875rem; // secondary text, dense table cells
+  --font-size-md: 1rem; // body text - the default
+  --font-size-lg: 1.25rem; // section heading
+  --font-size-xl: 1.5rem; // page heading
+  --font-size-2xl: 2rem; // the one heading on a page that needs to shout
+
+  // Three weights. A system stack cannot be relied on for more than these three
+  // across platforms, and a hierarchy that needs a fourth is a hierarchy that
+  // needs a size step instead.
+  --font-weight-regular: 400;
+  --font-weight-medium: 500; // labels, active navigation, table headers
+  --font-weight-bold: 700;
+
+  // Unitless line heights, so they multiply whatever font size they land on
+  // rather than being fixed at the size they were written against.
+  --line-height-tight: 1.2; // headings, where a loose leading looks disconnected
+  --line-height-normal: 1.5; // body text
+  --line-height-loose: 1.7; // long-form paragraphs
 }

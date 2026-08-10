@@ -96,3 +96,53 @@ The steps are roughly 1.5x apart and expressed in `rem` so they scale with the u
 browser font size. A clinical console gets used by people who have turned their
 default text size up, and a `px` scale silently ignores them - which is also why
 Stylelint rejects a `px` length in a spacing property outside this file.
+
+## Typography (Latin)
+
+Six size steps, three weights, three line heights - the same "few enough that
+choosing is not a decision" argument as the spacing scale.
+
+| Token             | Value      | Intended use                                   |
+| ----------------- | ---------- | ---------------------------------------------- |
+| `--font-size-xs`  | `0.75rem`  | Fine print, table footnotes.                   |
+| `--font-size-sm`  | `0.875rem` | Secondary text, dense table cells.             |
+| `--font-size-md`  | `1rem`     | Body text - the default.                       |
+| `--font-size-lg`  | `1.25rem`  | Section heading.                               |
+| `--font-size-xl`  | `1.5rem`   | Page heading.                                  |
+| `--font-size-2xl` | `2rem`     | The one heading on a page that needs to shout. |
+
+| Token                   | Value | Intended use                              |
+| ----------------------- | ----- | ----------------------------------------- |
+| `--font-weight-regular` | `400` | Body text.                                |
+| `--font-weight-medium`  | `500` | Labels, active navigation, table headers. |
+| `--font-weight-bold`    | `700` | Emphasis.                                 |
+
+| Token                  | Value | Intended use                                      |
+| ---------------------- | ----- | ------------------------------------------------- |
+| `--line-height-tight`  | `1.2` | Headings, where loose leading looks disconnected. |
+| `--line-height-normal` | `1.5` | Body text.                                        |
+| `--line-height-loose`  | `1.7` | Long-form paragraphs.                             |
+
+Line heights are unitless so they multiply whatever font size they land on, rather
+than being frozen at the size they were written against. That property is what makes
+the per-language override in the next section possible at all.
+
+The Latin family is a **system font stack**, not a webfont:
+
+```
+-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif
+```
+
+A webfont is a render-blocking network dependency and a flash of unstyled text, bought
+in exchange for something no user of a clinical console would notice.
+
+Nothing references `--font-family-latin` directly. Components reference
+`--font-family-base`, which points at the Latin stack by default and is repointed for
+Arabic by the `lang` selector below, so no component ever names a language.
+
+`projects/ui/styles/_base.scss` is the only stylesheet that applies the scale to the
+document (box sizing, and the body's family/size/weight/line-height/colour). It is
+kept separate from the token file because they are different kinds of thing - one
+declares values and styles nothing, the other styles elements and declares no values -
+and that split is what lets Stylelint exempt exactly one file from the hardcoded-value
+rules.
