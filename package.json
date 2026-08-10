@@ -4,8 +4,11 @@
   "scripts": {
     "ng": "ng",
     "generate:env": "node scripts/generate-environment.mjs",
-    "prestart": "npm run generate:env",
-    "start": "ng serve",
+    "start": "npm run start:staff",
+    "prestart:staff": "npm run generate:env && npm run build:libs",
+    "start:staff": "ng serve staff",
+    "prestart:patient": "npm run generate:env && npm run build:libs",
+    "start:patient": "ng serve patient",
     "build:libs": "ng build api-client && ng build core && ng build ui",
     "prebuild": "npm run generate:env",
     "build": "npm run build:libs && ng build staff && ng build patient",
