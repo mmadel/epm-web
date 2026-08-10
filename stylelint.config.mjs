@@ -30,12 +30,26 @@ const COLOUR_TOKENS = [
   '--color-text',
   '--color-text-inverse',
   '--color-border',
+  '--color-border-soft',
+  '--color-border-strong',
   '--color-primary',
   '--color-primary-hover',
+  '--color-primary-soft',
+  '--color-primary-deep',
   '--color-danger',
   '--color-danger-hover',
   '--color-muted-surface',
   '--color-muted-text',
+  '--color-subtle-text',
+  '--color-info-surface',
+  '--color-info-text',
+  '--color-info-mark',
+  '--color-warning-surface',
+  '--color-warning-text',
+  '--color-warning-mark',
+  '--color-danger-surface',
+  '--color-danger-text',
+  '--color-danger-mark',
 ];
 
 /** The spacing scale, with the value of each step so the message is actionable. */
@@ -148,6 +162,39 @@ export default {
   },
 
   overrides: [
+    {
+      // ---------------------------------------------------------------------
+      // The platform console (F1 P-00.4)
+      // ---------------------------------------------------------------------
+      //
+      // It is English-only and LTR-only, permanently, and it is excluded from
+      // the direction rules above rather than made to work around them. If this
+      // console ever needs Arabic, that is a decision, and THIS BLOCK IS WHERE
+      // IT GETS MADE - deleting these four lines is what turns the rules back
+      // on, which is a smaller and more visible change than unpicking a
+      // stylesheet full of workarounds.
+      //
+      // The direction rules are switched off by REPLACING the disallowed list
+      // rather than nulling it, because the same rule carries the other thing
+      // this console must not do: F1 §1 settles that depth here comes from the
+      // tonal step between the white bands and the canvas, and from nothing
+      // else. A shadow added to one component later would match nothing in the
+      // console around it, so it fails the build instead of reaching review.
+      files: ['projects/platform/**/*.scss'],
+      rules: {
+        'property-disallowed-list': [
+          ['box-shadow', 'text-shadow'],
+          {
+            message: (property) =>
+              `"${property}" is not allowed in the platform console. Depth here is the tonal ` +
+              'step between a white band (--color-surface-raised) and the canvas ' +
+              '(--color-surface); there is no shadow anywhere in this application, and one ' +
+              'added now would match nothing around it. See the F1 design handoff, §1.',
+          },
+        ],
+        'declaration-property-value-disallowed-list': null,
+      },
+    },
     {
       // The one exemption, and it is the file the rules exist to protect: raw
       // values here are the definitions the rest of the workspace points at, not

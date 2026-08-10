@@ -9,6 +9,8 @@
     "start:staff": "ng serve staff",
     "prestart:patient": "npm run generate:env && npm run build:libs",
     "start:patient": "ng serve patient",
+    "prestart:platform": "npm run generate:env && npm run build:libs",
+    "start:platform": "ng serve platform",
     "build:libs": "ng build api-client && ng build core && ng build ui",
     "prebuild": "npm run generate:env",
     "build": "npm run build:libs && ng build staff && ng build patient && ng build platform",
@@ -22,7 +24,7 @@
     "lint:styles": "stylelint \"projects/**/*.scss\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:lint-rules": "node --test \"tools/eslint-rules/**/*.test.js\"",
+    "test:lint-rules": "node --test \"tools/**/*.test.js\"",
     "prepare": "husky"
   },
   "private": true,

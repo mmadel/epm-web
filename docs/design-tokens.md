@@ -63,13 +63,77 @@ lie, and nobody can reach for `--color-red` because they want a warning.
 | `--color-danger-hover`   | The same role, hovered or pressed.                            |
 | `--color-muted-surface`  | A de-emphasised or disabled fill.                             |
 | `--color-muted-text`     | Secondary text, and the label of a disabled control.          |
+| `--color-subtle-text`    | A third step: metadata, a placeholder, a note under a line.   |
+| `--color-border-soft`    | A separator inside a card, between its rows.                  |
+| `--color-border-strong`  | An input's edge, an unselected chip.                          |
+| `--color-primary-soft`   | A tinted area carrying accent content: an icon tile, avatar.  |
+| `--color-primary-deep`   | Text and glyphs on `--color-primary-soft`.                    |
 
 `--color-muted-surface` and `--color-muted-text` are a pair: the muted text colour is
 legible both on the page and on the muted fill, so a disabled control can be built
-from the two without checking anything.
+from the two without checking anything. `--color-primary-soft` and
+`--color-primary-deep` are a pair for the same reason - `--color-primary` on the soft
+tint does not clear 4.5:1, and the deep step does.
 
-There are no warning or success tokens. They get added by the first ticket that
-actually renders a warning or a success, rather than being guessed at now.
+### Status
+
+Three tinted **triples**, added by F1 P-03 - the first ticket that actually rendered
+one - rather than guessed at when the palette was written.
+
+| Role    | Tint                      | Text                   | Mark                   |
+| ------- | ------------------------- | ---------------------- | ---------------------- |
+| Info    | `--color-info-surface`    | `--color-info-text`    | `--color-info-mark`    |
+| Warning | `--color-warning-surface` | `--color-warning-text` | `--color-warning-mark` |
+| Danger  | `--color-danger-surface`  | `--color-danger-text`  | `--color-danger-mark`  |
+
+`-mark` is a **non-text** carrier: a dot, a leading edge, an icon. It only has to
+reach 3:1, and it exists so that a status is never signalled by tint alone - the words
+say it, the tint repeats it, and the mark repeats it again for a reader who separates
+shapes more easily than hues.
+
+`--color-danger` and `--color-danger-hover` are still the strong pair, for a filled
+destructive control. `--color-danger-surface` is the tinted version, for an area that
+has to stay readable underneath text. There is still no success role: nothing renders
+one yet.
+
+### Contrast is checked, not estimated
+
+`tools/design-tokens/contrast.test.js` reads this file's values and fails if any pair
+the product actually stacks drops below its floor - 4.5:1 for text, 3:1 for a mark. It
+runs in CI as part of `npm run test:lint-rules`.
+
+It exists because contrast is the one design property that is objectively decidable
+and completely invisible in a diff: nobody reviewing `--color-warning-text: #a2711a`
+can see that it fails on its own tint by half a point. That value did, which is why
+the amber pair reads closer to bronze than an amber picked by eye would. **Adding a
+new colour pair to a screen means adding it to that list**, otherwise it is not
+covered.
+
+## Theming one application
+
+An application can reassign these roles for itself with one attribute on its
+`<html>` element and one block in `_tokens.scss`:
+
+```html
+<html lang="en" data-app="platform"></html>
+```
+
+```scss
+:root[data-app='platform'] {
+  --color-primary: #0e7c66;
+}
+```
+
+The platform console does exactly this: it inverts the two surface roles (its page is
+a tinted canvas and its bands are white), moves the accent from clinical blue to deep
+sea green, and shrinks the type scale by about 20% for a dense internal console. The
+block lives in `_tokens.scss` rather than in the application, so that
+`projects/platform/src/styles.scss` contains no palette at all and no application
+stylesheet ever needs a raw colour value.
+
+**Only roles are reassigned - never new names.** A `--platform-…` token would be a
+name only one application understands, and the first step towards a `ui` component
+branching on which console it is rendering in. The contrast test asserts this too.
 
 ## Spacing
 

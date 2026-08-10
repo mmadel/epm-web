@@ -1,0 +1,210 @@
+// Every colour pair the product actually puts on top of another one, checked
+// against the WCAG contrast floor.
+//
+// This is a test rather than a review note because contrast is the one design
+// property that is objectively decidable and completely invisible in a diff. A
+// reviewer looking at `--color-warning-text: #a2711a` cannot tell that it fails
+// on its own tint by half a point; this can, and it names the pair when it does.
+//
+// It reads the token file rather than a copy of the values, so a token edited
+// without checking is what makes it fail. Adding a pair below is what makes a
+// new treatment covered - the list is the specification of what gets checked,
+// and it is deliberately explicit: deriving the pairs automatically would mean
+// guessing which token is ever drawn on which, and guessing wrong quietly.
+
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
+const test = require('node:test');
+const assert = require('node:assert/strict');
+
+const TOKENS = join(__dirname, '..', '..', 'projects', 'ui', 'styles', '_tokens.scss');
+
+/** WCAG 2.2: 4.5:1 for body text, 3:1 for a non-text carrier such as a dot or an edge. */
+const TEXT = 4.5;
+const MARK = 3;
+
+/**
+ * The token values, per theme block.
+ *
+ * `:root` is the workspace default that the staff console wears;
+ * `:root[data-app='platform']` reassigns some of the same roles for the platform
+ * console, so a pair has to be checked against whichever theme it renders in.
+ */
+function readThemes() {
+  const source = readFileSync(TOKENS, 'utf8');
+  const themes = {};
+
+  for (const [, selector, body] of source.matchAll(/^(:root[^{]*)\{([\s\S]*?)^\}/gm)) {
+    const declarations = {};
+
+    for (const [, name, value] of body.matchAll(/(--[\w-]+):\s*([^;]+);/g)) {
+      declarations[name] = value.trim();
+    }
+
+    themes[selector.trim()] = declarations;
+  }
+
+  return themes;
+}
+
+/** Resolves a token in a theme, falling back to the workspace default. */
+function value(themes, theme, token) {
+  const resolved = themes[theme]?.[token] ?? themes[':root'][token];
+
+  assert.ok(resolved, `No value for ${token} in ${theme} or :root`);
+  assert.match(resolved, /^#[0-9a-f]{3,6}$/i, `${token} in ${theme} is not a plain hex colour`);
+
+  return resolved;
+}
+
+function channels(hex) {
+  const digits = hex.slice(1);
+  const full =
+    digits.length === 3
+      ? digits
+          .split('')
+          .map((digit) => digit + digit)
+          .join('')
+      : digits;
+
+  return [0, 2, 4].map((at) => parseInt(full.slice(at, at + 2), 16));
+}
+
+function relativeLuminance(hex) {
+  const [r, g, b] = channels(hex).map((channel) => {
+    const unit = channel / 255;
+
+    return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+  });
+
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrast(foreground, background) {
+  const a = relativeLuminance(foreground);
+  const b = relativeLuminance(background);
+
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+const PLATFORM = ":root[data-app='platform']";
+const DEFAULT = ':root';
+
+/** [theme, description, foreground token, background token, floor] */
+const PAIRS = [
+  // ---------------------------------------------------------------------------
+  // The platform console (F1 P-03)
+  // ---------------------------------------------------------------------------
+  [PLATFORM, 'body text on the canvas', '--color-text', '--color-surface', TEXT],
+  [PLATFORM, 'body text on a white band', '--color-text', '--color-surface-raised', TEXT],
+  [PLATFORM, 'supporting text on a band', '--color-muted-text', '--color-surface-raised', TEXT],
+  [PLATFORM, 'supporting text on the canvas', '--color-muted-text', '--color-surface', TEXT],
+  [PLATFORM, 'the blocked note on the canvas', '--color-subtle-text', '--color-surface', TEXT],
+  [PLATFORM, 'a link on a band', '--color-primary', '--color-surface-raised', TEXT],
+  [PLATFORM, 'a link on the canvas', '--color-primary', '--color-surface', TEXT],
+  [PLATFORM, 'the add button label', '--color-text-inverse', '--color-primary', TEXT],
+  [
+    PLATFORM,
+    'the add button label, hovered',
+    '--color-text-inverse',
+    '--color-primary-hover',
+    TEXT,
+  ],
+  [
+    PLATFORM,
+    'account initials on the soft tile',
+    '--color-primary-deep',
+    '--color-primary-soft',
+    TEXT,
+  ],
+
+  // The five environment chips. The design handoff calls these out as the risk
+  // in this palette, and it was right about the amber one.
+  [PLATFORM, 'the local chip', '--color-muted-text', '--color-muted-surface', TEXT],
+  [PLATFORM, 'the local chip dot', '--color-subtle-text', '--color-muted-surface', MARK],
+  [PLATFORM, 'the development chip', '--color-info-text', '--color-info-surface', TEXT],
+  [PLATFORM, 'the development chip dot', '--color-info-mark', '--color-info-surface', MARK],
+  [PLATFORM, 'the staging chip', '--color-warning-text', '--color-warning-surface', TEXT],
+  [PLATFORM, 'the staging chip dot', '--color-warning-mark', '--color-warning-surface', MARK],
+  // Production's treatment is also what an unreadable environment wears.
+  [PLATFORM, 'the production chip', '--color-danger-text', '--color-danger-surface', TEXT],
+  [PLATFORM, 'the production chip dot', '--color-danger-mark', '--color-danger-surface', MARK],
+
+  // The edge strip sits above the header, so it is drawn against the band.
+  [PLATFORM, 'the staging edge', '--color-warning-mark', '--color-surface-raised', MARK],
+  [PLATFORM, 'the production edge', '--color-danger-mark', '--color-surface-raised', MARK],
+
+  // Non-text marks.
+  [PLATFORM, 'the focus ring on a band', '--color-primary', '--color-surface-raised', MARK],
+  [PLATFORM, 'the focus ring on the canvas', '--color-primary', '--color-surface', MARK],
+  [PLATFORM, 'the wordmark glyph', '--color-primary', '--color-primary-soft', MARK],
+
+  // ---------------------------------------------------------------------------
+  // The workspace default, which the staff console wears
+  // ---------------------------------------------------------------------------
+  [DEFAULT, 'body text on the page', '--color-text', '--color-surface', TEXT],
+  [DEFAULT, 'body text on a raised surface', '--color-text', '--color-surface-raised', TEXT],
+  [DEFAULT, 'supporting text on the page', '--color-muted-text', '--color-surface', TEXT],
+  [
+    DEFAULT,
+    'supporting text on a muted surface',
+    '--color-muted-text',
+    '--color-muted-surface',
+    TEXT,
+  ],
+  [DEFAULT, 'the third step of text on the page', '--color-subtle-text', '--color-surface', TEXT],
+  [
+    DEFAULT,
+    'the third step of text on a raised surface',
+    '--color-subtle-text',
+    '--color-surface-raised',
+    TEXT,
+  ],
+  [DEFAULT, 'an active navigation entry', '--color-text-inverse', '--color-primary', TEXT],
+  [
+    DEFAULT,
+    'a hovered active navigation entry',
+    '--color-text-inverse',
+    '--color-primary-hover',
+    TEXT,
+  ],
+  [DEFAULT, 'text on the soft accent', '--color-primary-deep', '--color-primary-soft', TEXT],
+  [DEFAULT, 'text on a filled danger area', '--color-text-inverse', '--color-danger', TEXT],
+  [DEFAULT, 'an info tint', '--color-info-text', '--color-info-surface', TEXT],
+  [DEFAULT, 'an info mark', '--color-info-mark', '--color-info-surface', MARK],
+  [DEFAULT, 'a warning tint', '--color-warning-text', '--color-warning-surface', TEXT],
+  [DEFAULT, 'a warning mark', '--color-warning-mark', '--color-warning-surface', MARK],
+  [DEFAULT, 'a danger tint', '--color-danger-text', '--color-danger-surface', TEXT],
+  [DEFAULT, 'a danger mark', '--color-danger-mark', '--color-danger-surface', MARK],
+  [DEFAULT, 'the focus ring on the page', '--color-primary', '--color-surface', MARK],
+];
+
+test('every colour the product stacks on another clears its contrast floor', () => {
+  const themes = readThemes();
+  const failures = [];
+
+  for (const [theme, description, foreground, background, floor] of PAIRS) {
+    const ratio = contrast(value(themes, theme, foreground), value(themes, theme, background));
+
+    if (ratio < floor) {
+      failures.push(
+        `${description} (${theme}): ${foreground} on ${background} is ` +
+          `${ratio.toFixed(2)}:1, needs ${floor}:1`,
+      );
+    }
+  }
+
+  // Every failure at once. Fixing a palette one reported pair per run is how a
+  // contrast pass turns into six pull requests.
+  assert.deepEqual(failures, []);
+});
+
+test('the platform theme reassigns roles rather than inventing names', () => {
+  const themes = readThemes();
+  const invented = Object.keys(themes[PLATFORM]).filter((token) => !(token in themes[DEFAULT]));
+
+  // A `--platform-…` token would be a name only one application understands, and
+  // the first step towards a `ui` component that has to branch on which console
+  // it is rendering in.
+  assert.deepEqual(invented, []);
+});

@@ -47,9 +47,14 @@
   --color-primary: #1b5e9c;
   --color-primary-hover: #14477a;
 
-  // Danger: destructive actions and error states. Deliberately one role, not a
-  // whole status palette - warning/success tokens get added by the first ticket
-  // that actually renders a warning or a success, not guessed at here.
+  // The soft accent pair, for a tinted area carrying accent-coloured content: a
+  // small icon tile, an avatar, a chip. They are a pair for the same reason the
+  // muted pair below is - `--color-primary-deep` is what stays legible on
+  // `--color-primary-soft`, and `--color-primary` on that tint is not.
+  --color-primary-soft: #e7eff7;
+  --color-primary-deep: #164e83;
+
+  // Danger: destructive actions and error states.
   --color-danger: #b3261e;
   --color-danger-hover: #8c1d18;
 
@@ -58,6 +63,53 @@
   // control can be built from the pair without checking anything.
   --color-muted-surface: #e8ecf1;
   --color-muted-text: #5c6a78;
+
+  // A third step of text, quieter than muted: metadata, placeholders, a note
+  // beneath a sentence. It is not a disabled colour - `--color-muted-text` is -
+  // it is text that is present and secondary. It is only just quieter than the
+  // step above, and that is as quiet as A THIRD STEP OF TEXT can get: 4.5:1 on
+  // both surfaces is the floor, and a step that reads as dramatically fainter
+  // than the one above it has stopped clearing it.
+  --color-subtle-text: #66707b;
+
+  // Two more separator weights either side of `--color-border`. A card's edge, a
+  // row separator inside that card and an input's edge are three different jobs
+  // and reading as three different weights is what makes a dense list legible.
+  --color-border-soft: #e5eaf0;
+  --color-border-strong: #b7c2cf;
+
+  // ---------------------------------------------------------------------------
+  // Status
+  // ---------------------------------------------------------------------------
+
+  // Three tinted triples, added by the first ticket that renders one (F1 P-03's
+  // environment chip) rather than guessed at when the palette was written.
+  // Each is `-surface` (the tint), `-text` (what is legible on that tint) and
+  // `-mark` (a dot, a leading edge, an icon - a non-text carrier that only has
+  // to reach 3:1). They come as a triple because a status shown in colour alone
+  // fails for a colour-blind reader: the tint carries it, the mark repeats it,
+  // and the words say it.
+
+  // Info: something true rather than something wrong.
+  --color-info-surface: #eaf1fb;
+  --color-info-text: #28518c;
+  --color-info-mark: #4b79c4;
+
+  // Warning: worth noticing before acting. AMBER IS THE HARD ONE - a yellow at
+  // the brightness people expect a warning to be does not clear 4.5:1 as text
+  // or 3:1 as a mark against its own tint. Both values here were darkened until
+  // they did, which is why they read closer to bronze than to the amber a
+  // designer would pick by eye. See docs/design-tokens.md; the numbers are
+  // checked by a test, not estimated.
+  --color-warning-surface: #fdf6ea;
+  --color-warning-text: #90651a;
+  --color-warning-mark: #b07d22;
+
+  // Danger, tinted. The strong `--color-danger` above is for a filled control;
+  // this is for an area that has to stay readable underneath text.
+  --color-danger-surface: #f9e9e7;
+  --color-danger-text: #8c1d18;
+  --color-danger-mark: #b3261e;
 
   // ---------------------------------------------------------------------------
   // Spacing
@@ -97,6 +149,13 @@
   // keyword, and `sans-serif` is a generic family rather than a name.
   --font-family-latin:
     -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+
+  // A monospace stack, for identifiers only - an error code, a ticket reference,
+  // a key. Never for prose and never for a label: a monospaced UI label is the
+  // "internal tool" look, and it is what makes a console feel cold. Same
+  // reasoning as the Latin stack: system faces, nothing downloaded.
+  --font-family-mono:
+    'SFMono-Regular', 'Menlo', 'Consolas', 'DejaVu Sans Mono', 'Liberation Mono', monospace;
 
   // What everything actually references. It points at the Latin stack here and
   // is repointed at the Arabic stack by the `[lang='ar']` block below, so no
@@ -200,4 +259,83 @@
   --line-height-tight: 1.5; // Latin 1.2
   --line-height-normal: 1.85; // Latin 1.5
   --line-height-loose: 2.05; // Latin 1.7
+}
+
+// ---------------------------------------------------------------------------
+// The platform console's theme
+// ---------------------------------------------------------------------------
+
+// Keyed off `data-app` on the document element, which each application sets once
+// in its own index.html. Same shape as the Arabic block above, and here for the
+// same reason: an application must be able to retheme without a raw colour
+// appearing in an application stylesheet, and this file is the only one allowed
+// to hold raw values. `projects/platform/src/styles.scss` therefore contains no
+// palette at all - the theme is this block.
+
+// THE PLATFORM CONSOLE IS NOT A SKINNED STAFF CONSOLE. It is a separate
+// application specifically so that "whoever runs the platform must never be able
+// to open a patient's chart" is structural, and a screenshot of one being
+// mistakable for the other quietly undoes that. The hue moves the whole way:
+// staff is a clinical blue, this is a deep sea green.
+
+// Only ROLES are reassigned - no new names, no `--platform-` prefix. Every rule
+// in `projects/platform` references the same tokens `projects/staff` does, so
+// nothing in `ui` can acquire a per-application branch, and a component that
+// looks right in one console cannot look wrong in the other for any reason a
+// stylesheet could hide.
+
+// The design handoff calls for Plus Jakarta Sans and IBM Plex Mono. It does not
+// get them: a webfont is a render-blocking network dependency and a flash of
+// unstyled text, and that trade was already settled against - see the Latin
+// stack above. The system stacks stand in.
+
+:root[data-app='platform'] {
+  // Surfaces INVERT relative to the workspace default: the page is a faintly
+  // green canvas and the bands sitting on it are white. Depth comes from that
+  // tonal step and from nothing else - there is no shadow anywhere in this
+  // console, and a shadow added later would match nothing.
+  --color-surface: #f4f8f6;
+  --color-surface-raised: #fff;
+
+  // Three steps of text: the sentence, what supports it, and the note under it.
+  // The third step is darker than the handoff's `--epm-ink-3` (#8a9a94), which
+  // reaches 2.75:1 on this canvas and cannot carry text.
+  --color-text: #12241f;
+  --color-muted-text: #5c6e68;
+  --color-subtle-text: #63706a;
+
+  // A card's edge, a row separator inside it, an input's edge.
+  --color-border: #e3ece8;
+  --color-border-soft: #eff4f2;
+  --color-border-strong: #d5e0db;
+
+  // The accent, and the tinted pair behind an icon tile or an avatar.
+  --color-primary: #0e7c66;
+  --color-primary-hover: #0b6353;
+  --color-primary-soft: #e4f2ed;
+  --color-primary-deep: #0b6353;
+
+  // Greened, so the local environment's chip belongs to the same palette.
+  --color-muted-surface: #eef2f0;
+
+  // Warmed off the workspace red so the production chip sits in the same tonal
+  // family as everything around it. It stays the most alarming thing on screen.
+  --color-danger: #c0483a;
+  --color-danger-hover: #a03a2b;
+  --color-danger-surface: #fbeeec;
+  --color-danger-text: #a03a2b;
+  --color-danger-mark: #c0483a;
+
+  // A COMPACT TYPE SCALE, not a different one: the same six steps, each about
+  // 20% smaller. Five people use this occasionally on a desktop at 1024px or
+  // wider, and it is a console rather than a document - the workspace scale,
+  // tuned for a clinical screen read at arm's length, is too loud here.
+
+  // Still `rem`, so it still follows the user's browser font size.
+  --font-size-xs: 0.6875rem; // 11px - status pills, the environment chip
+  --font-size-sm: 0.75rem; // 12px - supporting text, buttons
+  --font-size-md: 0.8125rem; // 13px - body
+  --font-size-lg: 0.9375rem; // 15px - a section or empty-state headline
+  --font-size-xl: 1.125rem; // 18px - the page title
+  --font-size-2xl: 1.5rem; // 24px
 }
