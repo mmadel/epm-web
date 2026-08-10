@@ -5,6 +5,7 @@
 export * from './lib/errors/error-message';
 export * from './lib/errors/error-message-keys';
 export * from './lib/errors/problem';
+export * from './lib/i18n/language-switch/language-switch';
 export * from './lib/i18n/translate-pipe';
 export * from './lib/i18n/translation-service';
 export * from './lib/i18n/translations';

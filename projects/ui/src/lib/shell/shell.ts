@@ -1,87 +1,84 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { isLanguage, Language, LANGUAGES, LanguageService } from 'core';
 
-import { TranslatePipe } from '../i18n/translate-pipe';
-
-/**
- * One entry in the shell's navigation.
- *
- * The label is a translation KEY rather than a string: the shell resolves it in the
- * active language, so a host cannot accidentally hand it English text that then fails
- * to change when the language does.
- */
+/** One entry in the shell's navigation. */
 export interface ShellNavigationItem {
-  /** Translation key for the label, e.g. `shell.nav.patients`. */
-  readonly labelKey: string;
+  /** The text on the entry, already in the language the host wants. */
+  readonly label: string;
   /** Router path the entry navigates to, e.g. `/patients`. */
   readonly link: string;
 }
 
-/** Which translation key names each language. A `Record` so a new language is a compile error here. */
-const LANGUAGE_LABEL_KEYS: Readonly<Record<Language, string>> = {
-  en: 'shell.language.english',
-  ar: 'shell.language.arabic',
-};
+/**
+ * A product's navigation: the landmark's accessible name and its entries.
+ *
+ * The label and the entries are one input rather than two because a navigation
+ * landmark with no accessible name is an unlabelled landmark, and two separate
+ * inputs let a host supply the entries and forget the name.
+ */
+export interface ShellNavigation {
+  /** Accessible name of the `nav` landmark, e.g. "Main navigation". */
+  readonly label: string;
+  /** The entries, in the order they are shown. May be empty. */
+  readonly items: readonly ShellNavigationItem[];
+}
 
 /**
- * The application frame: header, navigation, content area.
+ * The application frame: an optional edge strip, a header, an optional
+ * navigation column, and the content area.
  *
- * It lives in `ui` and knows nothing about any one application. The staff console and
- * the patient app are different products with different navigation, so the entries are
- * an input and the content is projected - the shell renders a frame and never learns
- * what is inside it.
+ * It lives in `ui` and knows nothing about any one application. The staff
+ * console, the patient app and the platform console are three different
+ * products, so everything that differs between them arrives from outside: the
+ * header's two ends are projected, the navigation is an input, and the content
+ * is projected. The shell renders a frame and never learns what is inside it.
  *
- * DIRECTION. The navigation is on the START side, which is the left in English and the
- * right in Arabic, and there is not one direction-specific declaration in the
- * stylesheet to make that happen. The frame is a grid whose template places `nav`
- * before `main` on the inline axis, and a grid's inline axis follows the document's
- * direction, so the mirroring is the browser's job rather than a second stylesheet's.
- * See shell.scss.
+ * NO TRANSLATION HAPPENS HERE, and that is a requirement rather than a
+ * simplification. Resolving a key inside the frame would make the frame inject
+ * `TranslationService`, which injects `LanguageService`, so mounting it would
+ * read the active language. The platform console is English-only and LTR-only
+ * and is required not to read the language service at all (F1 P-03.2). Labels
+ * are therefore resolved strings: staff pipes them through `translate`, the
+ * platform console writes them in English, and neither arrangement is imposed
+ * on the other.
  *
- * LANGUAGE. The switch writes through `LanguageService`, which is the only owner of the
- * language in the workspace. It deliberately does not touch `dir` or `lang` itself:
- * those are written by one effect inside that service, and a second writer is how a
- * product ends up right-to-left with English text.
+ * DIRECTION. The navigation is on the START side, which is the left in English
+ * and the right in Arabic, and there is not one direction-specific declaration
+ * in the stylesheet to make that happen. The frame is a grid whose template
+ * places `nav` before `main` on the inline axis, and a grid's inline axis
+ * follows the document's direction, so the mirroring is the browser's job
+ * rather than a second stylesheet's. See shell.scss.
+ *
+ * SLOTS. `[shell-edge]` sits above the header, for a strip a product uses to
+ * mark something about the whole page - the platform console puts its
+ * environment edge there. `[shell-brand]` and `[shell-header-end]` are the two
+ * ends of the header. Everything else is projected into the content region.
  */
 @Component({
   selector: 'lib-shell',
-  imports: [RouterLink, RouterLinkActive, TranslatePipe],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })
 export class Shell {
   /**
-   * The navigation entries, in the order they are shown.
+   * The skip link's text.
    *
-   * Empty by default, which renders a frame with no navigation rather than a broken
-   * one - the patient app will mount this long before it knows its own navigation.
+   * Required, with no English default: a default would be the one string in the
+   * frame that silently stays English in Arabic, and it is the first thing a
+   * keyboard user hears.
    */
-  readonly navigation = input<readonly ShellNavigationItem[]>([]);
-
-  private readonly languageService = inject(LanguageService);
-
-  /** The active language, for the switch's selected option. */
-  protected readonly language = this.languageService.language;
-
-  /** The languages on offer, derived from `core`'s list so the switch cannot go stale. */
-  protected readonly languageOptions = LANGUAGES.map((value) => ({
-    value,
-    labelKey: LANGUAGE_LABEL_KEYS[value],
-  }));
+  readonly skipLinkLabel = input.required<string>();
 
   /**
-   * Applies a choice from the language switch.
+   * This product's navigation, or `undefined` when it has none.
    *
-   * The value is narrowed rather than cast: the only values the `<select>` offers are
-   * languages, but a cast would make that an assumption instead of a check, and the
-   * check costs one function call.
+   * The two are different states and are modelled as different values.
+   * `undefined` means "this product has no navigation", and no `nav` landmark
+   * is rendered at all - the platform console has one job and no navigation
+   * band, and a landmark that announces itself and contains nothing is worse
+   * than no landmark. An empty `items` array means "there is a navigation,
+   * it has no entries yet", which renders the named landmark, empty.
    */
-  protected onLanguageChange(event: Event): void {
-    const chosen = (event.target as HTMLSelectElement).value;
-
-    if (isLanguage(chosen)) {
-      this.languageService.setLanguage(chosen);
-    }
-  }
+  readonly navigation = input<ShellNavigation | undefined>(undefined);
 }

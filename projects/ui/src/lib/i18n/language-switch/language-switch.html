@@ -1,0 +1,15 @@
+<label class="language-switch__label" for="language-switch-select">
+  {{ 'shell.language.label' | translate }}
+</label>
+<select
+  id="language-switch-select"
+  class="language-switch__select"
+  [value]="language()"
+  (change)="onLanguageChange($event)"
+>
+  @for (option of languageOptions; track option.value) {
+    <option [value]="option.value" [selected]="option.value === language()">
+      {{ option.labelKey | translate }}
+    </option>
+  }
+</select>

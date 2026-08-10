@@ -1,0 +1,20 @@
+// The product title in the header. It is projected into the frame, so it is
+// styled here rather than in `ui`: emulated view encapsulation scopes a
+// component's stylesheet to the elements declared in its own template, and this
+// span is declared in app.html.
+.staff-brand {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// The content gutter. The frame deliberately does not pad its content region.
+.staff-content {
+  padding: var(--space-5);
+}
+
+@media (width <= 60rem) {
+  .staff-content {
+    padding: var(--space-4) var(--space-3);
+  }
+}

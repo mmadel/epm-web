@@ -108,7 +108,7 @@ async function capture() {
       // Driven through the shell's own language switch, not by planting a value in
       // storage: this way the screenshot is evidence that the control is wired to
       // the language service, and not only that a stylesheet reacts to an attribute.
-      await page.selectOption('#shell-language-select', language);
+      await page.selectOption('#language-switch-select', language);
       await page.waitForFunction(
         ([lang, dir]) => {
           const root = document.documentElement;

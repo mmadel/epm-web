@@ -1,56 +1,60 @@
+<!--
+  The strip above the header. It is a wrapper rather than a bare `ng-content`
+  so that the frame, not the host, decides where the strip sits in the grid; a
+  host that projects nothing leaves an `auto` row with no content in it, which
+  is zero high.
+-->
+<div class="shell-edge">
+  <ng-content select="[shell-edge]" />
+</div>
+
 <header class="shell-header">
   <!--
-    First focusable thing on the page, hidden until it is focused. A keyboard user
-    should not have to tab through every navigation entry on every screen to reach
-    the content, and in this product "every navigation entry" grows with the ticket
-    backlog. It targets the main region's id, which is why that id is spelled out
-    twice in this file rather than being generated.
+    First focusable thing on the page, hidden until it is focused. A keyboard
+    user should not have to tab through every header control on every screen to
+    reach the content. It targets the main region's id, which is why that id is
+    spelled out twice in this file rather than being generated.
   -->
-  <a class="shell-skip-link" href="#shell-main">{{ 'shell.header.skip-to-content' | translate }}</a>
+  <a class="shell-skip-link" href="#shell-main">{{ skipLinkLabel() }}</a>
 
-  <span class="shell-title">{{ 'shell.header.title' | translate }}</span>
+  <div class="shell-header__start">
+    <ng-content select="[shell-brand]" />
+  </div>
 
-  <div class="shell-language">
-    <label class="shell-language__label" for="shell-language-select">
-      {{ 'shell.language.label' | translate }}
-    </label>
-    <select
-      id="shell-language-select"
-      class="shell-language__select"
-      [value]="language()"
-      (change)="onLanguageChange($event)"
-    >
-      @for (option of languageOptions; track option.value) {
-        <option [value]="option.value" [selected]="option.value === language()">
-          {{ option.labelKey | translate }}
-        </option>
-      }
-    </select>
+  <div class="shell-header__end">
+    <ng-content select="[shell-header-end]" />
   </div>
 </header>
 
-<nav class="shell-nav" [attr.aria-label]="'shell.nav.label' | translate">
-  <ul class="shell-nav__list">
-    @for (item of navigation(); track item.link) {
-      <li>
-        <a
-          class="shell-nav__link"
-          [routerLink]="item.link"
-          routerLinkActive="shell-nav__link--active"
-          #active="routerLinkActive"
-          [attr.aria-current]="active.isActive ? 'page' : null"
-        >
-          {{ item.labelKey | translate }}
-        </a>
-      </li>
-    }
-  </ul>
-</nav>
+@if (navigation(); as navigation) {
+  <nav class="shell-nav" [attr.aria-label]="navigation.label">
+    <ul class="shell-nav__list">
+      @for (item of navigation.items; track item.link) {
+        <li>
+          <a
+            class="shell-nav__link"
+            [routerLink]="item.link"
+            routerLinkActive="shell-nav__link--active"
+            #active="routerLinkActive"
+            [attr.aria-current]="active.isActive ? 'page' : null"
+          >
+            {{ item.label }}
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+}
 
 <!--
-  `tabindex="-1"` so the skip link above can actually move focus here; without it
-  the browser scrolls to the region and leaves focus where it was, which is the
-  most common way a skip link is broken while looking like it works.
+  `tabindex="-1"` so the skip link above can actually move focus here; without
+  it the browser scrolls to the region and leaves focus where it was, which is
+  the most common way a skip link is broken while looking like it works.
+
+  The content region has no padding of its own: a product that wants a
+  full-bleed band at the top of its content (the platform console's page
+  header) cannot get one back out of a padded frame, whereas a product that
+  wants a gutter can add one. The frame owns the frame.
 -->
 <main id="shell-main" class="shell-main" tabindex="-1">
   <ng-content />

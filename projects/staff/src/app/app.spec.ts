@@ -36,6 +36,20 @@ describe('App', () => {
     ).toEqual(['Dashboard', 'Patients', 'Appointments', 'Billing']);
   });
 
+  it('puts the product title and the language switch in the frame it mounts', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    // Both are this console's decision rather than the frame's: the frame
+    // translates nothing and offers no language control, so a bilingual product
+    // has to supply one.
+    expect(compiled.querySelector('.shell-header__start')?.textContent?.trim()).toBe(
+      'Elite Physical Medicine',
+    );
+    expect(compiled.querySelector('.shell-header__end lib-language-switch')).not.toBeNull();
+  });
+
   it('projects its content into the shell', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

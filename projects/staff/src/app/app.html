@@ -1,13 +1,24 @@
-<lib-shell [navigation]="navigation">
-  <router-outlet />
+<lib-shell [skipLinkLabel]="'shell.header.skip-to-content' | translate" [navigation]="navigation()">
+  <span shell-brand class="staff-brand">{{ 'shell.header.title' | translate }}</span>
+
+  <lib-language-switch shell-header-end />
 
   <!--
-    There are no screens yet: this console's route table is empty until the first
-    feature ticket adds one, so the content area would otherwise be blank with no
-    explanation. The condition is read from the route table itself, so this
-    disappears on its own rather than becoming something to remember to delete.
+    The frame no longer pads its content region - a product that wants a
+    full-bleed band at the top of a screen cannot get one back out of a padded
+    frame - so this console's gutter lives here.
   -->
-  @if (!hasScreens) {
-    <p>{{ 'common.state.empty' | translate }}</p>
-  }
+  <div class="staff-content">
+    <router-outlet />
+
+    <!--
+      There are no screens yet: this console's route table is empty until the first
+      feature ticket adds one, so the content area would otherwise be blank with no
+      explanation. The condition is read from the route table itself, so this
+      disappears on its own rather than becoming something to remember to delete.
+    -->
+    @if (!hasScreens) {
+      <p>{{ 'common.state.empty' | translate }}</p>
+    }
+  </div>
 </lib-shell>
