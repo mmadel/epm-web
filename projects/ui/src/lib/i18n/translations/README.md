@@ -37,6 +37,7 @@ One folder, two files per feature area:
 ```
 translations/
   common.en.ts   common.ar.ts    # wording reused across features
+  errors.en.ts   errors.ar.ts    # what a person is told when a request fails
   shell.en.ts    shell.ar.ts     # header, navigation, language switch
   index.ts                       # merges the areas into one set per language
 ```
@@ -46,7 +47,7 @@ that owns the wording, and wording with no owner belongs in `common`. The split 
 so that a feature's strings are reviewed with the feature, rather than everyone editing
 one enormous file and resolving conflicts in it.
 
-**To add an area** (F-04 adds `errors` this way): create `<area>.en.ts` and
+**To add an area** (`errors` was added exactly this way): create `<area>.en.ts` and
 `<area>.ar.ts` by copying the shape of `shell.en.ts` / `shell.ar.ts`, then add the two
 spreads to `index.ts`. There is no registration list, no asset glob, no build step.
 
