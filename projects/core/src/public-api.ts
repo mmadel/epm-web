@@ -7,4 +7,5 @@ export * from './lib/core';
 export * from './lib/i18n/document-language';
 export * from './lib/i18n/language';
 export * from './lib/i18n/language-service';
+export * from './lib/i18n/language-storage';
 export * from './lib/i18n/provide-language';

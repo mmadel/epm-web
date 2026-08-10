@@ -29,6 +29,35 @@ no default, so a missing provider is a hard injection failure.
 
 CI must define `EPM_API_BASE_URL` for build and test jobs.
 
+## Language and direction
+
+Arabic and English are both first-class, and the language is switched at runtime in a
+single build. Angular's built-in `$localize` is compile-time and needs one build per
+locale, so it cannot express that; there is no i18n library either. The mechanism is
+small and lives in two places:
+
+- `core` owns the active language. `LanguageService` holds it as a signal, exposed
+  read-only, and `setLanguage()` is the only way to change it. Nothing else in the
+  workspace reads or writes the language. Changing it sets `lang` **and** `dir` on the
+  document element together, from one function called by one effect, and persists the
+  choice in `localStorage`. Storage that is missing or throws (private browsing, and
+  the patient app's `capacitor://` origin) falls back to English rather than breaking
+  bootstrap, as does any stored value that is not exactly `en` or `ar`.
+- `ui` owns the strings. See
+  `projects/ui/src/lib/i18n/translations/README.md` for the folder and key
+  conventions - **and for the fact that the Arabic files currently contain English
+  placeholders on purpose**, pending sign-off from a clinician who has not yet been
+  identified. Templates resolve keys with the `translate` pipe, which is impure so
+  that it re-renders when the language changes.
+
+An application opts in with `provideLanguage()` from `core` (see the staff console's
+`app.config.ts`); without it the document is not labelled until something injects the
+service. Stylesheets must use logical properties (`margin-inline-start`, not
+`margin-left`) - Stylelint enforces this - so one stylesheet serves both directions.
+
+Numerals are Western (1, 2, 3) in both languages, by product decision. There is no
+numeral conversion anywhere and none should be added.
+
 ## Development server
 
 This is a multi-application workspace, so a bare `ng serve` cannot pick a project.

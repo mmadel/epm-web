@@ -1,7 +1,8 @@
 import { DOCUMENT, effect, inject, Injectable, Signal, signal } from '@angular/core';
 
 import { applyDocumentLanguage } from './document-language';
-import { DEFAULT_LANGUAGE, Language } from './language';
+import { Language } from './language';
+import { LANGUAGE_STORAGE, readStoredLanguage, writeStoredLanguage } from './language-storage';
 
 /**
  * The single owner of the active language.
@@ -22,8 +23,12 @@ export class LanguageService {
   // Injected rather than reaching for the global `document`, so the effect below is
   // testable against a throwaway document instead of the one the test runner shares.
   private readonly documentRef = inject(DOCUMENT);
+  private readonly storage = inject(LANGUAGE_STORAGE);
 
-  private readonly current = signal<Language>(DEFAULT_LANGUAGE);
+  // The starting language is whatever was chosen last. readStoredLanguage falls back
+  // to English for an absent, unreadable or unrecognised value, so this cannot throw
+  // and cannot yield a language the product does not have.
+  private readonly current = signal<Language>(readStoredLanguage(this.storage));
 
   /** The active language. Read-only: change it through {@link setLanguage}. */
   readonly language: Signal<Language> = this.current.asReadonly();
@@ -38,8 +43,15 @@ export class LanguageService {
     effect(() => applyDocumentLanguage(this.documentRef, this.current()));
   }
 
-  /** Switches the active language. Setting the language already in use is a no-op. */
+  /**
+   * Switches the active language and remembers the choice for the next visit.
+   *
+   * The choice is persisted here rather than in the effect above, because persisting
+   * is a consequence of someone choosing, not of the document being labelled: an
+   * application that merely starts should not write a preference nobody expressed.
+   */
   setLanguage(language: Language): void {
     this.current.set(language);
+    writeStoredLanguage(this.storage, language);
   }
 }
