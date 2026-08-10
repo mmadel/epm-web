@@ -56,7 +56,11 @@ const KEY_BY_CODE: Readonly<Partial<Record<string, TranslationKey>>> = ERROR_MES
 
 /** The translation key for `code`, or `undefined` if this client has no wording for it. */
 export function lookUpErrorMessageKey(code: string): TranslationKey | undefined {
-  return KEY_BY_CODE[code];
+  // `Object.hasOwn` rather than a bare lookup: the code is a string off the network,
+  // and a plain object answers `constructor` and `__proto__` with something inherited.
+  // Without this, such a "code" resolves to a truthy non-key, which is then handed to
+  // the translator and rendered - the one thing an unknown code must never do.
+  return Object.hasOwn(ERROR_MESSAGE_KEYS, code) ? KEY_BY_CODE[code] : undefined;
 }
 
 /**
