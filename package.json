@@ -4,9 +4,17 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build:libs": "ng build api-client && ng build core && ng build ui",
+    "build": "npm run build:libs && ng build staff && ng build patient",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "node tools/lint.mjs",
+    "lint:es": "eslint .",
+    "lint:styles": "stylelint \"projects/**/*.scss\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:lint-rules": "node --test \"tools/eslint-rules/**/*.test.js\"",
+    "prepare": "husky"
   },
   "private": true,
   "packageManager": "npm@11.12.1",
@@ -24,10 +32,17 @@
     "@angular/build": "^22.1.3",
     "@angular/cli": "^22.1.3",
     "@angular/compiler-cli": "^22.1.0",
+    "angular-eslint": "^22.1.0",
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "jsdom": "^28.0.0",
     "ng-packagr": "^22.1.0",
     "prettier": "^3.8.1",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard-scss": "^17.0.0",
     "typescript": "~6.0.2",
+    "typescript-eslint": "^8.66.0",
     "vitest": "^4.0.8"
   }
 }
