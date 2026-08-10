@@ -1,0 +1,8 @@
+// Deliberate violations - scratch branch only, proving the F-00 gate is real.
+.patient-card {
+  // Violation 3a: direction-specific layout property.
+  margin-left: 1rem;
+
+  // Violation 3b: direction-specific value.
+  text-align: right;
+}
