@@ -39,6 +39,10 @@ testem.log
 /typings
 __screenshots__/
 
+# Environment configuration
+.env
+projects/*/src/environments/environment.generated.ts
+
 # System files
 .DS_Store
 Thumbs.db
