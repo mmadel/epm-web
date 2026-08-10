@@ -1,0 +1,16 @@
+// The `ui` library's global stylesheet: everything an application needs in order
+// to have the design tokens available.
+
+// An application consumes it with a single line in its own `styles.scss`:
+// `@use 'ui/styles';`. That resolves because each application's build adds
+// `dist` to the Sass load path (`stylePreprocessorOptions.includePaths` in
+// angular.json), and because `ui`'s ng-package.json copies this folder into
+// `dist/ui/styles` as an asset.
+
+// That mirrors how TypeScript reaches the library - `import { … } from 'ui'`
+// resolves to `dist/ui` through the root tsconfig `paths` - so there is one
+// mental model for both, and one build order: libraries first.
+
+// Adding a file here means adding a `@use` below; nothing else changes.
+
+@use 'tokens';

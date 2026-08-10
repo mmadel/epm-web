@@ -1,1 +1,10 @@
-/* You can add global styles to this file, and also import other style files */
+// The design tokens live in the `ui` library and are pulled in here, once, for
+// the whole application. `ui/styles` resolves through `dist` (the Sass load path
+// this application's build adds) to `dist/ui/styles/_index.scss`, so the
+// libraries must be built first - exactly as they must be for `import … from 'ui'`.
+
+// The patient application opts in the same way, with the same one line, and its
+// build already has the same load path configured. It is deliberately left alone
+// for now: it is undesigned, and giving it a stylesheet would be designing it.
+
+@use 'ui/styles';

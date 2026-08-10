@@ -1,0 +1,61 @@
+// =============================================================================
+// THE DESIGN TOKEN DEFINITION FILE
+// =============================================================================
+
+// This is the one file in the workspace allowed to contain a raw colour value or
+// a pixel spacing value. Stylelint enforces that (see the `overrides` block in
+// stylelint.config.mjs): everywhere else a hex/rgb()/hsl()/named colour is an
+// error whose message names the token to use instead. Everything outside this
+// file references a token through `var(--…)`.
+
+// Tokens are plain CSS custom properties rather than Sass variables on purpose.
+// A Sass variable is resolved at build time, so it cannot be overridden per
+// language by a selector - and the Arabic typography overrides further down do
+// exactly that, keyed off the `lang` attribute the language service sets. Custom
+// properties also cross the library boundary intact: a component stylesheet in
+// `ui` and an application stylesheet in `staff` reference the same name and get
+// the same value, with no shared Sass compilation.
+
+// See docs/design-tokens.md for the reasoning behind each scale.
+
+:root {
+  // ---------------------------------------------------------------------------
+  // Colour
+  // ---------------------------------------------------------------------------
+
+  // Every name is a ROLE, never a value: `--color-danger`, never `--color-red`.
+  // A reviewer reading `--color-danger` cannot tell what hue it is, which is the
+  // point - the hue is free to change (a rebrand, a contrast fix, a dark theme)
+  // without a single call site becoming a lie. `--color-red` used for a warning
+  // is the failure mode this rules out.
+
+  // Surfaces: the page itself, and anything sitting on top of it (header, side
+  // navigation, cards).
+  --color-surface: #fff;
+  --color-surface-raised: #f4f6f9;
+
+  // Text. `--color-text-inverse` is for text sitting on a filled `--color-primary`
+  // or `--color-danger` area, where `--color-text` would be unreadable.
+  --color-text: #172029;
+  --color-text-inverse: #fff;
+
+  // Separators: borders, rules, the edge between the navigation and the content.
+  --color-border: #ccd4de;
+
+  // Primary: the product's action colour - the active navigation item, a primary
+  // button, a focus ring. The `-hover` step is the same role hovered or pressed.
+  --color-primary: #1b5e9c;
+  --color-primary-hover: #14477a;
+
+  // Danger: destructive actions and error states. Deliberately one role, not a
+  // whole status palette - warning/success tokens get added by the first ticket
+  // that actually renders a warning or a success, not guessed at here.
+  --color-danger: #b3261e;
+  --color-danger-hover: #8c1d18;
+
+  // The muted/disabled pair. These two belong together: `--color-muted-text` is
+  // legible on both `--color-surface` and `--color-muted-surface`, so a disabled
+  // control can be built from the pair without checking anything.
+  --color-muted-surface: #e8ecf1;
+  --color-muted-text: #5c6a78;
+}
