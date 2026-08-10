@@ -1,0 +1,205 @@
+// The application frame.
+
+// THE NAVIGATION IS ON THE START SIDE, NOT THE LEFT SIDE, and there is no
+// direction-specific declaration anywhere below that makes that happen. The frame
+// is a grid, `nav` comes before `main` on the inline axis in the template areas,
+// and a grid's inline axis follows the document direction - so in Arabic the
+// browser mirrors the whole frame with no second stylesheet and no `[dir='rtl']`
+// selector. Everything else here that has a side is a logical property:
+// `border-inline-end` on the navigation, `inset-inline-start` on the skip link.
+
+// No raw colour and no `px` spacing: every value is a token from
+// projects/ui/styles/_tokens.scss, and Stylelint rejects anything else.
+
+:host {
+  display: grid;
+
+  // Rows, areas and columns in one declaration: the navigation sits before the
+  // content on the inline axis, and the browser decides which physical side that
+  // is from the document's direction.
+  grid-template:
+    'header header' auto
+    'nav main' 1fr
+    / 16rem 1fr;
+  min-block-size: 100dvh;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+// ---------------------------------------------------------------------------
+// Header
+// ---------------------------------------------------------------------------
+
+.shell-header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-raised);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.shell-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// Off-screen until focused. `position: fixed` rather than a clip-based
+// visually-hidden helper because it has to become visible in place, and the
+// offset it returns to is on the inline axis, so it lands under the correct
+// corner in both directions.
+.shell-skip-link {
+  position: fixed;
+  z-index: 1;
+  inset-block-start: var(--space-2);
+  inset-inline-start: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 0.25rem;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  transform: translateY(-300%);
+}
+
+.shell-skip-link:focus {
+  transform: translateY(0);
+}
+
+// ---------------------------------------------------------------------------
+// Language switch
+// ---------------------------------------------------------------------------
+
+.shell-language {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.shell-language__label {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+.shell-language__select {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+
+  // `inherit`, so the switch follows the per-language family swap like everything
+  // else rather than falling back to the browser's form-control font.
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+}
+
+// ---------------------------------------------------------------------------
+// Navigation
+// ---------------------------------------------------------------------------
+
+.shell-nav {
+  grid-area: nav;
+  padding: var(--space-3);
+  background-color: var(--color-surface-raised);
+  border-inline-end: 1px solid var(--color-border);
+}
+
+.shell-nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shell-nav__link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 0.25rem;
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  text-decoration: none;
+}
+
+.shell-nav__link:hover {
+  background-color: var(--color-muted-surface);
+}
+
+.shell-nav__link--active {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-medium);
+}
+
+.shell-nav__link--active:hover {
+  background-color: var(--color-primary-hover);
+}
+
+// ---------------------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------------------
+
+.shell-main {
+  grid-area: main;
+
+  // A grid item's automatic minimum size is its content, so without this a wide
+  // table inside the projected content stretches the column and pushes the frame
+  // sideways instead of scrolling within it.
+  min-inline-size: 0;
+  padding: var(--space-5);
+}
+
+// The projected content owns its own focus styling, but the main region itself is
+// focusable for the skip link, and an outline is how a keyboard user knows the
+// jump worked.
+.shell-main:focus-visible,
+.shell-nav__link:focus-visible,
+.shell-language__select:focus-visible,
+.shell-skip-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// ---------------------------------------------------------------------------
+// Tablet
+// ---------------------------------------------------------------------------
+
+// Desktop-first: this is the one breakpoint, and it is where a 16rem navigation
+// column stops leaving a usable content area. Below it the frame becomes a single
+// column and the navigation turns into a horizontal strip under the header, which
+// scrolls on the inline axis if the entries outgrow it. Phone layouts are a
+// separate design problem - the patient app - and are out of scope here.
+@media (width <= 60rem) {
+  :host {
+    grid-template:
+      'header' auto
+      'nav' auto
+      'main' 1fr
+      / 1fr;
+  }
+
+  .shell-nav {
+    padding: var(--space-2) var(--space-3);
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  .shell-nav__list {
+    flex-direction: row;
+    gap: var(--space-2);
+    overflow-x: auto;
+  }
+
+  .shell-nav__link {
+    white-space: nowrap;
+  }
+
+  .shell-main {
+    padding: var(--space-4) var(--space-3);
+  }
+}

@@ -8,4 +8,5 @@ export * from './lib/errors/problem';
 export * from './lib/i18n/translate-pipe';
 export * from './lib/i18n/translation-service';
 export * from './lib/i18n/translations';
+export * from './lib/shell/shell';
 export * from './lib/ui';
