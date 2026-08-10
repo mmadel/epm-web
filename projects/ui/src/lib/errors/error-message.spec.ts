@@ -4,20 +4,9 @@ import { LANGUAGE_STORAGE } from 'core';
 import { TRANSLATIONS } from '../i18n/translations';
 import { UNKNOWN_ERROR_MESSAGE_KEY } from './error-message-keys';
 import { ErrorMessage } from './error-message';
-import { ProblemDetails } from './problem';
+import { UNMAPPED_CODE_PROBLEM } from './problem.fixture';
 
-/**
- * A body with a code that is not in the registry - which is what an older client sees
- * the day the server ships a new one. It is shaped like a real body in every other
- * way, because the point is that everything else about it is unremarkable.
- */
-const UNFAMILIAR: ProblemDetails = {
-  type: 'https://errors.epm/EPM-BIL-042',
-  title: 'Invoice already settled',
-  status: 409,
-  code: 'EPM-BIL-042',
-  traceId: '8c1f4b2e-7a03-4f19-9d55-2b6c0e1a7d84',
-};
+const UNFAMILIAR = UNMAPPED_CODE_PROBLEM;
 
 describe('ErrorMessage, given a code this build has never heard of', () => {
   let fixture: ComponentFixture<ErrorMessage>;
