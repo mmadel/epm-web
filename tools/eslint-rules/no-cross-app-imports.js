@@ -15,7 +15,12 @@
 
 const path = require('path');
 
-const APP_PROJECTS = new Set(['staff', 'patient']);
+// Every application in the workspace. A project missing from this set is not
+// merely unprotected, it is a hole in both directions: an import *into* it is
+// not reported either, because the rule stops as soon as the target is not a
+// known application or library. Add an application here in the same change that
+// adds it to angular.json.
+const APP_PROJECTS = new Set(['staff', 'patient', 'platform']);
 const LIBRARY_PROJECTS = new Set(['core', 'ui', 'api-client']);
 
 function toPosix(p) {
