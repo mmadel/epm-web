@@ -58,3 +58,28 @@ const KEY_BY_CODE: Readonly<Partial<Record<string, TranslationKey>>> = ERROR_MES
 export function lookUpErrorMessageKey(code: string): TranslationKey | undefined {
   return KEY_BY_CODE[code];
 }
+
+/**
+ * The wording shown for a code this build has never heard of.
+ *
+ * Codes are added server-side and clients are not rebuilt in step with them, so a
+ * client meeting an unfamiliar code is ordinary traffic rather than a fault. This is
+ * what it shows, and it is why {@link errorMessageKey} resolves to a key that exists
+ * instead of handing the translator something that does not.
+ */
+export const UNKNOWN_ERROR_MESSAGE_KEY: TranslationKey = 'errors.unknown.message';
+
+/**
+ * The translation key to render for `code` - always one that exists.
+ *
+ * The fallback happens **here, before translation**, and the ordering is the point.
+ * `TranslationService` renders an unknown key as the key itself, deliberately: a
+ * missing string should be a visible bug rather than a blank label. That is right for
+ * a key a developer typed and wrong for a code that arrived over the network, where
+ * the same rule would put `errors.unknown.EPM-XXX-999` in front of a user the first
+ * time the server shipped a code ahead of the client. Resolving the miss to a key that
+ * exists means translation is never asked a question it has to answer badly.
+ */
+export function errorMessageKey(code: string): TranslationKey {
+  return lookUpErrorMessageKey(code) ?? UNKNOWN_ERROR_MESSAGE_KEY;
+}

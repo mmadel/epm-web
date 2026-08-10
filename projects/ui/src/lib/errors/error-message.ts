@@ -2,7 +2,7 @@ import { Component, computed, effect, input } from '@angular/core';
 
 import { TranslatePipe } from '../i18n/translate-pipe';
 import { TranslationParams } from '../i18n/translation-service';
-import { lookUpErrorMessageKey } from './error-message-keys';
+import { errorMessageKey, lookUpErrorMessageKey } from './error-message-keys';
 import { ProblemDetails } from './problem';
 
 /**
@@ -73,17 +73,21 @@ function messageFields(problem: ProblemDetails): TranslationParams {
   selector: 'lib-error-message',
   imports: [TranslatePipe],
   template: `
-    @if (messageKey(); as key) {
-      <p class="error-message" role="alert">{{ key | translate: messageFields() }}</p>
-    }
+    <p class="error-message" role="alert">{{ messageKey() | translate: messageFields() }}</p>
   `,
 })
 export class ErrorMessage {
   /** The problem+json body, straight from the response. */
   readonly problem = input.required<ProblemDetails>();
 
-  /** The wording for this code, from the one table that maps codes to wording. */
-  protected readonly messageKey = computed(() => lookUpErrorMessageKey(this.problem().code));
+  /**
+   * The wording for this code, from the one table that maps codes to wording.
+   *
+   * Always a key that exists: an unfamiliar code resolves to the generic message
+   * rather than to nothing, so there is no state in which this component shows a blank
+   * space, the raw body, or the code itself.
+   */
+  protected readonly messageKey = computed(() => errorMessageKey(this.problem().code));
 
   /**
    * The extra fields this body carries, ready to fill the `{placeholders}` in it.
@@ -107,6 +111,17 @@ export class ErrorMessage {
         title: problem.title,
         traceId: problem.traceId,
       });
+
+      // The reader is shown the generic message and is none the wiser, which is the
+      // correct outcome for them and a useless one for us - so the code says so here.
+      // Seeing this in a log is how anyone finds out the server has started sending
+      // something this build has no wording for.
+      if (lookUpErrorMessageKey(problem.code) === undefined) {
+        console.warn(
+          `[error] No wording for code "${problem.code}"; showed the generic message. ` +
+            'Add a row to ERROR_MESSAGE_KEYS and a string to errors.en.ts / errors.ar.ts.',
+        );
+      }
     });
   }
 }

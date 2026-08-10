@@ -10,6 +10,13 @@
  * See ./README.md for the folder and key conventions this file follows.
  */
 export const errorsEn = {
+  // Shown for a code this build has no wording for - almost always a code the server
+  // started sending after this client was built. It has to stand on its own with no
+  // facts at all, so it says the two true things: nothing was saved, and here is what
+  // to do next. It never mentions the code; that goes to the console.
+  'errors.unknown.message':
+    'Something went wrong and that did not go through. Try again, and contact support if it keeps happening.',
+
   'errors.request.malformed':
     'Something in that request was not valid, so nothing was saved. Refresh the page and try again.',
   'errors.request.unknown-role':

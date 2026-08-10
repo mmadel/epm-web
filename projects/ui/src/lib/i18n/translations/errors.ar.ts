@@ -16,6 +16,9 @@ import { ErrorsKey } from './errors.en';
  * build if a key here is missing or misspelt relative to `errors.en.ts`.
  */
 export const errorsAr: Record<ErrorsKey, string> = {
+  'errors.unknown.message':
+    'Something went wrong and that did not go through. Try again, and contact support if it keeps happening.',
+
   'errors.request.malformed':
     'Something in that request was not valid, so nothing was saved. Refresh the page and try again.',
   'errors.request.unknown-role':
