@@ -4,6 +4,32 @@ Arabic and English are both first-class in this product, and the language is swi
 at runtime in a single build. Angular's built-in `$localize` cannot express that - it
 is compile-time and needs one build per locale - so these are plain data.
 
+## The Arabic files are English placeholders
+
+**Every value in every `*.ar.ts` file in this folder is English text. Nothing here has
+been translated into Arabic. Do not treat any of it as a translation, do not quote it
+to a customer, and do not use it as the basis for a review of the Arabic experience.**
+
+This is deliberate, not an oversight and not work in progress that someone forgot.
+Clinical Arabic is not general Arabic: the wording around diagnoses, consent,
+appointments and billing has to be signed off by a clinician who practises in Arabic,
+and **that clinician has not been identified yet**. Until they are, the honest state
+of the Arabic build is "untranslated", and it should look untranslated. Machine
+translation would replace a visible gap with an invisible one: plausible Arabic that
+nobody has approved reads as finished work, gets shipped, and is discovered by a
+patient rather than by us.
+
+What _is_ real, and worth reviewing, is everything around the strings: switching to
+Arabic sets `dir="rtl"` and `lang="ar"`, the layout mirrors, and every string comes
+from these files rather than being hardcoded. When the clinician is found, this
+becomes a review of two files per area with no code change.
+
+Note that `shell.language.arabic` currently reads "Arabic". The name of a language is
+normally shown in that language, so that key is a placeholder in the English file too.
+
+**Do not add Arabic prose to this repository - including in tests and fixtures - until
+that sign-off exists.**
+
 ## Folder convention
 
 One folder, two files per feature area:
