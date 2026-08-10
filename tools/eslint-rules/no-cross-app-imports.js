@@ -2,9 +2,10 @@
  * ESLint rule: no-cross-app-imports
  *
  * Project boundaries in this workspace:
- *   - `projects/staff` and `projects/patient` are sibling applications. They
- *     ship separately (patient is wrapped with Capacitor) and must never import
- *     each other. Shared code belongs in a library.
+ *   - `projects/staff`, `projects/patient` and `projects/platform` are sibling
+ *     applications: three pairs, six directions, and no application may import
+ *     from another. They ship separately (patient is wrapped with Capacitor,
+ *     platform is an internal console) and shared code belongs in a library.
  *   - `projects/core`, `projects/ui` and `projects/api-client` are libraries
  *     consumed through their public entry points (`core`, `ui`, `api-client`
  *     path mappings). Reaching into `projects/<lib>/src/...` bypasses the
@@ -19,7 +20,8 @@ const path = require('path');
 // merely unprotected, it is a hole in both directions: an import *into* it is
 // not reported either, because the rule stops as soon as the target is not a
 // known application or library. Add an application here in the same change that
-// adds it to angular.json.
+// adds it to angular.json - `applications match angular.json` in the tests
+// fails the build if you forget.
 const APP_PROJECTS = new Set(['staff', 'patient', 'platform']);
 const LIBRARY_PROJECTS = new Set(['core', 'ui', 'api-client']);
 
@@ -120,3 +122,8 @@ module.exports = {
     };
   },
 };
+
+// Exposed for the drift test, which asserts these still match angular.json.
+// ESLint reads only `meta` and `create` off a rule module and ignores the rest.
+module.exports.APP_PROJECTS = APP_PROJECTS;
+module.exports.LIBRARY_PROJECTS = LIBRARY_PROJECTS;
