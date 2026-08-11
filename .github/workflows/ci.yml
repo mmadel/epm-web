@@ -28,6 +28,56 @@ jobs:
       - name: Custom ESLint rule tests
         run: npm run test:lint-rules
 
+  # The generated API client is committed, so that a clean checkout builds without
+  # a JVM and so that a change to a server shape is visible in review as a diff.
+  # Committed output can go stale, though, and a stale client is precisely the
+  # failure this workspace generates a client to avoid: types that still compile
+  # and no longer describe the API. So CI regenerates it and insists the result is
+  # byte-for-byte what was committed.
+  api-client:
+    name: Generated API client is current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      # openapi-generator runs on a JVM. Installed explicitly rather than relying
+      # on whatever the runner image happens to ship, because the generator
+      # version is pinned in openapitools.json and a silently different toolchain
+      # is how "works on CI, not on my machine" starts.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - run: npm ci
+
+      - name: Regenerate from openapi/openapi.json
+        run: npm run generate:api
+
+      # `--intent-to-add` so that a file the regeneration ADDED - a new operation
+      # in the specification, whose service file nobody committed - shows up in
+      # `git diff`. Without it, new files are untracked, `git diff` is empty, and
+      # the check passes on exactly the change it exists to catch.
+      - name: The committed client must match the specification
+        run: |
+          git add --intent-to-add projects/api-client/src/generated
+          if git diff --quiet -- projects/api-client/src/generated; then
+            echo "The committed client matches openapi/openapi.json."
+            exit 0
+          fi
+          echo "::error::openapi/openapi.json and the committed API client disagree. Run 'npm run generate:api' and commit the result, in the same commit as the specification."
+          echo ""
+          echo "Files that differ:"
+          git --no-pager diff --stat -- projects/api-client/src/generated
+          echo ""
+          echo "The difference:"
+          git --no-pager diff -- projects/api-client/src/generated
+          exit 1
+
   build:
     name: Build
     runs-on: ubuntu-latest

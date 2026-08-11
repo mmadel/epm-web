@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "7.24.0",
+    "generators": {
+      "api-client": {
+        "generatorName": "typescript-angular",
+        "inputSpec": "openapi/openapi.json",
+        "output": "projects/api-client/src/generated",
+        "additionalProperties": {
+          "ngVersion": "22.1.0",
+          "providedInRoot": true,
+          "supportsES6": true,
+          "fileNaming": "kebab-case",
+          "stringEnums": true,
+          "useSingleRequestParameter": false
+        }
+      }
+    }
+  }
+}
