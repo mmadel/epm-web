@@ -6,3 +6,10 @@
 * text=auto eol=lf
 
 *.ico binary
+
+# The generated API client (ticket T-85) is committed, but it is machine output:
+# it is regenerated wholesale by `npm run generate:api` and never hand-edited.
+# Marking it generated collapses it by default in review, so a pull request that
+# renames one API field is read as the one-line specification change it is,
+# rather than as several hundred lines of client nobody needs to review.
+projects/api-client/src/generated/** linguist-generated=true

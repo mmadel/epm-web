@@ -16,7 +16,21 @@ const epm = require('./tools/eslint-rules/index.js');
 export default tseslint.config(
   {
     name: 'epm/ignores',
-    ignores: ['dist/**', 'node_modules/**', '.angular/**', 'coverage/**', 'out-tsc/**'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      '.angular/**',
+      'coverage/**',
+      'out-tsc/**',
+
+      // The generated API client (ticket T-85). It is committed, so ESLint would
+      // otherwise walk it - and it is machine output, so the only two outcomes
+      // are both bad: a rule fires on code nobody wrote and cannot fix, or
+      // someone applies `--fix` and the file no longer matches its own
+      // regeneration, which is the difference CI's staleness check reports as a
+      // stale client. Regenerate it with `npm run generate:api`; never edit it.
+      'projects/api-client/src/generated/**',
+    ],
   },
 
   // ---------------------------------------------------------------------------
@@ -33,9 +47,10 @@ export default tseslint.config(
     processor: angular.processInlineTemplates,
     plugins: { epm },
     rules: {
-      // The three workspace enforcement rules are errors, never warnings.
+      // The workspace enforcement rules are errors, never warnings.
       'epm/no-relative-api-url': 'error',
       'epm/no-cross-app-imports': 'error',
+      'epm/no-server-type-mirrors': 'error',
     },
   },
 

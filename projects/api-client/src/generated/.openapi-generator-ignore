@@ -1,0 +1,9 @@
+# GENERATED FILE - DO NOT EDIT.
+# Written by scripts/generate-api-client.mjs before every generation.
+#
+# These are scaffolding for a client published as its own npm package. This
+# client is a library inside the epm-web workspace, so none of them applies.
+
+README.md
+git_push.sh
+.gitignore

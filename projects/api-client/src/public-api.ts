@@ -1,5 +1,14 @@
 /*
  * Public API Surface of api-client
+ *
+ * Everything here is generated from `openapi/openapi.json` by
+ * `npm run generate:api`. There is deliberately nothing else: no wrapper, no
+ * facade, no service of our own around the generated methods. Screens call the
+ * generated methods directly, so that the only description of a request or a
+ * response in this workspace is the server's own.
+ *
+ * Adding a hand-written type here would defeat the point of the library — see
+ * the `epm/no-server-type-mirrors` lint rule, which fails the build for it.
  */
 
-export * from './lib/api-client';
+export * from './generated';
