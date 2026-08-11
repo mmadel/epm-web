@@ -1,0 +1,477 @@
+// THE SCREEN FILLS THE DISPLAY, and it does it with a second column rather than by
+// stretching the first. A form field spanning 1400px tells the reader to expect a
+// very long value and loses the start of the next line; widening the form was never
+// the answer to the empty half. The ledger is.
+
+// IT TAKES THE WHOLE DISPLAY, with a gutter rather than a cap. There was a 78rem
+// ceiling here, sized to what the two columns came to; on a wide screen that left a
+// band of empty canvas down both sides and the screen read as a page floating in a
+// window rather than as a console.
+
+// The gutter is `--space-6` rather than the stage's usual step, because the wider
+// the content runs the more edge it needs: text starting 24px from the frame of the
+// window looks like it is falling out of it.
+.stage {
+  max-inline-size: none;
+  padding-inline: var(--space-6);
+}
+
+// The flow takes what is left after the ledger. The ledger is the fixed column
+// because it is a list of short names and does not get better with more room, and
+// the flow is the one that does - a wider list shows a branch, its phone and the
+// people at it on one line instead of wrapping.
+.workspace {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  align-items: start;
+}
+
+// One breakpoint, the same one the frame uses. Below it the ledger goes under the
+// flow rather than beside it: two columns in 60rem leaves neither of them usable.
+@media (width <= 60rem) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The progress bar
+// ---------------------------------------------------------------------------
+
+.progress {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-block: var(--space-3) var(--space-5);
+}
+
+.progress__flow {
+  display: grid;
+  flex: 1;
+  gap: var(--space-2);
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progress__label {
+  display: block;
+  margin-block-end: var(--space-1);
+  overflow: hidden;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// The bar of one step. Flat, like everything else here - this console has no
+// gradients and no shadow, so a segment is a filled shape or an empty one.
+.progress__track {
+  display: block;
+  block-size: 0.375rem;
+  border-radius: 0.1875rem;
+  background-color: var(--color-border-strong);
+  transition: background-color 160ms ease;
+}
+
+// Finished: the accent, and the name comes out of the quiet step of text.
+.progress__step--done .progress__track {
+  background-color: var(--color-primary);
+}
+
+.progress__step--done .progress__label {
+  color: var(--color-muted-text);
+}
+
+// Being worked on: OUTLINED, not filled. The tint alone was barely a step away from
+// the empty grey of the segments after it, so the one segment a reader is looking
+// for was the hardest to find. An edge in the accent around a tinted middle reads as
+// the slot being worked in rather than one already filled, and it is told three
+// times over - the edge, the tint and the weight of the name - because a state told
+// once in colour is a state somebody misses.
+.progress__step--current .progress__track {
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-primary-soft);
+  box-sizing: border-box;
+}
+
+.progress__step--current .progress__label {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+// Beside the flow rather than above it, and it does not wrap - the segments keep
+// the rest of the line however long the count gets.
+.progress__count {
+  flex: none;
+  margin: 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// Nothing in this console moves beyond a colour change, and for a reader who asked
+// for less motion, not even that.
+@media (prefers-reduced-motion: reduce) {
+  .progress__track {
+    transition: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The sequence
+// ---------------------------------------------------------------------------
+
+// The flow fills its column. It used to be capped at a 52rem measure, which was
+// right when the fields were the column - but the fields are inside a form now, and
+// the form caps its own. What is left in the column is a list of entries, and a list
+// is better wide: a branch, its phone and the people at it fit on one line.
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// THE SPINE. Every step hangs off it and every marker sits on it, which is what
+// makes a tick above and a number below read as progress along a line rather than
+// as four stacked cards.
+
+// It is on the list item and not on the step, because the line has to stop at the
+// last marker instead of running past it into nothing - and a step cannot know it
+// is the last one. `> li`, not `li`: a descendant selector here also matched the
+// list entries inside the open step and beat their own rules on specificity, which
+// once left every row's controls stranded under its fields.
+.steps > li {
+  padding-inline-start: var(--space-5);
+}
+
+.steps > li:not(:last-child) {
+  border-inline-start: 2px solid var(--color-border);
+}
+
+// One sentence under a step's heading saying what the step is for. It is not a
+// subtitle on the heading itself, because a collapsed step shows its summary there
+// and the two would fight.
+.step__lede {
+  max-inline-size: 34rem;
+  margin: 0 0 var(--space-3);
+  color: var(--color-muted-text);
+  line-height: var(--line-height-normal);
+}
+
+// ---------------------------------------------------------------------------
+// The practice's own fields
+// ---------------------------------------------------------------------------
+
+.practice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+// ---------------------------------------------------------------------------
+// The step's own opening
+// ---------------------------------------------------------------------------
+
+// A tinted tile carrying the domain's mark, the same pulse trace as the wordmark.
+// It is the one illustration in the console: an internal tool does not need
+// pictures, but the first thing a reader meets on the first step of creating a
+// clinic can say what kind of thing is being created.
+.intro {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+  padding-block-end: var(--space-4);
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.intro__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: 0.875rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.intro__mark svg {
+  inline-size: 1.625rem;
+  block-size: 1.625rem;
+}
+
+.intro__title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.intro__lede {
+  max-inline-size: 32rem;
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+// ---------------------------------------------------------------------------
+// The plan cards
+// ---------------------------------------------------------------------------
+
+.plans {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.plans__legend {
+  padding: 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+// `legend` is not a grid item in any browser, so the space under it is a margin on
+// what follows rather than a gap on the fieldset.
+.plans__grid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin-block-start: var(--space-2);
+}
+
+// The whole card is the label, so the click target is the card and not a 13px
+// circle beside it. The radio itself is `visually-hidden` - present, focusable and
+// announced, just not drawn.
+.plan {
+  display: grid;
+  gap: var(--space-1);
+  grid-template-areas:
+    'icon name'
+    'icon description';
+  grid-template-columns: auto 1fr;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+.plan:hover {
+  border-color: var(--color-border-strong);
+}
+
+// Chosen is a border, a tint and a filled icon - three signals, because the one a
+// reader notices depends on the reader. Never colour alone.
+.plan--chosen {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.plan--chosen:hover {
+  border-color: var(--color-primary);
+}
+
+// `:has`, so the ring lands on the card rather than on a control nobody can see.
+.plan:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.plan__icon {
+  display: inline-flex;
+  grid-area: icon;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  margin-inline-end: var(--space-2);
+  border-radius: 0.625rem;
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+}
+
+.plan--chosen .plan__icon {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.plan__icon svg {
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+}
+
+.plan__name {
+  grid-area: name;
+  align-self: end;
+  font-weight: var(--font-weight-bold);
+}
+
+.plan__description {
+  grid-area: description;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+// Mono, because it names a ticket. In this console an identifier is set in mono and
+// prose never is.
+.plans__note {
+  margin: var(--space-2) 0 0;
+  color: var(--color-subtle-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+}
+
+// ---------------------------------------------------------------------------
+// The foot of a step
+// ---------------------------------------------------------------------------
+
+.step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-4);
+}
+
+// Pill-shaped, and the only pill in the content area. The shape is load-bearing:
+// nothing else in a step is one, so the step's own action cannot be mistaken for a
+// row control.
+.primary-button {
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: 1.25rem;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.primary-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// Muted rather than faded to near-nothing: a disabled action still has to be
+// readable, because the sentence beside it is explaining why it is disabled.
+.primary-button:disabled {
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+  cursor: not-allowed;
+}
+
+// The last one is the only irreversible thing in the console, and it is bigger than
+// the three Continues above it for exactly that reason.
+.primary-button--create {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-md);
+}
+
+.step-actions__note {
+  margin: 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+}
+
+// ---------------------------------------------------------------------------
+// The review
+// ---------------------------------------------------------------------------
+
+.review__facts {
+  display: grid;
+  gap: var(--space-1) var(--space-3);
+  grid-template-columns: 8rem 1fr;
+  margin: 0 0 var(--space-4);
+}
+
+.review__facts dt {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+.review__facts dd {
+  margin: 0;
+}
+
+.review__heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.review__count {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-regular);
+}
+
+.review__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.review__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background-color: var(--color-surface-raised);
+}
+
+.review__name {
+  font-weight: var(--font-weight-medium);
+}
+
+.review__detail {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+// A separator between the facts on a row, because "mona@example.com Clinician
+// Maadi" is three answers reading as one sentence. Generated rather than written
+// into the template: it is punctuation between boxes, it must not appear before
+// the first one, and it is not content a screen reader should read out.
+.review__detail + .review__detail::before {
+  content: '·';
+  margin-inline-end: var(--space-2);
+  color: var(--color-border-strong);
+}
+
+// A branch with nobody at it is worth noticing and is not an error - a practice can
+// open a location before it staffs it.
+.review__detail--empty {
+  font-style: italic;
+}
+
+.review__none {
+  margin: 0 0 var(--space-4);
+  color: var(--color-muted-text);
+}

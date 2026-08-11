@@ -1,45 +1,30 @@
-// The page header band.
+// The page's heading block.
 
-// Full-bleed white on the canvas, which is why the frame's content region has no
-// padding of its own: the band's gutter is here, and it has to be able to reach
-// the edges. See the shell's template in `ui`.
+// IT SITS ON THE CANVAS, and it used to be a white band. There were then two
+// white bands stacked at the top of every screen with a 1px border between them,
+// and since the only depth cue in the content area is the step from white to
+// canvas, two adjacent whites cancelled it. There is now one band of chrome - the
+// frame's, which is ink and carries the tabs - and everything below it belongs to
+// the page.
+
+// No rule underneath either. The tab strip above already closes the chrome, and a
+// second full-bleed line a few rem below it would divide the content area into
+// bands that mean nothing.
 
 :host {
   display: block;
-  background-color: var(--color-surface-raised);
-  border-block-end: 1px solid var(--color-border);
 }
 
 .page-header {
   display: flex;
+
+  // Centred rather than baseline-aligned: the text side is one line on some
+  // screens and two on others, and an action pinned to the title's baseline
+  // moves up the screen as the block grows.
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-
-  // The content cap, so the title stays with the wordmark above it on a wide
-  // screen instead of drifting to the middle of a 2560px display.
-  max-inline-size: 75rem;
-  margin-inline: auto;
-  padding: var(--space-3);
-}
-
-.page-header__back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  margin-block-end: var(--space-1);
-  color: var(--color-primary);
-  font-size: var(--font-size-sm);
-  text-decoration: none;
-}
-
-.page-header__back:hover {
-  text-decoration: underline;
-}
-
-.page-header__back:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  gap: var(--space-4);
+  padding-block: var(--space-4) var(--space-3);
 }
 
 .page-header__title {
@@ -58,11 +43,15 @@
   outline-offset: 2px;
 }
 
+// A step below the body size, not the same size in a quieter colour. Colour was
+// carrying the whole distinction between the title and the line under it, and a
+// distinction made in colour alone is the one that disappears on a dim laptop
+// screen at an angle - which is most of the screens this console is read on.
 .page-header__subtitle {
-  margin: var(--space-1) 0 0;
+  margin: var(--space-2) 0 0;
   color: var(--color-muted-text);
   font-size: var(--font-size-sm);
-  line-height: var(--line-height-tight);
+  line-height: var(--line-height-normal);
 }
 
 .page-header__action {

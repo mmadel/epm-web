@@ -108,15 +108,15 @@ describe('Shell', () => {
   });
 
   it('projects the edge strip above the header', () => {
-    const children = [...element().querySelectorAll('lib-shell > *')];
-
     expect(query('.shell-edge .edge')?.textContent).toBe('Edge');
+
     // Above, not merely present: the edge is how the platform console marks a
     // dangerous environment, and an edge rendered under the header is a mark
     // nobody sees first.
-    expect(children.indexOf(query('.shell-edge')!)).toBeLessThan(
-      children.indexOf(query('.shell-header')!),
-    );
+    expect(
+      query('.shell-edge')!.compareDocumentPosition(query('.shell-header')!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('projects content into the main region', () => {

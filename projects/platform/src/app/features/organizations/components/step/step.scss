@@ -1,0 +1,178 @@
+// One step of the flow.
+
+// THE SPINE IS NOT DRAWN HERE. It is the border on each `li` in the list that
+// holds these - see onboard-practice.scss. It has to be, because the line must
+// stop at the last step, and a step cannot know that it is the last one: each of
+// these sits alone inside its own list item, so `:host(:last-of-type)` matched
+// every one of them and the line was transparent on all four. There was no spine
+// at all, which is exactly the sort of thing that only shows up in a screenshot.
+:host {
+  display: block;
+}
+
+.step {
+  padding-block: var(--space-1);
+}
+
+.step__heading {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+// The whole heading row is the control. A button, because it acts on this page
+// rather than going anywhere - `RouterLink` here would put four addresses in the
+// browser's history for one form.
+.step__toggle {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  inline-size: 100%;
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.step__toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.step__toggle[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+// ---------------------------------------------------------------------------
+// The marker
+// ---------------------------------------------------------------------------
+
+// Pulled back onto the spine by the gutter, plus half its own width, plus half the
+// spine's 2px, so the circle is centred on the line rather than sitting beside it.
+// The last term is `0.0625rem` and not `1px` because this is a spacing property and
+// the workspace rules - rightly - do not take pixels in one.
+.step__marker {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  margin-inline-start: calc(-1 * var(--space-5) - 0.75rem - 0.0625rem);
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+.step__marker svg {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+}
+
+.step--done .step__marker {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.step--current .step__marker {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-raised);
+  color: var(--color-primary);
+}
+
+// ---------------------------------------------------------------------------
+// The row
+// ---------------------------------------------------------------------------
+
+.step__title {
+  flex: none;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.step--upcoming .step__title {
+  color: var(--color-muted-text);
+  font-weight: var(--font-weight-medium);
+}
+
+// What a finished step collapses to. It takes the rest of the row and truncates,
+// because it is a reminder rather than the record - the step it belongs to is one
+// press away and holds the real thing.
+.step__summary {
+  flex: 1;
+  overflow: hidden;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// A CONTROL, not a word. It was a bare "Edit" set in the accent colour, floating at
+// the end of a row with nothing to say it could be pressed - and it is not even the
+// control itself, since the whole heading is the button. Giving it an edge, a fill
+// and a glyph is what makes it read as the thing you press to go back to a step you
+// have finished.
+
+// `aria-hidden`, because it is the appearance of an affordance rather than a second
+// control: the button it sits inside is already named "Practice, Cairo Physio ·
+// Standard", and a screen reader announcing "Edit" after that would be announcing a
+// control that is not there.
+.step__edit {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  align-self: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 1.25rem;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.step__edit svg {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+}
+
+// The row is the button, so the affordance answers the pointer being anywhere on it.
+.step__toggle:hover .step__edit {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+// ---------------------------------------------------------------------------
+// The panel
+// ---------------------------------------------------------------------------
+
+// THE STEP BEING WORKED ON IS A CARD. White on the tinted canvas, which is this
+// console's only depth cue and the same one the frame's header uses - so the thing
+// you are filling in is an object on the page, and the finished and unstarted
+// steps around it are just lines of a list. Without it the open step floated in
+// the canvas with nothing holding it, which is most of why the screen read as
+// unfinished.
+.step__panel {
+  margin-block: var(--space-1) var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+// The step being worked on is focused, and focusing a region that was opened by a
+// press is not a state a reader chose to be in - so no visible ring here. The
+// controls inside it have their own.
+.step__panel:focus {
+  outline: none;
+}

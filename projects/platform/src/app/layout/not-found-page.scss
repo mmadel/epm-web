@@ -1,13 +1,17 @@
+// The gutter is `--space-4`, the same one the page title band above uses. One
+// gutter for the console: a screen whose content starts at a different inline
+// offset from its own title reads as two pages stacked.
 .not-found {
   max-inline-size: 75rem;
   margin-inline: auto;
-  padding: var(--space-5) var(--space-3);
+  padding: var(--space-5) var(--space-4);
 }
 
 .not-found__body {
   max-inline-size: 34rem;
   margin: 0 0 var(--space-3);
   color: var(--color-muted-text);
+  line-height: var(--line-height-normal);
 }
 
 .not-found__link {

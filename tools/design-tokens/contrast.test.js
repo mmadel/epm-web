@@ -110,16 +110,45 @@ const PAIRS = [
     '--color-primary-hover',
     TEXT,
   ],
+
+  // The ink frame. Everything in the header band is drawn on it, and none of it
+  // can be checked against the page surfaces - which is the whole reason the
+  // chrome roles exist.
+  [PLATFORM, 'the wordmark on the ink band', '--color-chrome-text', '--color-chrome-surface', TEXT],
   [
     PLATFORM,
-    'account initials on the soft tile',
-    '--color-primary-deep',
-    '--color-primary-soft',
+    'the quiet step on the ink band - "Platform", the account initials',
+    '--color-chrome-muted-text',
+    '--color-chrome-surface',
     TEXT,
+  ],
+  [
+    PLATFORM,
+    'the wordmark tile on the ink band',
+    '--color-chrome-accent',
+    '--color-chrome-surface',
+    MARK,
+  ],
+  [
+    PLATFORM,
+    'the wordmark glyph on its tile',
+    '--color-text-inverse',
+    '--color-chrome-accent',
+    MARK,
+  ],
+  [
+    PLATFORM,
+    'the focus ring on the ink band',
+    '--color-chrome-focus',
+    '--color-chrome-surface',
+    MARK,
   ],
 
   // The five environment chips. The design handoff calls these out as the risk
   // in this palette, and it was right about the amber one.
+  // They are pale pills on the ink band, so each one is checked against its own
+  // tint and not against the frame: a chip carries its tint, its word and its dot
+  // with it, which is what lets it sit on a surface of any lightness.
   [PLATFORM, 'the local chip', '--color-muted-text', '--color-muted-surface', TEXT],
   [PLATFORM, 'the local chip dot', '--color-subtle-text', '--color-muted-surface', MARK],
   [PLATFORM, 'the development chip', '--color-info-text', '--color-info-surface', TEXT],
@@ -130,14 +159,15 @@ const PAIRS = [
   [PLATFORM, 'the production chip', '--color-danger-text', '--color-danger-surface', TEXT],
   [PLATFORM, 'the production chip dot', '--color-danger-mark', '--color-danger-surface', MARK],
 
-  // The edge strip sits above the header, so it is drawn against the band.
-  [PLATFORM, 'the staging edge', '--color-warning-mark', '--color-surface-raised', MARK],
-  [PLATFORM, 'the production edge', '--color-danger-mark', '--color-surface-raised', MARK],
+  // The edge strip sits directly above the header, so it is read against the ink
+  // band rather than against a page surface.
+  [PLATFORM, 'the staging edge', '--color-warning-mark', '--color-chrome-surface', MARK],
+  [PLATFORM, 'the production edge', '--color-danger-mark', '--color-chrome-surface', MARK],
 
   // Non-text marks.
   [PLATFORM, 'the focus ring on a band', '--color-primary', '--color-surface-raised', MARK],
   [PLATFORM, 'the focus ring on the canvas', '--color-primary', '--color-surface', MARK],
-  [PLATFORM, 'the wordmark glyph', '--color-primary', '--color-primary-soft', MARK],
+  [PLATFORM, 'the empty-state icon on its tile', '--color-primary', '--color-primary-soft', MARK],
 
   // ---------------------------------------------------------------------------
   // The workspace default, which the staff console wears
@@ -160,6 +190,27 @@ const PAIRS = [
     '--color-surface-raised',
     TEXT,
   ],
+  // The chrome, which for the staff console is the same lightness as a card - the
+  // defaults reproduce what these call sites hardcoded before the roles existed.
+  // They are checked anyway: the point of a role is that it can be reassigned, and
+  // an unchecked default is what makes the first reassignment somebody's surprise.
+  [DEFAULT, 'navigation text on the chrome', '--color-chrome-text', '--color-chrome-surface', TEXT],
+  [
+    DEFAULT,
+    'navigation text on a hovered entry',
+    '--color-chrome-text',
+    '--color-chrome-hover-surface',
+    TEXT,
+  ],
+  [
+    DEFAULT,
+    'supporting text on the chrome',
+    '--color-chrome-muted-text',
+    '--color-chrome-surface',
+    TEXT,
+  ],
+  [DEFAULT, 'the focus ring on the chrome', '--color-chrome-focus', '--color-chrome-surface', MARK],
+
   [DEFAULT, 'an active navigation entry', '--color-text-inverse', '--color-primary', TEXT],
   [
     DEFAULT,

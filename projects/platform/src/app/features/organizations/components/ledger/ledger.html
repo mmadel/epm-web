@@ -1,0 +1,47 @@
+<aside class="ledger" aria-labelledby="ledger-heading">
+  <div class="ledger__card">
+    <h2 class="ledger__heading" id="ledger-heading">Will be created</h2>
+
+    <p class="ledger__practice" [class.ledger__practice--empty]="!draft.name().trim()">
+      {{ draft.name().trim() || 'Practice not named yet' }}
+    </p>
+    @if (draft.plan()) {
+      <p class="ledger__plan">{{ draft.plan() }}</p>
+    }
+
+    <dl class="ledger__counts">
+      <div>
+        <dt>Branches</dt>
+        <dd>{{ draft.branchCount() }}</dd>
+      </div>
+      <div>
+        <dt>Staff</dt>
+        <dd>{{ draft.staffCount() }}</dd>
+      </div>
+    </dl>
+
+    @if (draft.branches().length > 0) {
+      <h3 class="ledger__section">Branches</h3>
+      <ul class="ledger__list">
+        @for (branch of draft.branches(); track branch.key; let at = $index) {
+          <li [class.ledger__item--empty]="!branch.name.trim()">
+            {{ branch.name.trim() || 'Branch ' + (at + 1) }}
+          </li>
+        }
+      </ul>
+    }
+
+    @if (draft.staff().length > 0) {
+      <h3 class="ledger__section">Staff</h3>
+      <ul class="ledger__list">
+        @for (member of draft.staff(); track member.key; let at = $index) {
+          <li [class.ledger__item--empty]="!member.fullName.trim()">
+            {{ member.fullName.trim() || 'Staff member ' + (at + 1) }}
+          </li>
+        }
+      </ul>
+    }
+
+    <p class="ledger__note">Nothing exists until the last step.</p>
+  </div>
+</aside>

@@ -44,6 +44,13 @@
 // Header
 // ---------------------------------------------------------------------------
 
+// THE CHROME ROLES, NOT THE PAGE ROLES. The header band and the navigation rail
+// are the frame, and an application must be able to make its frame a different
+// lightness from its content - the platform console's is ink around a light page.
+// Drawing them with `--color-surface-raised` and `--color-text` hardcoded the
+// assumption that a frame is always as light as a card, and the only way out of
+// that assumption would have been a per-application branch in this file.
+
 .shell-header {
   grid-area: header;
   display: flex;
@@ -51,8 +58,8 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  background-color: var(--color-surface-raised);
-  border-block-end: 1px solid var(--color-border);
+  background-color: var(--color-chrome-surface);
+  border-block-end: 1px solid var(--color-chrome-border);
 }
 
 .shell-header__start,
@@ -92,8 +99,8 @@
   grid-area: nav;
   inline-size: 16rem;
   padding: var(--space-3);
-  background-color: var(--color-surface-raised);
-  border-inline-end: 1px solid var(--color-border);
+  background-color: var(--color-chrome-surface);
+  border-inline-end: 1px solid var(--color-chrome-border);
 }
 
 .shell-nav__list {
@@ -109,15 +116,18 @@
   display: block;
   padding: var(--space-2) var(--space-3);
   border-radius: 0.25rem;
-  color: var(--color-text);
+  color: var(--color-chrome-text);
   font-size: var(--font-size-md);
   text-decoration: none;
 }
 
 .shell-nav__link:hover {
-  background-color: var(--color-muted-surface);
+  background-color: var(--color-chrome-hover-surface);
 }
 
+// The active entry stays on the page accent rather than moving to the chrome
+// one: it is a filled shape with `--color-text-inverse` on it, so it carries its
+// own contrast onto a frame of any lightness.
 .shell-nav__link--active {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
@@ -144,10 +154,18 @@
 // The projected content owns its own focus styling, but the main region itself is
 // focusable for the skip link, and an outline is how a keyboard user knows the
 // jump worked.
-.shell-main:focus-visible,
+.shell-main:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// These two are drawn on the chrome - the skip link becomes visible under the
+// header's leading corner - so they take the ring tuned against it. A ring in the
+// page accent would be invisible on a dark frame, which is a focus indicator that
+// looks present in the stylesheet and is absent on the screen.
 .shell-nav__link:focus-visible,
 .shell-skip-link:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-chrome-focus);
   outline-offset: 2px;
 }
 

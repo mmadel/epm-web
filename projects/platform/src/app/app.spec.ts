@@ -35,27 +35,109 @@ function element(fixture: ComponentFixture<App>): HTMLElement {
   return fixture.nativeElement as HTMLElement;
 }
 
+/**
+ * Fills in the practice step and presses Continue, landing on the branches step.
+ *
+ * The plan is a radio in a card rather than a `select`, which is why this clicks
+ * one rather than setting a value: the control a reader operates is the card, and
+ * a test that set the draft directly would pass with the cards wired to nothing.
+ */
+async function complete(fixture: ComponentFixture<App>): Promise<void> {
+  const name = element(fixture).querySelector<HTMLInputElement>('#practice-name')!;
+
+  name.value = 'Cairo Physio';
+  name.dispatchEvent(new Event('input'));
+
+  element(fixture).querySelector<HTMLInputElement>('#plan-standard')!.click();
+  await fixture.whenStable();
+
+  element(fixture).querySelector<HTMLButtonElement>('.primary-button')!.click();
+  await fixture.whenStable();
+}
+
 describe('the platform console', () => {
-  it('lands on the practice list', async () => {
+  it('opens straight onto the one screen it has', async () => {
     const fixture = await open('/');
 
-    // `/` redirects rather than being the list itself, so that the URL a
-    // platform administrator sees and shares is the one the wordmark links to.
-    expect(TestBed.inject(Router).url).toBe('/practices');
-    expect(element(fixture).querySelector('main h1')?.textContent).toBe('Practices');
+    // THE CONSOLE HAS NO LANDING SCREEN. `/` redirects rather than being the
+    // screen itself, so the URL a platform administrator sees and shares is the
+    // one the wordmark links to.
+    expect(TestBed.inject(Router).url).toBe('/onboard');
+    expect(element(fixture).querySelector('main h1')?.textContent).toBe('New practice');
   });
 
-  it('renders the empty state, not a table', async () => {
-    const fixture = await open('/practices');
+  it('shows all four steps at once, with the first one open', async () => {
+    const fixture = await open('/onboard');
+    const titles = [...element(fixture).querySelectorAll('.step__title')];
 
-    expect(element(fixture).querySelector('.empty-state__headline')?.textContent).toBe(
-      'No practices yet',
+    // The whole shape of the job is on screen from the start. A wizard that shows
+    // one step at a time never says what is coming.
+    expect(titles.map((title) => title.textContent?.trim())).toEqual([
+      'Practice',
+      'Branches',
+      'Staff',
+      'Review and create',
+    ]);
+    expect(element(fixture).querySelectorAll('.step__panel')).toHaveLength(1);
+    expect(element(fixture).querySelector('#practice-name')).not.toBeNull();
+  });
+
+  it('will not let a step be opened before the ones above it are finished', async () => {
+    const fixture = await open('/onboard');
+    const [, branches] = [...element(fixture).querySelectorAll<HTMLElement>('.step__toggle')];
+
+    expect(branches.getAttribute('aria-disabled')).toBe('true');
+
+    branches.click();
+    await fixture.whenStable();
+
+    // Still on the practice step: a locked heading is focusable and announced, and
+    // pressing it does nothing.
+    expect(element(fixture).querySelector('#practice-name')).not.toBeNull();
+  });
+
+  it('collapses a finished step to what was entered, and opens the next', async () => {
+    const fixture = await open('/onboard');
+
+    await complete(fixture);
+
+    // The practice step is now one ticked line saying what is in it - not gone,
+    // and not still open. This is what makes the page assemble as it is filled in.
+    expect(element(fixture).querySelector('.step__summary')?.textContent?.trim()).toBe(
+      'Cairo Physio · Standard',
     );
-    expect(element(fixture).querySelector('table')).toBeNull();
+    expect(element(fixture).querySelector('.step--done')).not.toBeNull();
+    expect(element(fixture).querySelector('.step__panel .add-tile')?.textContent).toContain(
+      'Add a branch',
+    );
+  });
+
+  it('reports progress by what is finished, not by where the reader is', async () => {
+    const fixture = await open('/onboard');
+
+    expect(element(fixture).querySelector('.progress')?.getAttribute('aria-valuenow')).toBe('0');
+
+    await complete(fixture);
+
+    // One of four, having finished one - the reader is on step 2 and the meter does
+    // not claim it.
+    expect(element(fixture).querySelector('.progress')?.getAttribute('aria-valuenow')).toBe('1');
+    expect(element(fixture).querySelector('.progress__count')?.textContent?.trim()).toBe(
+      '1 of 4 done',
+    );
+
+    // The segment for the step being worked on is marked as such, and the one
+    // behind it as finished. The meter names all four from the start, so the whole
+    // job is legible before any of it is done.
+    const segments = [...element(fixture).querySelectorAll('.progress__step')];
+
+    expect(segments).toHaveLength(4);
+    expect(segments[0].classList).toContain('progress__step--done');
+    expect(segments[1].classList).toContain('progress__step--current');
   });
 
   it('renders the frame around the screen', async () => {
-    const fixture = await open('/practices');
+    const fixture = await open('/onboard');
 
     expect(element(fixture).querySelector('lib-shell')).not.toBeNull();
     expect(element(fixture).querySelector('app-environment-chip')?.textContent).toContain(
@@ -68,31 +150,31 @@ describe('the platform console', () => {
   // -------------------------------------------------------------------------
 
   it('renders Page not found for an unknown address', async () => {
-    const fixture = await open('/practices/nowhere');
+    const fixture = await open('/onboard/nowhere');
 
     expect(element(fixture).querySelector('main h1')?.textContent).toBe('Page not found');
   });
 
   it('does not redirect an unknown address', async () => {
-    const fixture = await open('/practices/nowhere');
+    const fixture = await open('/onboard/nowhere');
 
-    // The URL stays wrong on purpose. A silent redirect to the list turns a
-    // broken link into a working one, so the bookmark nobody can open and the
-    // typo in a support thread both get reported as "it works for me".
-    expect(TestBed.inject(Router).url).toBe('/practices/nowhere');
+    // The URL stays wrong on purpose. A silent redirect home turns a broken link
+    // into a working one, so the bookmark nobody can open and the typo in a
+    // support thread both get reported as "it works for me".
+    expect(TestBed.inject(Router).url).toBe('/onboard/nowhere');
     expect(element(fixture).querySelector('main h1')).not.toBeNull();
   });
 
   it('offers one way out of Page not found', async () => {
-    const fixture = await open('/practices/nowhere');
+    const fixture = await open('/onboard/nowhere');
 
     expect(
       element(fixture).querySelector<HTMLAnchorElement>('.not-found__link')?.getAttribute('href'),
-    ).toBe('/practices');
+    ).toBe('/onboard');
   });
 
   it('keeps the frame around Page not found', async () => {
-    const fixture = await open('/practices/nowhere');
+    const fixture = await open('/onboard/nowhere');
 
     // Including the environment chip: an administrator who mistyped a URL still
     // needs to know which environment they are pointed at.
@@ -105,17 +187,17 @@ describe('the platform console', () => {
   // -------------------------------------------------------------------------
 
   it('names the page, the product and the environment in the browser tab', async () => {
-    await open('/practices', 'staging');
+    await open('/onboard', 'staging');
 
-    expect(TestBed.inject(Title).getTitle()).toBe('Practices · EPM Platform · Staging');
+    expect(TestBed.inject(Title).getTitle()).toBe('New practice · EPM Platform · Staging');
   });
 
   it('names the environment in the tab in production too', async () => {
-    await open('/practices', 'production');
+    await open('/onboard', 'production');
 
-    // A platform administrator with four tabs open is reading the tab strip,
-    // not the header, and the tab is the last thing between them and creating a
-    // practice in the wrong place.
-    expect(TestBed.inject(Title).getTitle()).toBe('Practices · EPM Platform · Production');
+    // A platform administrator with four browser tabs open is reading the tab
+    // strip, not the header, and the tab is the last thing between them and
+    // creating a practice in the wrong place.
+    expect(TestBed.inject(Title).getTitle()).toBe('New practice · EPM Platform · Production');
   });
 });

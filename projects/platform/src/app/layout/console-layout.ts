@@ -30,13 +30,13 @@ export function initialsOf(displayName: string): string {
  * slots that shell projects: the edge strip above the header, the brand at the
  * start of the header, and the environment and account at the end of it.
  *
- * THERE IS NO NAVIGATION, and no `nav` landmark. A tab bar with `Practices` and
- * `Add a practice` was rejected in design review: `Practices` is a place and
- * `Add a practice` is an action, so a tab bar models them as two places - you
- * can be "on" the action the way you are on a page - and it puts the console's
- * most consequential operation in the quietest object on screen. The wordmark is
- * therefore the route home, and every screen that is not the list carries a back
- * link where the tab bar would have been.
+ * THERE IS NO NAVIGATION, and no `nav` landmark. The console is one screen: the
+ * practice being created, with its branches under it. A tab bar was tried here -
+ * first with `Practices` and `Add a practice` in it, which is a place beside an
+ * action, and later with the parts of the practice - and both were removed. The
+ * second was closer to honest but it was navigation for a form you can read in one
+ * scroll, and it hid fields from the server errors that name them (P-05.7). The
+ * wordmark is therefore the route home, and it is the only route there is.
  *
  * NOTHING HERE READS THE LANGUAGE SERVICE. This console is English-only and
  * LTR-only (P-03.2), the strings are written in the templates, and there is no
@@ -64,7 +64,7 @@ export class ConsoleLayout {
   /** Who is signed in. Read through the seam; never resolved here (P-02). */
   private readonly session = inject(SESSION_SOURCE).session;
 
-  protected readonly homeLink = ROUTE_PATHS.practices;
+  protected readonly homeLink = ROUTE_PATHS.onboard;
 
   /**
    * How this environment is presented. The layout uses two of its three fields:
@@ -106,7 +106,25 @@ export class ConsoleLayout {
       .subscribe(() => afterNextRender(() => this.onNavigated(), { injector: this.injector }));
   }
 
+  /**
+   * Whether a navigation has already completed.
+   *
+   * THE FIRST ONE IS NOT A NAVIGATION. It is the page loading, and nobody went
+   * anywhere: moving focus for it leaves a ring drawn around the heading of the
+   * screen the reader has just arrived at, which looks like a rendering fault, and
+   * announcing it talks over the page load. The live region was already empty
+   * until the second navigation for that reason; the focus move was not, and the
+   * ring was visible in every screenshot of this console.
+   */
+  private hasNavigated = false;
+
   private onNavigated(): void {
+    if (!this.hasNavigated) {
+      this.hasNavigated = true;
+
+      return;
+    }
+
     const heading = (this.host.nativeElement as HTMLElement).querySelector<HTMLElement>('main h1');
 
     if (heading === null) {

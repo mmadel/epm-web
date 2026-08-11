@@ -8,13 +8,13 @@ import { ConsoleLayout, initialsOf } from './console-layout';
 
 @Component({
   selector: 'app-first-page',
-  template: '<h1 tabindex="-1">Practices</h1>',
+  template: '<h1 tabindex="-1">New practice</h1>',
 })
 class FirstPage {}
 
 @Component({
   selector: 'app-second-page',
-  template: '<h1 tabindex="-1">Add a practice</h1>',
+  template: '<h1 tabindex="-1">Page not found</h1>',
 })
 class SecondPage {}
 
@@ -102,11 +102,13 @@ describe('ConsoleLayout', () => {
     expect(element(fixture).querySelector('lib-shell')).not.toBeNull();
   });
 
-  it('renders no navigation landmark, because the console has no navigation', async () => {
+  it('renders no navigation landmark, because the console is one screen', async () => {
     const fixture = await render();
 
-    // A tab bar with `Practices` and `Add a practice` was rejected in review:
-    // one is a place and the other is an action.
+    // A tab bar has been tried here twice and removed twice. The second version -
+    // the practice as a subject with its parts as tabs - was navigation around a
+    // form that fits in one scroll, and it hid fields from the errors that name
+    // them. A landmark that announces itself and holds one link is worse than none.
     expect(element(fixture).querySelector('nav')).toBeNull();
   });
 
@@ -140,10 +142,10 @@ describe('ConsoleLayout', () => {
     const fixture = await render();
     const brand = element(fixture).querySelector<HTMLAnchorElement>('.shell-header__start a');
 
-    // With no navigation band this is the only route home, so it has to be an
-    // `<a>` and not a `<span>`. Somebody builds it as a `<span>` otherwise.
+    // A route home rather than a label, so it has to be an `<a>` and not a
+    // `<span>`. Somebody builds it as a `<span>` otherwise.
     expect(brand).not.toBeNull();
-    expect(brand!.getAttribute('href')).toBe('/practices');
+    expect(brand!.getAttribute('href')).toBe('/onboard');
     expect(brand!.textContent?.replace(/\s+/g, ' ').trim()).toBe('EPM Platform');
   });
 
@@ -225,7 +227,7 @@ describe('ConsoleLayout', () => {
     // follows a link stays where they were and hears nothing.
     const heading = element(fixture).querySelector('main h1');
 
-    expect(heading?.textContent).toBe('Add a practice');
+    expect(heading?.textContent).toBe('Page not found');
     expect(document.activeElement).toBe(heading);
   });
 
@@ -238,7 +240,7 @@ describe('ConsoleLayout', () => {
     const region = element(fixture).querySelector('[aria-live="polite"]');
 
     expect(region?.getAttribute('aria-live')).toBe('polite');
-    expect(region?.textContent?.trim()).toBe('Add a practice');
+    expect(region?.textContent?.trim()).toBe('Page not found');
   });
 
   it('announces nothing before the first navigation completes', async () => {

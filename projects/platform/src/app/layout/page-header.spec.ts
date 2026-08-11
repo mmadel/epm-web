@@ -8,8 +8,8 @@ import { PageHeader } from './page-header';
   selector: 'app-list-page',
   imports: [PageHeader],
   template: `
-    <app-page-header subtitle="Every practice on the platform.">
-      <button type="button" class="action">Add a practice</button>
+    <app-page-header subtitle="Every location this practice operates from.">
+      <button type="button" class="action">Add a branch</button>
     </app-page-header>
   `,
 })
@@ -18,7 +18,7 @@ class ListPage {}
 @Component({
   selector: 'app-inner-page',
   imports: [PageHeader],
-  template: '<app-page-header [back]="true" />',
+  template: '<app-page-header />',
 })
 class InnerPage {}
 
@@ -34,8 +34,8 @@ async function open(url: string): Promise<ComponentFixture<PageHeaderSpecHost>> 
   TestBed.configureTestingModule({
     providers: [
       provideRouter([
-        { path: '', title: 'Practices', component: ListPage },
-        { path: 'add', title: 'Add a practice', component: InnerPage },
+        { path: '', title: 'Branches', component: ListPage },
+        { path: 'staff', title: 'Staff', component: InnerPage },
         { path: 'untitled', component: ListPage },
       ]),
     ],
@@ -59,16 +59,16 @@ describe('PageHeader', () => {
     const headings = element(fixture).querySelectorAll('h1');
 
     expect(headings).toHaveLength(1);
-    expect(headings[0].textContent).toBe('Practices');
+    expect(headings[0].textContent).toBe('Branches');
   });
 
   it('reads the new route title after a navigation', async () => {
     const fixture = await open('/');
 
-    await TestBed.inject(Router).navigateByUrl('/add');
+    await TestBed.inject(Router).navigateByUrl('/staff');
     await fixture.whenStable();
 
-    expect(element(fixture).querySelector('h1')?.textContent).toBe('Add a practice');
+    expect(element(fixture).querySelector('h1')?.textContent).toBe('Staff');
   });
 
   it('renders an empty heading for a route with no title', async () => {
@@ -91,12 +91,12 @@ describe('PageHeader', () => {
     const fixture = await open('/');
 
     expect(element(fixture).querySelector('.page-header__subtitle')?.textContent?.trim()).toBe(
-      'Every practice on the platform.',
+      'Every location this practice operates from.',
     );
   });
 
   it('renders no subtitle line when there is nothing to say', async () => {
-    const fixture = await open('/add');
+    const fixture = await open('/staff');
 
     expect(element(fixture).querySelector('.page-header__subtitle')).toBeNull();
   });
@@ -107,18 +107,12 @@ describe('PageHeader', () => {
     expect(element(fixture).querySelector('.page-header__action .action')).not.toBeNull();
   });
 
-  it('offers the way back on a screen that is not the list', async () => {
-    const fixture = await open('/add');
-    const back = element(fixture).querySelector<HTMLAnchorElement>('.page-header__back');
+  it('offers no way back, because the stage tabs are the way between screens', async () => {
+    const fixture = await open('/staff');
 
-    // This is what replaces the tab bar that was rejected in review.
-    expect(back?.getAttribute('href')).toBe('/practices');
-    expect(back?.textContent).toContain('Practices');
-  });
-
-  it('offers no way back from the list to itself', async () => {
-    const fixture = await open('/');
-
+    // There used to be a back link here, reading `Practices`, standing in for the
+    // tab bar that had been rejected. There is a tab strip in the frame now, and a
+    // second quieter answer to "how do I get to another stage" is worse than none.
     expect(element(fixture).querySelector('.page-header__back')).toBeNull();
   });
 });

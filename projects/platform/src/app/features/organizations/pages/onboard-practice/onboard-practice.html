@@ -1,0 +1,651 @@
+<div class="stage">
+  <app-page-header subtitle="A practice, its branches and its staff, created together." />
+
+  <!--
+    The progress bar counts FINISHED steps, not the one that is open, so it cannot
+    claim progress for a step somebody opened and left empty. `progressbar` rather
+    than a bare div: it is the one thing on the page whose whole job is to say how
+    far along this is, and a reader who cannot see it needs that too.
+  -->
+  <div
+    class="progress"
+    role="progressbar"
+    aria-label="Steps finished"
+    [attr.aria-valuenow]="progress()"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="total"
+    [attr.aria-valuetext]="progress() + ' of ' + total + ' steps finished'"
+  >
+    <!--
+      ONE SEGMENT PER STEP, NAMED. A single rail says how far along this is and
+      nothing else; four named segments say what the whole job consists of before
+      any of it is done, which step is being worked on, and which are behind. It is
+      the same four titles the steps carry, from the same array.
+
+      The segments are `aria-hidden` and the region above carries the reading: a
+      screen reader gets "2 of 4 steps finished" rather than eight fragments, and
+      the step headings below announce the names in their own right.
+    -->
+    <ol class="progress__flow" aria-hidden="true">
+      @for (step of flow; track step.number) {
+        <li
+          class="progress__step"
+          [class.progress__step--done]="state(step.number) === 'done'"
+          [class.progress__step--current]="state(step.number) === 'current'"
+        >
+          <span class="progress__label">{{ step.title }}</span>
+          <span class="progress__track"></span>
+        </li>
+      }
+    </ol>
+
+    <p class="progress__count">{{ progress() }} of {{ total }} done</p>
+  </div>
+
+  <div class="workspace">
+    <ol class="steps">
+      <!-- ------------------------------------------------------------------ -->
+      <!-- 1. The practice                                                     -->
+      <!-- ------------------------------------------------------------------ -->
+
+      <li>
+        <app-step
+          [number]="steps.practice"
+          title="Practice"
+          [state]="state(steps.practice)"
+          [summary]="state(steps.practice) === 'done' ? practiceSummary() : ''"
+          [open]="openStep() === steps.practice"
+          (toggled)="toggle(steps.practice)"
+        >
+          <!--
+          The one piece of illustration in the console, and it is the domain's own
+          mark rather than decoration: the same pulse trace the wordmark carries.
+          It says what is being set up before the fields do.
+        -->
+          <div class="intro">
+            <span class="intro__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path
+                  d="M2 12.5h4.2l2-6 3.4 10.5 2.5-6.6 1.6 2.1H22"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <div>
+              <h3 class="intro__title">About the practice</h3>
+              <p class="intro__lede">
+                The clinic being onboarded. Its name is what its staff and its patients will see.
+              </p>
+            </div>
+          </div>
+
+          <div class="practice">
+            <div class="field">
+              <label class="field__label" for="practice-name">Practice name</label>
+              <input
+                class="field__control field__control--lead"
+                id="practice-name"
+                type="text"
+                autocomplete="off"
+                placeholder="Cairo Physiotherapy Centre"
+                [value]="draft.name()"
+                (input)="onName($event)"
+              />
+            </div>
+
+            <!--
+            CARDS OVER THE FULL SET, not a dropdown. Three plans with a sentence
+            each is a decision, and a `select` hides two thirds of it behind a
+            click while having nowhere to put the sentences. Radios underneath, so
+            it is a radio group to a screen reader and to the keyboard - the cards
+            are what it looks like, not what it is.
+
+            Nothing is chosen until somebody chooses: a default here is a plan
+            nobody picked, on a practice that will be billed for it.
+          -->
+            <fieldset class="plans">
+              <legend class="plans__legend">Plan</legend>
+
+              <div class="plans__grid">
+                @for (plan of plans; track plan.key) {
+                  <label class="plan" [class.plan--chosen]="draft.plan() === plan.name">
+                    <input
+                      class="visually-hidden"
+                      type="radio"
+                      name="plan"
+                      [id]="'plan-' + plan.key"
+                      [value]="plan.name"
+                      [checked]="draft.plan() === plan.name"
+                      (change)="choosePlan(plan.name)"
+                    />
+
+                    <span class="plan__icon" aria-hidden="true">
+                      @switch (plan.key) {
+                        @case ('starter') {
+                          <svg viewBox="0 0 24 24" focusable="false">
+                            <path
+                              d="M5 20V9.5l7-4.5 7 4.5V20"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.6"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M12 11v4.5M9.75 13.25h4.5"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.6"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                        }
+                        @case ('standard') {
+                          <svg viewBox="0 0 24 24" focusable="false">
+                            <path
+                              d="M3 20v-8l5-3 5 3v8M13 20v-5l4-2.5 4 2.5V20"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.6"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M8 13.5v3M6.5 15h3"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                        }
+                        @default {
+                          <svg viewBox="0 0 24 24" focusable="false">
+                            <path
+                              d="M12 3.2 20 7v4.5c0 4.6-3.2 7.7-8 9.3-4.8-1.6-8-4.7-8-9.3V7Z"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.6"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M12 8.5v6M9 11.5h6"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.6"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                        }
+                      }
+                    </span>
+
+                    <span class="plan__name">{{ plan.name }}</span>
+                    <span class="plan__description">{{ plan.description }}</span>
+                  </label>
+                }
+              </div>
+
+              <p class="plans__note">Plan values are placeholders · the real set is P-05</p>
+            </fieldset>
+          </div>
+
+          <div class="step-actions">
+            <button
+              class="primary-button"
+              type="button"
+              [disabled]="!isComplete(steps.practice)"
+              (click)="continueFrom(steps.practice)"
+            >
+              Continue
+            </button>
+            @if (!isComplete(steps.practice)) {
+              <p class="step-actions__note">A name and a plan are needed</p>
+            }
+          </div>
+        </app-step>
+      </li>
+
+      <!-- ------------------------------------------------------------------ -->
+      <!-- 2. Its branches                                                     -->
+      <!-- ------------------------------------------------------------------ -->
+
+      <li>
+        <app-step
+          [number]="steps.branches"
+          title="Branches"
+          [state]="state(steps.branches)"
+          [summary]="state(steps.branches) === 'done' ? branchesSummary() : ''"
+          [open]="openStep() === steps.branches"
+          [locked]="isLocked(steps.branches)"
+          (toggled)="toggle(steps.branches)"
+        >
+          <div class="intro">
+            <span class="intro__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path
+                  d="M12 21.4c4.2-4.6 6.3-8.1 6.3-10.7a6.3 6.3 0 0 0-12.6 0c0 2.6 2.1 6.1 6.3 10.7Z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M12 7.9v5.6M9.2 10.7h5.6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span>
+            <div>
+              <h3 class="intro__title">Where it operates</h3>
+              <p class="intro__lede">
+                Every location this practice runs from. They are created in the order listed here,
+                and the next step assigns staff to them by name.
+              </p>
+            </div>
+          </div>
+
+          @if (draft.branches().length > 0) {
+            <ul class="entries">
+              @for (
+                branch of draft.branches();
+                track branch.key;
+                let position = $index, count = $count
+              ) {
+                @if (editingBranch() === branch.key) {
+                  <li>
+                    <app-branch-form
+                      submitLabel="Save branch"
+                      [initialName]="branch.name"
+                      [initialPhone]="branch.phone"
+                      (submitted)="saveBranch(branch.key, $event)"
+                      (cancelled)="closeBranchForm()"
+                    />
+                  </li>
+                } @else {
+                  <li class="entry">
+                    <span class="entry__position" aria-hidden="true">{{ position + 1 }}</span>
+
+                    <span class="entry__body">
+                      <span class="entry__name">{{ branch.name }}</span>
+                      @if (branch.phone) {
+                        <span class="entry__meta">{{ branch.phone }}</span>
+                      } @else {
+                        <span class="entry__meta entry__meta--absent">No phone</span>
+                      }
+                      @if (staffAt(branch.key); as who) {
+                        <span class="entry__meta">{{ who }}</span>
+                      }
+                    </span>
+
+                    <!--
+                      Each control names the branch it acts on, because "Move up"
+                      announced six times down a list is six identical
+                      announcements.
+                    -->
+                    <span class="entry__controls">
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [disabled]="position === 0"
+                        (click)="draft.moveBranch(branch.key, -1)"
+                      >
+                        <span class="visually-hidden">Move {{ branch.name }} up</span>
+                        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                          <path
+                            d="M2.5 7.5 6 4l3.5 3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [disabled]="position === count - 1"
+                        (click)="draft.moveBranch(branch.key, 1)"
+                      >
+                        <span class="visually-hidden">Move {{ branch.name }} down</span>
+                        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                          <path
+                            d="M2.5 4.5 6 8l3.5-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      <button
+                        class="icon-button"
+                        type="button"
+                        (click)="startEditBranch(branch.key)"
+                      >
+                        <span class="visually-hidden">Edit {{ branch.name }}</span>
+                        <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                          <path
+                            d="M9.4 2.4 11.6 4.6M2.5 11.5l.5-2.2 6.1-6.1a1 1 0 0 1 1.4 0l.8.8a1 1 0 0 1 0 1.4l-6.1 6.1z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      <button
+                        class="icon-button"
+                        type="button"
+                        (click)="draft.removeBranch(branch.key)"
+                      >
+                        <span class="visually-hidden">Remove {{ branch.name }}</span>
+                        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                          <path
+                            d="M3 3l6 6M9 3l-6 6"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  </li>
+                }
+              }
+            </ul>
+          }
+
+          @if (addingBranch()) {
+            <app-branch-form (submitted)="addBranch($event)" (cancelled)="closeBranchForm()" />
+          } @else {
+            <button class="add-tile" type="button" (click)="startAddBranch()">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path
+                  d="M8 3.2v9.6M3.2 8h9.6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              </svg>
+              Add a branch
+            </button>
+          }
+
+          <div class="step-actions">
+            <button
+              class="primary-button"
+              type="button"
+              [disabled]="!isComplete(steps.branches)"
+              (click)="continueFrom(steps.branches)"
+            >
+              Continue
+            </button>
+            @if (!isComplete(steps.branches)) {
+              <p class="step-actions__note">At least one branch, and every one named</p>
+            }
+          </div>
+        </app-step>
+      </li>
+
+      <!-- ------------------------------------------------------------------ -->
+      <!-- 3. Its staff                                                        -->
+      <!-- ------------------------------------------------------------------ -->
+
+      <li>
+        <app-step
+          [number]="steps.staff"
+          title="Staff"
+          [state]="state(steps.staff)"
+          [summary]="state(steps.staff) === 'done' ? staffSummary() : ''"
+          [open]="openStep() === steps.staff"
+          [locked]="isLocked(steps.staff)"
+          (toggled)="toggle(steps.staff)"
+        >
+          <div class="intro">
+            <span class="intro__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path
+                  d="M9.3 11.3a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4ZM3.4 19.4c0-2.9 2.6-4.8 5.9-4.8s5.9 1.9 5.9 4.8"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M16.4 10.9a2.6 2.6 0 1 0 0-5.2M17.5 14.9c1.9.5 3.1 1.8 3.1 3.6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span>
+            <div>
+              <h3 class="intro__title">Who works there</h3>
+              <p class="intro__lede">
+                Each person, their role, and the branches they work at. This step can be left empty
+                — staff can also be added later, from inside the practice.
+              </p>
+            </div>
+          </div>
+
+          @if (draft.staff().length > 0) {
+            <ul class="entries">
+              @for (member of draft.staff(); track member.key) {
+                @if (editingStaff() === member.key) {
+                  <li>
+                    <app-staff-form
+                      submitLabel="Save staff member"
+                      [branches]="draft.branches()"
+                      [initialFullName]="member.fullName"
+                      [initialEmail]="member.email"
+                      [initialSpecialityCode]="member.specialityCode"
+                      [initialRoles]="member.roles"
+                      [initialBranchKeys]="member.branchKeys"
+                      (submitted)="saveStaff(member.key, $event)"
+                      (cancelled)="closeStaffForm()"
+                    />
+                  </li>
+                } @else {
+                  <li class="entry">
+                    <span class="entry__body">
+                      <span class="entry__name">{{ member.fullName }}</span>
+                      <span class="entry__meta">{{ member.email }}</span>
+                      <span class="entry__meta">{{ member.roles.join(', ') }}</span>
+                      <span class="entry__meta">{{ branchesOf(member.key) }}</span>
+                      @if (member.specialityCode) {
+                        <span class="entry__meta">{{ member.specialityCode }}</span>
+                      }
+                    </span>
+
+                    <span class="entry__controls">
+                      <button
+                        class="icon-button"
+                        type="button"
+                        (click)="startEditStaff(member.key)"
+                      >
+                        <span class="visually-hidden">Edit {{ member.fullName }}</span>
+                        <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                          <path
+                            d="M9.4 2.4 11.6 4.6M2.5 11.5l.5-2.2 6.1-6.1a1 1 0 0 1 1.4 0l.8.8a1 1 0 0 1 0 1.4l-6.1 6.1z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      <button
+                        class="icon-button"
+                        type="button"
+                        (click)="draft.removeStaff(member.key)"
+                      >
+                        <span class="visually-hidden">Remove {{ member.fullName }}</span>
+                        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                          <path
+                            d="M3 3l6 6M9 3l-6 6"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  </li>
+                }
+              }
+            </ul>
+          }
+
+          @if (addingStaff()) {
+            <app-staff-form
+              [branches]="draft.branches()"
+              (submitted)="addStaff($event)"
+              (cancelled)="closeStaffForm()"
+            />
+          } @else {
+            <button class="add-tile" type="button" (click)="startAddStaff()">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path
+                  d="M8 3.2v9.6M3.2 8h9.6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              </svg>
+              Add a staff member
+            </button>
+          }
+
+          <div class="step-actions">
+            <button
+              class="primary-button"
+              type="button"
+              [disabled]="!isComplete(steps.staff)"
+              (click)="continueFrom(steps.staff)"
+            >
+              Continue
+            </button>
+            @if (!isComplete(steps.staff)) {
+              <p class="step-actions__note">
+                Every person needs a name, an email, a role and a branch
+              </p>
+            }
+          </div>
+        </app-step>
+      </li>
+
+      <!-- ------------------------------------------------------------------ -->
+      <!-- 4. The whole thing, read back                                       -->
+      <!-- ------------------------------------------------------------------ -->
+
+      <li>
+        <app-step
+          [number]="steps.review"
+          title="Review and create"
+          [state]="state(steps.review)"
+          [open]="openStep() === steps.review"
+          [locked]="isLocked(steps.review)"
+          (toggled)="toggle(steps.review)"
+        >
+          <p class="step__lede">
+            Everything below is created by one call. Nothing is created before it.
+          </p>
+
+          <dl class="review__facts">
+            <dt>Practice</dt>
+            <dd>{{ draft.name() || '—' }}</dd>
+            <dt>Plan</dt>
+            <dd>{{ draft.plan() || '—' }}</dd>
+          </dl>
+
+          <h3 class="review__heading">
+            Branches <span class="review__count">{{ draft.branchCount() }}</span>
+          </h3>
+          <ul class="review__list">
+            @for (branch of draft.branches(); track branch.key; let at = $index) {
+              <li class="review__item">
+                <span class="review__name">{{ branch.name || 'Branch ' + (at + 1) }}</span>
+                @if (branch.phone) {
+                  <span class="review__detail">{{ branch.phone }}</span>
+                }
+                <!--
+                THE ASSIGNMENTS, READ THE OTHER WAY ROUND. The staff step answers
+                "where does this person work"; a branch with nobody at it is only
+                visible from here.
+              -->
+                @if (staffAt(branch.key); as staff) {
+                  <span class="review__detail">{{ staff }}</span>
+                } @else {
+                  <span class="review__detail review__detail--empty">Nobody assigned</span>
+                }
+              </li>
+            }
+          </ul>
+
+          <h3 class="review__heading">
+            Staff <span class="review__count">{{ draft.staffCount() }}</span>
+          </h3>
+          @if (draft.staff().length === 0) {
+            <p class="review__none">None. They can be added later, from inside the practice.</p>
+          } @else {
+            <ul class="review__list">
+              @for (member of draft.staff(); track member.key; let at = $index) {
+                <li class="review__item">
+                  <span class="review__name">{{
+                    member.fullName || 'Staff member ' + (at + 1)
+                  }}</span>
+                  <span class="review__detail">{{ member.email }}</span>
+                  <span class="review__detail">{{ member.roles.join(', ') }}</span>
+                  <span class="review__detail">{{ branchesOf(member.key) }}</span>
+                </li>
+              }
+            </ul>
+          }
+
+          <div class="step-actions">
+            <!--
+            Disabled, and inert even when the draft is complete: THERE IS NO
+            SUBMISSION PATH YET. The call, the idempotency key, the in-flight state
+            and the error mapping are P-05.5 to P-05.7, and every one of them is
+            specified. A button that posted without them would be the
+            duplicate-tenant defect the milestone calls the highest-cost client
+            defect in the product.
+          -->
+            <button class="primary-button primary-button--create" type="button" [disabled]="true">
+              Create organization
+            </button>
+            <p class="step-actions__note">Submission is P-05 · not wired up</p>
+          </div>
+        </app-step>
+      </li>
+    </ol>
+
+    <!--
+    Beside the flow rather than at the end of it: the ledger is what fills the half
+    of a wide display a form column leaves empty, and it answers "what am I making"
+    without costing a scroll to the last step. It reads the same draft the steps
+    write to and owns none of it.
+  -->
+    <app-ledger />
+  </div>
+</div>

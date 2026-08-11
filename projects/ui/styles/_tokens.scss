@@ -79,6 +79,43 @@
   --color-border-strong: #b7c2cf;
 
   // ---------------------------------------------------------------------------
+  // Chrome
+  // ---------------------------------------------------------------------------
+
+  // THE FRAME IS A SURFACE OF ITS OWN, and it needs the same roles the page has:
+  // something to sit on, two steps of text, an edge, a hover, an accent and a
+  // focus ring. Before these existed the header band and the navigation rail were
+  // drawn with `--color-surface-raised` and `--color-text`, which silently said
+  // "the chrome is always the same lightness as a card". An application that wants
+  // a dark frame around light content then has no way to ask for one without
+  // reaching into `ui` and restyling a shared component per application - which is
+  // exactly what the applications are forbidden from doing.
+
+  // Every default below is the value that was hardcoded at its call site before
+  // this block existed, so the staff console renders byte-identically and the
+  // roles cost nothing until an application reassigns them.
+
+  // A filled control INSIDE the chrome - the active navigation entry, the skip
+  // link - keeps using `--color-primary` and `--color-text-inverse`. A filled
+  // shape carries its own contrast with it and reads on a frame of any lightness,
+  // so it does not need a chrome-specific pair.
+  --color-chrome-surface: #f4f6f9;
+  --color-chrome-text: #172029;
+  --color-chrome-muted-text: #5c6a78;
+  --color-chrome-border: #ccd4de;
+  --color-chrome-hover-surface: #e8ecf1;
+
+  // The accent as it appears ON the chrome, which is not always the accent that
+  // works on a page. Where the two surfaces differ in lightness they need
+  // different values: an accent tuned to stay readable as a link on white is too
+  // dark to register as a shape on a dark frame.
+  --color-chrome-accent: #1b5e9c;
+
+  // The focus ring inside the chrome, for the same reason: a ring is only a ring
+  // if it can be seen against what it is drawn on.
+  --color-chrome-focus: #1b5e9c;
+
+  // ---------------------------------------------------------------------------
   // Status
   // ---------------------------------------------------------------------------
 
@@ -276,7 +313,21 @@
 // application specifically so that "whoever runs the platform must never be able
 // to open a patient's chart" is structural, and a screenshot of one being
 // mistakable for the other quietly undoes that. The hue moves the whole way:
-// staff is a clinical blue, this is a deep sea green.
+// staff is a clinical blue, this is indigo, and the two are told apart at a
+// glance by the frame before anyone gets as far as the hue.
+
+// THE FRAME IS DARK AND THE CONTENT IS LIGHT. This replaces an all-light console
+// whose header was white on a near-white canvas: the band had no edge, so the top
+// of every screen read as flat no matter how the things inside it were sized or
+// spaced. A frame that is a different lightness from the content it holds is the
+// one version of this that cannot read as flat, and for a console whose whole job
+// is to be recognisably not the clinical application, it is also the strongest
+// reading of P-03.4's "make it visibly internal".
+
+// The design handoff (docs/PLATFORM/Shell and navigation.html) describes the
+// light green console this replaces. That document is the record of what was
+// asked for; this block is the record of what was built, and the difference was a
+// decision taken after seeing the first one running.
 
 // Only ROLES are reassigned - no new names, no `--platform-` prefix. Every rule
 // in `projects/platform` references the same tokens `projects/staff` does, so
@@ -290,52 +341,98 @@
 // stack above. The system stacks stand in.
 
 :root[data-app='platform'] {
+  // -------------------------------------------------------------------------
+  // The frame
+  // -------------------------------------------------------------------------
+
+  // Ink, carrying the hue rather than being a neutral black: a grey frame beside
+  // an indigo accent reads as two unrelated decisions, and the violet in it is
+  // what makes the accent look like it came from the same palette.
+  --color-chrome-surface: #191733;
+
+  // Two steps of text on the ink, the same two the page has on white. The quiet
+  // step is the word "Platform" in the wordmark and the initials in the account
+  // mark, and it clears 4.5:1 - it is quiet, not decorative.
+  --color-chrome-text: #f4f3fb;
+  --color-chrome-muted-text: #a9a4cc;
+
+  // Light enough to be a separator on ink and dark enough not to become a stripe.
+  // It draws the rule under the band and the ring around the account mark.
+  --color-chrome-border: #3a3663;
+  --color-chrome-hover-surface: #252244;
+
+  // BRIGHTER THAN `--color-primary`, and this is the pair of values that most
+  // needs its comment. The page accent has to stay readable as body-sized link
+  // text on white, which caps how light it can be; on ink that same value is a
+  // 2.8:1 shape and the wordmark tile sinks into the band. This one is tuned the
+  // other way - against the ink - and is only ever drawn there.
+  --color-chrome-accent: #7c6cf5;
+  --color-chrome-focus: #b7aeff;
+
+  // -------------------------------------------------------------------------
+  // The content
+  // -------------------------------------------------------------------------
+
   // Surfaces INVERT relative to the workspace default: the page is a faintly
-  // green canvas and the bands sitting on it are white. Depth comes from that
+  // violet canvas and the bands sitting on it are white. Depth comes from that
   // tonal step and from nothing else - there is no shadow anywhere in this
   // console, and a shadow added later would match nothing.
-  --color-surface: #f4f8f6;
+  --color-surface: #f5f5fa;
   --color-surface-raised: #fff;
 
   // Three steps of text: the sentence, what supports it, and the note under it.
-  // The third step is darker than the handoff's `--epm-ink-3` (#8a9a94), which
-  // reaches 2.75:1 on this canvas and cannot carry text.
-  --color-text: #12241f;
-  --color-muted-text: #5c6e68;
-  --color-subtle-text: #63706a;
+  --color-text: #1a1830;
+  --color-muted-text: #55506f;
+  --color-subtle-text: #5c5678;
 
   // A card's edge, a row separator inside it, an input's edge.
-  --color-border: #e3ece8;
-  --color-border-soft: #eff4f2;
-  --color-border-strong: #d5e0db;
+  --color-border: #e4e3ef;
+  --color-border-soft: #f0eff7;
+  --color-border-strong: #d2d0e2;
 
-  // The accent, and the tinted pair behind an icon tile or an avatar.
-  --color-primary: #0e7c66;
-  --color-primary-hover: #0b6353;
-  --color-primary-soft: #e4f2ed;
-  --color-primary-deep: #0b6353;
+  // The accent as it appears on the page, and the tinted pair behind an icon
+  // tile. Tuned against white and the canvas, where it has to carry link text at
+  // 4.5:1 - see `--color-chrome-accent` above for why the frame gets its own.
+  --color-primary: #5b4bd6;
+  --color-primary-hover: #4a3bb8;
+  --color-primary-soft: #eeecfc;
+  --color-primary-deep: #453398;
 
-  // Greened, so the local environment's chip belongs to the same palette.
-  --color-muted-surface: #eef2f0;
+  // Cooled, so the local environment's chip belongs to the same palette.
+  --color-muted-surface: #eceaf4;
 
-  // Warmed off the workspace red so the production chip sits in the same tonal
-  // family as everything around it. It stays the most alarming thing on screen.
-  --color-danger: #c0483a;
-  --color-danger-hover: #a03a2b;
-  --color-danger-surface: #fbeeec;
-  --color-danger-text: #a03a2b;
-  --color-danger-mark: #c0483a;
+  // Kept clearly red rather than pulled towards the violet around it. A
+  // production chip that has been made to harmonise has been made easier to miss,
+  // and it stays the most alarming thing on screen.
+  --color-danger: #cc3b30;
+  --color-danger-hover: #a82e25;
+  --color-danger-surface: #fbecea;
+  --color-danger-text: #a82e25;
+  --color-danger-mark: #cc3b30;
 
-  // A COMPACT TYPE SCALE, not a different one: the same six steps, each about
-  // 20% smaller. Five people use this occasionally on a desktop at 1024px or
-  // wider, and it is a console rather than a document - the workspace scale,
-  // tuned for a clinical screen read at arm's length, is too loud here.
+  // A TIGHTER TYPE SCALE, not a different one: the same six steps, held one
+  // notch below the workspace. It is a console rather than a document, and the
+  // workspace scale - tuned for a clinical screen read at arm's length - is too
+  // loud here.
+
+  // It was tighter than this and it was wrong. At 13px body and an 18px page
+  // title the console did not read as dense, it read as small: the title barely
+  // outranked the sentence beneath it, and the two white bands at the top of
+  // every screen ran together because nothing in them was big enough to be the
+  // thing the eye lands on first. Density is a spacing decision. THE SIZES ARE
+  // WHAT BUILD THE HIERARCHY, and there has to be enough distance between the
+  // steps for there to be one.
+
+  // The gap from the step below widens as the scale climbs, which is what makes
+  // a page title unmistakably a page title next to body text at the same weight.
+  // The fine-print step stays where the workspace put it: 12px is the floor a
+  // status pill stays legible at, and the console does not get to go below it.
 
   // Still `rem`, so it still follows the user's browser font size.
-  --font-size-xs: 0.6875rem; // 11px - status pills, the environment chip
-  --font-size-sm: 0.75rem; // 12px - supporting text, buttons
-  --font-size-md: 0.8125rem; // 13px - body
-  --font-size-lg: 0.9375rem; // 15px - a section or empty-state headline
-  --font-size-xl: 1.125rem; // 18px - the page title
-  --font-size-2xl: 1.5rem; // 24px
+  --font-size-xs: 0.75rem; // 12px - status pills, the environment chip
+  --font-size-sm: 0.8125rem; // 13px - supporting text, buttons
+  --font-size-md: 0.875rem; // 14px - body
+  --font-size-lg: 1.0625rem; // 17px - a section or empty-state headline
+  --font-size-xl: 1.375rem; // 22px - the page title
+  --font-size-2xl: 1.75rem; // 28px
 }

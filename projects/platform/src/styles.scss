@@ -33,3 +33,404 @@
   white-space: nowrap;
   border: 0;
 }
+
+// ---------------------------------------------------------------------------
+// The stage layer
+// ---------------------------------------------------------------------------
+
+// The console's form language: a gutter, a labelled field, a row of a repeatable
+// list, and the two kinds of button that are not the primary action. They are here
+// rather than in the one component that currently uses them because they are the
+// console's patterns rather than that screen's, and the screens that are waiting
+// on a route - the practice list, and staff - will be built out of the same four
+// things.
+
+// This is the second and last thing in this file. A third section appearing here
+// should be an argument: a stylesheet that grows into a framework is a framework
+// nobody documented.
+
+// The gutter, matching the frame's own so the first field lines up under the
+// wordmark.
+.stage {
+  max-inline-size: 60rem;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+  padding-block-end: var(--space-5);
+}
+
+// A labelled control. The label is a block above rather than beside: a two-column
+// form reads faster only when every label is short, and "Speciality code" beside
+// "Email" already is not.
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field__label {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+// Said in the label rather than left for somebody to discover by submitting. The
+// quieter half of the label, because it qualifies the name rather than being part
+// of it.
+.field__optional {
+  color: var(--color-subtle-text);
+  font-weight: var(--font-weight-regular);
+}
+
+// The control itself. It answers the pointer and the keyboard in three states -
+// resting, hovered, focused - because a field that looks identical whether or not
+// it is the one you are typing into is the flattest thing on a form.
+.field__control {
+  inline-size: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.field__control:hover {
+  border-color: var(--color-primary);
+}
+
+// The border moves as well as the ring. An outline alone sits outside the control
+// and reads as something drawn on top of it; recolouring the edge is what makes the
+// field itself look active.
+.field__control:focus-visible {
+  border-color: var(--color-primary);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field__control {
+    transition: none;
+  }
+}
+
+// A field with a glyph inside it. The box is what positions the two, so the icon
+// can sit over the control's own padding rather than beside it in a flex row -
+// which would make the control narrower than the ones without an icon and leave the
+// column ragged.
+.field__box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+// Decorative and never in the way: the label above already names the field, and a
+// glyph that swallows clicks is a glyph that stops the input being focused by
+// clicking the start of it.
+.field__icon {
+  position: absolute;
+  display: inline-flex;
+  inset-inline-start: var(--space-3);
+  color: var(--color-subtle-text);
+  pointer-events: none;
+  transition: color 120ms ease;
+}
+
+.field__icon svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+// It follows the field rather than sitting there in one colour, so the glyph is
+// part of the focused state instead of decoration next to it.
+.field__box:focus-within .field__icon {
+  color: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field__icon {
+    transition: none;
+  }
+}
+
+.field__control--iconed {
+  padding-inline-start: 2.25rem;
+}
+
+// A field that takes an identifier rather than prose - a speciality code. Same rule
+// as the row numbers and the ticket references: in this console a code is mono and
+// prose never is, and a code set in the body face invites somebody to type a name
+// into it.
+.field__control--code {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+// The field a screen is about - the practice's name on the step that names it.
+// One size up and capped at a name's length, so it reads as the subject of the
+// step rather than as the first of a list of equals.
+.field__control--lead {
+  max-inline-size: 26rem;
+  padding: var(--space-3);
+  font-size: var(--font-size-lg);
+}
+
+// A placeholder is a hint, not a value, and at the same colour as one it gets read
+// as text somebody typed.
+.field__control::placeholder {
+  color: var(--color-subtle-text);
+  opacity: 1;
+}
+
+// ---------------------------------------------------------------------------
+// A list of what has been added
+// ---------------------------------------------------------------------------
+
+// WHAT IS IN THE LIST IS WHAT EXISTS. Each entry is a branch or a person that is
+// on the draft - read back, not a form still being typed into. Adding and editing
+// happen in a form that holds its own values until it is submitted, so the list
+// can be trusted as a statement of what will be created.
+.entries {
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  list-style: none;
+
+  // So the first and last entries do not square off the container's corners.
+  overflow: hidden;
+}
+
+// One entry. The edge belongs to the list, and each row carries only the rule that
+// separates it from the next.
+.entry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.entry:last-child {
+  border-block-end: 0;
+}
+
+// The entry's position in the list, in a badge rather than as a loose digit.
+
+// IT IS NOT DECORATION on the branch list: the order there is what the API reads -
+// a staff member's branches are positions in it - so the number is a fact about
+// the entry. The staff list has no badge, because the order of people means
+// nothing and numbering them would imply it did.
+.entry__position {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+.entry__body {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+}
+
+.entry__name {
+  font-weight: var(--font-weight-medium);
+}
+
+.entry__meta {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+// What the entry does not have. It is not an error - a phone is optional, and a
+// branch may open before it is staffed - so it is quiet and italic rather than red.
+.entry__meta--absent {
+  color: var(--color-subtle-text);
+  font-style: italic;
+}
+
+.entry__controls {
+  display: flex;
+  flex: none;
+  gap: var(--space-1);
+}
+
+// ---------------------------------------------------------------------------
+// The form that adds one
+// ---------------------------------------------------------------------------
+
+// Tinted rather than white, so an open form is visibly a different thing from the
+// entries above it: those are what exists, this is what is being written.
+.entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-block-end: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-primary);
+  border-radius: 0.625rem;
+  background-color: var(--color-surface);
+}
+
+.entry-form__fields {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.entry-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.entry-form__submit {
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: 1.25rem;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.entry-form__submit:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.entry-form__submit:disabled {
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+  cursor: not-allowed;
+}
+
+.entry-form__cancel {
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--color-muted-text);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.entry-form__cancel:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.entry-form__submit:focus-visible,
+.entry-form__cancel:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.entry-form__note {
+  margin: 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+}
+
+// A control whose whole label is its glyph. Every one carries a `visually-hidden`
+// name that says which row it acts on, because "Remove" repeated six times down a
+// page is six identical announcements.
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-muted-text);
+  cursor: pointer;
+}
+
+.icon-button:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.icon-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.icon-button:disabled {
+  color: var(--color-border-strong);
+  cursor: not-allowed;
+}
+
+.icon-button svg {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+}
+
+// ---------------------------------------------------------------------------
+// Adding a row
+// ---------------------------------------------------------------------------
+
+// THE FULL WIDTH OF THE LIST IT APPENDS TO, dashed, so it reads as the next row
+// waiting to exist rather than as a button that happens to sit under some rows. It
+// is how both repeatable lists in this console grow, and a small bordered button
+// under a stack of cards was the least findable control on the screen.
+.add-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 0.625rem;
+  background: none;
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.add-tile:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.add-tile:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.add-tile svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+// The choice chips that replaced the bare checkbox rows live with the form that
+// uses them - see staff-form.scss. They are still checkboxes over the full set,
+// which is the shape `LLD-ORGANIZATION.md` §2.5 establishes for the role editor:
+// every option is visible without opening anything, and what is not chosen is as
+// legible as what is.

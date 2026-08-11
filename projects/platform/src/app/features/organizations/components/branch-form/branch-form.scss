@@ -1,0 +1,13 @@
+// The form is the same shape for both lists, so its rules live in the console's
+// form language (`.entry-form` in styles.scss) rather than being written twice.
+// Only what is specific to a branch is here: two fields side by side, and the
+// phone narrower than the name because a phone number has a known length.
+.entry-form__fields {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+@media (width <= 40rem) {
+  .entry-form__fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

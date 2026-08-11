@@ -13,12 +13,17 @@ import { platformAdminGuard } from './session/platform-admin-guard';
  */
 export const routes: Routes = [
   {
+    // THE CONSOLE OPENS ONTO ITS ONE SCREEN. There is no landing page: the one
+    // thing this console does is create a practice with its branches, and a home
+    // page whose only content was a button to start doing that was a screen to get
+    // past rather than a screen to use. The practice list takes this redirect back
+    // when P-04 has a route to stand on.
     path: '',
     pathMatch: 'full',
-    redirectTo: 'practices',
+    redirectTo: 'onboard',
   },
   {
-    path: 'practices',
+    path: 'onboard',
     canActivate: [platformAdminGuard],
     // Lazy, and the only kind of reference this file carries to a feature. The
     // guard sits on the boundary rather than inside the feature's own route

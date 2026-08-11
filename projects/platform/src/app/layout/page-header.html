@@ -1,12 +1,5 @@
 <div class="page-header">
   <div class="page-header__text">
-    @if (back()) {
-      <a class="page-header__back" [routerLink]="homeLink">
-        <span class="page-header__back-arrow" aria-hidden="true">&#8592;</span>
-        Practices
-      </a>
-    }
-
     <!--
       `tabindex="-1"` so the frame can move focus here on every completed
       navigation. Without it the browser silently refuses and focus stays
@@ -19,7 +12,7 @@
     }
   </div>
 
-  <!-- At most one action, and the only pill-shaped button on the screen. -->
+  <!-- At most one action, and never the screen's primary one. -->
   <div class="page-header__action">
     <ng-content />
   </div>

@@ -1,12 +1,10 @@
 import { Component, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-
-import { ROUTE_PATHS } from '../route-paths';
+import { ActivatedRoute } from '@angular/router';
 
 /**
- * The white band at the top of a screen: the page's title, one line of
- * supporting text, and at most one action.
+ * The heading block at the top of a screen: its title, one line of supporting
+ * text, and at most one action.
  *
  * THE TITLE COMES FROM THE ROUTE, not from an input. The route already declares
  * one - the document title needs it - and a screen that declared its heading
@@ -17,14 +15,13 @@ import { ROUTE_PATHS } from '../route-paths';
  * every completed navigation; without it the browser would refuse and focus
  * would stay on whatever was clicked.
  *
- * THE BACK LINK IS WHAT REPLACES A TAB BAR. Any screen that is not the list
- * offers one, above the title, reading `Practices`. Moving between the two
- * screens costs back-then-forward rather than one click; for a form that takes
- * minutes and ends by navigating to the list anyway, that is not a real cost.
+ * THERE IS NO BACK LINK. There used to be one, reading `Practices`, because the
+ * console had a landing screen and no navigation; the stage tabs in the frame are
+ * now the way between screens, and a back link beside them would be a second,
+ * quieter answer to a question the tabs already answer.
  */
 @Component({
   selector: 'app-page-header',
-  imports: [RouterLink],
   templateUrl: './page-header.html',
   styleUrl: './page-header.scss',
 })
@@ -36,11 +33,6 @@ export class PageHeader {
    * the screen obviously is. Omitted rather than filled with something.
    */
   readonly subtitle = input<string>('');
-
-  /** Whether to offer the way back to the practice list. */
-  readonly back = input(false);
-
-  protected readonly homeLink = ROUTE_PATHS.practices;
 
   /**
    * The route's title. `''` until the router resolves it, which renders an empty

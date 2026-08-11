@@ -1,0 +1,187 @@
+<div class="entry-form">
+  <div class="entry-form__fields">
+    <div class="field">
+      <label class="field__label" for="staff-form-name">Full name</label>
+      <div class="field__box">
+        <span class="field__icon" aria-hidden="true">
+          <svg viewBox="0 0 16 16" focusable="false">
+            <circle cx="8" cy="5.6" r="2.6" fill="none" stroke="currentColor" stroke-width="1.3" />
+            <path
+              d="M3.2 13.4c0-2.4 2.1-3.9 4.8-3.9s4.8 1.5 4.8 3.9"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+        <input
+          class="field__control field__control--iconed"
+          id="staff-form-name"
+          type="text"
+          autocomplete="off"
+          placeholder="Mona Adel"
+          [value]="fullName()"
+          (input)="onFullName($event)"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="staff-form-email">Email</label>
+      <div class="field__box">
+        <span class="field__icon" aria-hidden="true">
+          <svg viewBox="0 0 16 16" focusable="false">
+            <rect
+              x="2.2"
+              y="3.8"
+              width="11.6"
+              height="8.4"
+              rx="1.4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+            />
+            <path
+              d="m2.6 5 5.4 3.7L13.4 5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        <input
+          class="field__control field__control--iconed"
+          id="staff-form-email"
+          type="email"
+          autocomplete="off"
+          placeholder="mona@clinic.example"
+          [value]="email()"
+          (input)="onEmail($event)"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="staff-form-speciality">
+        Speciality code <span class="field__optional">optional</span>
+      </label>
+      <div class="field__box">
+        <span class="field__icon" aria-hidden="true">
+          <svg viewBox="0 0 16 16" focusable="false">
+            <path
+              d="M8 2.4 13.2 5v3c0 3-2.1 5.1-5.2 6.2C4.9 13.1 2.8 11 2.8 8V5Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M8 5.9v4M6 7.9h4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+        <input
+          class="field__control field__control--iconed field__control--code"
+          id="staff-form-speciality"
+          type="text"
+          autocomplete="off"
+          placeholder="PHYS-01"
+          [value]="specialityCode()"
+          (input)="onSpecialityCode($event)"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!--
+    Two checkbox sets, each in a `fieldset` with a `legend`: a group of checkboxes
+    sharing one question needs the question announced with each of them, and a
+    legend is the only thing that does that without repeating it in every label.
+  -->
+  <fieldset class="entry-form__set">
+    <legend class="entry-form__legend">
+      Roles <span class="field__optional">at least one</span>
+    </legend>
+
+    <!--
+      CHIPS OVER THE FULL SET, and the checkbox is still what it is: the input is
+      `visually-hidden` rather than absent, so this is a group of checkboxes to the
+      keyboard and to a screen reader, and a chip is what it looks like. Same
+      arrangement as the plan cards on the first step.
+    -->
+    <div class="choices">
+      @for (role of roleOptions; track role) {
+        <label class="choice" [class.choice--chosen]="has(roles(), role)">
+          <input
+            class="visually-hidden"
+            type="checkbox"
+            [checked]="has(roles(), role)"
+            (change)="toggleRole(role)"
+          />
+          <span class="choice__mark" aria-hidden="true">
+            <svg viewBox="0 0 12 12" focusable="false">
+              <path
+                d="M2.6 6.2 4.8 8.4 9.4 3.8"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          {{ role }}
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="entry-form__set">
+    <legend class="entry-form__legend">
+      Works at <span class="field__optional">at least one</span>
+    </legend>
+
+    <div class="choices">
+      @for (branch of branches(); track branch.key; let at = $index) {
+        <label class="choice" [class.choice--chosen]="has(branchKeys(), branch.key)">
+          <input
+            class="visually-hidden"
+            type="checkbox"
+            [checked]="has(branchKeys(), branch.key)"
+            (change)="toggleBranch(branch.key)"
+          />
+          <span class="choice__mark" aria-hidden="true">
+            <svg viewBox="0 0 12 12" focusable="false">
+              <path
+                d="M2.6 6.2 4.8 8.4 9.4 3.8"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          {{ branch.name || 'Branch ' + (at + 1) }}
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <div class="entry-form__actions">
+    <button class="entry-form__submit" type="button" [disabled]="!canSubmit()" (click)="onSubmit()">
+      {{ submitLabel() }}
+    </button>
+    <button class="entry-form__cancel" type="button" (click)="cancelled.emit()">Cancel</button>
+
+    @if (!canSubmit()) {
+      <p class="entry-form__note">A name, an email, a role and a branch are needed</p>
+    }
+  </div>
+</div>

@@ -53,6 +53,12 @@ export interface ShellNavigation {
  * mark something about the whole page - the platform console puts its
  * environment edge there. `[shell-brand]` and `[shell-header-end]` are the two
  * ends of the header. Everything else is projected into the content region.
+ *
+ * There was briefly a `[shell-context]` slot under the header, for a band of tabs
+ * belonging to the frame. It was removed with the console that wanted it: the
+ * platform console is one screen again, and a slot in a shared library with no
+ * caller is a shape the next product has to work around rather than a facility it
+ * gets to use.
  */
 @Component({
   selector: 'lib-shell',

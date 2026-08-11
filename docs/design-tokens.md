@@ -75,6 +75,43 @@ from the two without checking anything. `--color-primary-soft` and
 `--color-primary-deep` are a pair for the same reason - `--color-primary` on the soft
 tint does not clear 4.5:1, and the deep step does.
 
+### Chrome
+
+The application frame - the header band and the navigation rail - is **a surface of
+its own**, with the same roles the page has.
+
+| Role                           | Meaning                                                 |
+| ------------------------------ | ------------------------------------------------------- |
+| `--color-chrome-surface`       | The frame's fill: the header band, the navigation rail. |
+| `--color-chrome-text`          | Text on the frame.                                      |
+| `--color-chrome-muted-text`    | The second, quieter step of text on the frame.          |
+| `--color-chrome-border`        | The frame's edge, and separators drawn inside it.       |
+| `--color-chrome-hover-surface` | A navigation entry under the pointer.                   |
+| `--color-chrome-accent`        | The accent **as it appears on the frame**.              |
+| `--color-chrome-focus`         | The focus ring on the frame.                            |
+
+These exist because `ui`'s shell used to draw the frame with `--color-surface-raised`
+and `--color-text`, which quietly asserted that a frame is always the same lightness
+as a card. The platform console wanted the opposite - an ink frame around light
+content - and without these roles the only way to get it would have been a
+per-application branch inside a shared component, which is the thing the whole token
+system exists to prevent.
+
+**`--color-chrome-accent` is separate from `--color-primary` on purpose**, and it is
+the least obvious entry here. The page accent is capped by having to carry link text
+at 4.5:1 on white; on a dark frame that same value is a 2.8:1 shape and simply sinks
+into the band. One accent cannot be tuned against two surfaces of different lightness,
+so there are two, and the frame's is only ever drawn on the frame. `--color-chrome-focus`
+is separate for the same reason - a ring you cannot see is not a focus indicator.
+
+A **filled** control inside the frame - the active navigation entry, the skip link -
+stays on `--color-primary` with `--color-text-inverse` on it. It carries its own
+contrast and reads on a frame of any lightness.
+
+Every default reproduces the value that was hardcoded at its call site before the
+roles existed, so the staff console renders identically and the roles cost nothing
+until an application reassigns them.
+
 ### Status
 
 Three tinted **triples**, added by F1 P-03 - the first ticket that actually rendered
@@ -120,14 +157,24 @@ An application can reassign these roles for itself with one attribute on its
 
 ```scss
 :root[data-app='platform'] {
-  --color-primary: #0e7c66;
+  --color-primary: #5b4bd6;
 }
 ```
 
-The platform console does exactly this: it inverts the two surface roles (its page is
-a tinted canvas and its bands are white), moves the accent from clinical blue to deep
-sea green, and shrinks the type scale by about 20% for a dense internal console. The
-block lives in `_tokens.scss` rather than in the application, so that
+The platform console does exactly this: it makes its **frame ink and its content
+light**, inverts the two page surface roles (the page is a tinted canvas and the bands
+on it are white), moves the accent from clinical blue to indigo, and holds the type
+scale one notch below the workspace for an internal console.
+
+The dark frame replaced an all-light version whose header was white on a near-white
+canvas. That band had no edge, so the top of every screen read as flat however its
+contents were sized or spaced - and a frame that is a different lightness from the
+content it holds is the one version of it that cannot. It is also the strongest
+reading of F1 P-03.4, "make it visibly internal". **One notch, not a shrunken copy.** An earlier version of that block took
+every step down by about 20%, which put body text at 13px and the page title at 18px;
+the console stopped reading as dense and started reading as small, because a hierarchy
+needs distance between its steps and there was none left. Density belongs to the
+spacing scale. The block lives in `_tokens.scss` rather than in the application, so that
 `projects/platform/src/styles.scss` contains no palette at all and no application
 stylesheet ever needs a raw colour value.
 
