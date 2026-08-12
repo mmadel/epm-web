@@ -11,9 +11,23 @@
  * message contains the word this file exists to say, which is the name of the
  * variable nobody set.
  *
- * It runs on a LAPTOP as well as in CI, and that is the point of hanging it off
- * `preinstall` rather than adding a step to the workflow: one mechanism, failing
- * the same way and saying the same thing wherever the install happens.
+ * WHAT IT DOES NOT CATCH, because npm does not offer a hook early enough:
+ * `npm ci` downloads dependencies BEFORE it runs the root package's `preinstall`
+ * script. On a cold cache - which every CI runner has, and any developer who has
+ * not installed this package before - the registry therefore answers 401 and npm
+ * exits before this file executes. Measured, not assumed: a cold-cache `npm ci`
+ * with the variable unset prints the bare 401 and nothing from here.
+ *
+ * So it is wired in TWO places, and neither is redundant:
+ *
+ *   - a step before `npm ci` in every CI job, which is the only position that
+ *     reliably precedes npm's first request, and
+ *   - `preinstall`, which catches the warm-cache case and `npm install` on a
+ *     populated tree - the shape a developer hits most often, since their cache
+ *     usually has the package from last time.
+ *
+ * When neither fires, the fallback is documentation: the 401 row in
+ * docs/api-client.md says what the registry will not.
  *
  * The check is deliberately narrow. It asks whether the token is in the
  * environment, not whether it works: a revoked or under-scoped token is npm's

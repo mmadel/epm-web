@@ -98,9 +98,11 @@ export NODE_AUTH_TOKEN=<token>            # bash
 $env:NODE_AUTH_TOKEN = "<token>"          # PowerShell
 ```
 
-`preinstall` checks the variable and stops with a message naming it, so a missing token
-never reaches the registry to come back as something less helpful. In CI the value is the
-`PACKAGES_READ_TOKEN` secret.
+A `preinstall` guard stops with a message naming the variable when it is unset — but only
+when npm does not have to reach the network first. **`npm ci` downloads dependencies
+before it runs `preinstall`**, so on a cold cache the registry's 401 arrives first and the
+guard never runs. That is why CI runs the same check as a step before `npm ci`, and why
+the 401 row below exists. In CI the value is the `PACKAGES_READ_TOKEN` secret.
 
 **A JDK, 17 or newer.** openapi-generator runs on a JVM. Only `npm run generate:api`
 needs it — building and testing the committed client do not, which is the point of
@@ -111,7 +113,7 @@ committing it.
 | What you see                                                         | What it is                                                                                                                                                                                                                                                                |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `[check-packages-token] Stopped: NODE_AUTH_TOKEN is not set`         | Exactly what it says. Export the variable; the install never reached the network                                                                                                                                                                                          |
-| **401** from `npm.pkg.github.com`                                    | The variable is set but empty, or the token is revoked. npm resolved `${NODE_AUTH_TOKEN}` to nothing and authenticated with nothing                                                                                                                                       |
+| **401** from `npm.pkg.github.com`                                    | `NODE_AUTH_TOKEN` is unset, empty, or revoked — npm resolved `${NODE_AUTH_TOKEN}` to nothing and authenticated with nothing. This is the most common failure by far, and it reaches you unadorned because `npm ci` fetches before `preinstall` can object                 |
 | **404** on a package that is published                               | The token authenticated but cannot read that repository's packages. Check it is a **classic** token with `read:packages`, and not the automatic `GITHUB_TOKEN` — that one reads only its own repository's packages, and the specification is published from `epm-service` |
 | A token in `~/.npmrc` is ignored                                     | By design. The committed `.npmrc` sets the same key for this registry and a project's configuration beats the user's. Use the environment variable                                                                                                                        |
 | CI: _the pinned specification and the committed API client disagree_ | The client was not regenerated, or not committed alongside the bump. Run `npm run generate:api` and commit the result                                                                                                                                                     |

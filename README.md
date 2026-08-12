@@ -70,11 +70,15 @@ Export it — that is the one mechanism, on a laptop and in CI alike. The commit
 token from `NODE_AUTH_TOKEN`; no token is written to a file in this repository, and
 `npm run lint` fails if one ever is.
 
-Without the variable set, the registry answers 401 and npm reports a published package as
-unreadable. So `preinstall` checks it first and fails naming it, before npm reaches the
-network. In CI the value is the `PACKAGES_READ_TOKEN` secret; the automatic `GITHUB_TOKEN`
-cannot stand in for it, because it reads only this repository's packages and the
-specification is published from another.
+Without the variable set, the registry answers **401** and npm reports a published package
+as unreadable. A `preinstall` guard turns that into a message naming the variable —
+though only when npm does not need the network first, since `npm ci` downloads before it
+runs `preinstall`. On a cold cache the 401 is what you get; `docs/api-client.md` says what
+it means. CI runs the same guard as a step **before** `npm ci`, which is early enough.
+
+In CI the value is the `PACKAGES_READ_TOKEN` secret; the automatic `GITHUB_TOKEN` cannot
+stand in for it, because it reads only this repository's packages and the specification is
+published from another.
 
 ## Language and direction
 
