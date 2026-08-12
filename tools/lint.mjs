@@ -9,6 +9,10 @@ import { spawnSync } from 'node:child_process';
 const LINTERS = [
   ['ESLint', 'lint:es'],
   ['Stylelint', 'lint:styles'],
+  // Not a linter over source, but the same kind of check and the same reason to
+  // run here: it is about what the repository says, it has no build to hang off,
+  // and it must run even when the API client is untouched.
+  ['API specification pin', 'lint:api-spec'],
 ];
 
 const failed = [];

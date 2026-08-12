@@ -10,6 +10,18 @@ env:
   # one ticket early, so that `main` does not go red the moment F-01 merges.
   EPM_API_BASE_URL: https://api.epm.invalid
 
+  # Every job installs the OpenAPI specification from GitHub Packages, which
+  # authenticates every read, so every job needs this. It is declared once, at
+  # workflow level, rather than on each `npm ci` step: a job added later without
+  # it would fail with a 401 on a package that exists, and the next person would
+  # spend the afternoon looking at the package rather than at the step.
+  #
+  # PACKAGES_READ_TOKEN is a repository secret: a CLASSIC personal access token
+  # with `read:packages`. The automatic GITHUB_TOKEN cannot stand in for it - it
+  # reads only this repository's packages, and the specification is published
+  # from epm-service. That is what a 404 here almost always means.
+  NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}
+
 jobs:
   lint:
     name: Lint
@@ -20,8 +32,16 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # BEFORE `npm ci`, not inside it. The same check runs from `preinstall`,
+      # but npm downloads dependencies before it runs the root package's
+      # preinstall script, so on a cold cache - which every runner has - the
+      # registry answers 401 first and the hook never executes. Verified on this
+      # workflow. A step here is the only place it reliably precedes the fetch.
+      - name: NODE_AUTH_TOKEN must be set (PACKAGES_READ_TOKEN secret)
+        run: node scripts/check-packages-token.mjs
+
       - run: npm ci
-      - name: ESLint + Stylelint
+      - name: ESLint + Stylelint + the API specification pin
         run: npm run lint
       - name: Prettier
         run: npm run format:check
@@ -34,6 +54,11 @@ jobs:
   # failure this workspace generates a client to avoid: types that still compile
   # and no longer describe the API. So CI regenerates it and insists the result is
   # byte-for-byte what was committed.
+  #
+  # Since T-91 the input is a pinned package rather than a file in this
+  # repository, so this job also proves the pin resolves: the specification it
+  # regenerates from is the one `npm ci` installed, at the version package.json
+  # names, on a runner with an empty node_modules.
   api-client:
     name: Generated API client is current
     runs-on: ubuntu-latest
@@ -53,9 +78,27 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # BEFORE `npm ci`, not inside it. The same check runs from `preinstall`,
+      # but npm downloads dependencies before it runs the root package's
+      # preinstall script, so on a cold cache - which every runner has - the
+      # registry answers 401 first and the hook never executes. Verified on this
+      # workflow. A step here is the only place it reliably precedes the fetch.
+      - name: NODE_AUTH_TOKEN must be set (PACKAGES_READ_TOKEN secret)
+        run: node scripts/check-packages-token.mjs
+
       - run: npm ci
 
-      - name: Regenerate from openapi/openapi.json
+      - name: The pinned specification must be exactly what package.json names
+        run: |
+          pinned=$(node -p "require('./package.json').devDependencies['@mmadel/openapi-spec']")
+          installed=$(node -p "require('./node_modules/@mmadel/openapi-spec/package.json').version")
+          echo "package.json pins $pinned; node_modules has $installed."
+          if [ "$pinned" != "$installed" ]; then
+            echo "::error::@mmadel/openapi-spec resolved to $installed, but package.json pins $pinned. A range would do this; so would a stale lockfile. Run 'npm i -E @mmadel/openapi-spec@$pinned' and commit package-lock.json."
+            exit 1
+          fi
+
+      - name: Regenerate from the pinned specification
         run: npm run generate:api
 
       # `--intent-to-add` so that a file the regeneration ADDED - a new operation
@@ -66,10 +109,10 @@ jobs:
         run: |
           git add --intent-to-add projects/api-client/src/generated
           if git diff --quiet -- projects/api-client/src/generated; then
-            echo "The committed client matches openapi/openapi.json."
+            echo "The committed client matches @mmadel/openapi-spec."
             exit 0
           fi
-          echo "::error::openapi/openapi.json and the committed API client disagree. Run 'npm run generate:api' and commit the result, in the same commit as the specification."
+          echo "::error::The pinned specification and the committed API client disagree. Run 'npm run generate:api' and commit the result, in the same commit as the version bump."
           echo ""
           echo "Files that differ:"
           git --no-pager diff --stat -- projects/api-client/src/generated
@@ -87,6 +130,14 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # BEFORE `npm ci`, not inside it. The same check runs from `preinstall`,
+      # but npm downloads dependencies before it runs the root package's
+      # preinstall script, so on a cold cache - which every runner has - the
+      # registry answers 401 first and the hook never executes. Verified on this
+      # workflow. A step here is the only place it reliably precedes the fetch.
+      - name: NODE_AUTH_TOKEN must be set (PACKAGES_READ_TOKEN secret)
+        run: node scripts/check-packages-token.mjs
+
       - run: npm ci
 
       # Deliberately `npm run build` rather than a loop over `ng build`: the
@@ -107,6 +158,14 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # BEFORE `npm ci`, not inside it. The same check runs from `preinstall`,
+      # but npm downloads dependencies before it runs the root package's
+      # preinstall script, so on a cold cache - which every runner has - the
+      # registry answers 401 first and the hook never executes. Verified on this
+      # workflow. A step here is the only place it reliably precedes the fetch.
+      - name: NODE_AUTH_TOKEN must be set (PACKAGES_READ_TOKEN secret)
+        run: node scripts/check-packages-token.mjs
+
       - run: npm ci
       # The root tsconfig maps api-client, core and ui to ./dist/<name>, so any
       # spec in an application that imports a library cannot resolve it until the

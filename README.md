@@ -29,6 +29,57 @@ no default, so a missing provider is a hard injection failure.
 
 CI must define `EPM_API_BASE_URL` for build and test jobs.
 
+## The API client, and bumping the API version
+
+Nothing in this workspace hand-writes a request or a response type. The `api-client`
+library is generated from the API's own OpenAPI specification, which arrives as a
+**pinned npm package** — `@mmadel/openapi-spec`, published from the backend repository
+and named at one exact version in `package.json`. The generated client is committed;
+`npm run generate:api` regenerates it and CI insists the result is byte-for-byte what
+was committed.
+
+Bumping the API version is three commands:
+
+```bash
+npm i -E @mmadel/openapi-spec@<new version>   # -E: exact, never a range
+npm run generate:api
+npm run build
+```
+
+Anything the API changed underneath a screen shows up at step 3, as compile errors
+naming the fields that moved. That is the entire reason the specification is a version
+rather than something fetched: the bump is a commit somebody reviews, and its blast
+radius is a diff.
+
+`docs/api-client.md` has the longer version: what to commit alongside the bump, how to
+read the regeneration diff, and what each failure mode means.
+
+### The registry token
+
+The specification is published to **GitHub Packages**, which authenticates every read,
+so `npm ci` needs a token here. It is a classic personal access token with
+`read:packages`, and it goes in the environment:
+
+```bash
+export NODE_AUTH_TOKEN=<token>            # bash
+$env:NODE_AUTH_TOKEN = "<token>"          # PowerShell
+```
+
+Export it — that is the one mechanism, on a laptop and in CI alike. The committed
+`.npmrc` redirects only the `@mmadel` scope to `https://npm.pkg.github.com` and reads the
+token from `NODE_AUTH_TOKEN`; no token is written to a file in this repository, and
+`npm run lint` fails if one ever is.
+
+Without the variable set, the registry answers **401** and npm reports a published package
+as unreadable. A `preinstall` guard turns that into a message naming the variable —
+though only when npm does not need the network first, since `npm ci` downloads before it
+runs `preinstall`. On a cold cache the 401 is what you get; `docs/api-client.md` says what
+it means. CI runs the same guard as a step **before** `npm ci`, which is early enough.
+
+In CI the value is the `PACKAGES_READ_TOKEN` secret; the automatic `GITHUB_TOKEN` cannot
+stand in for it, because it reads only this repository's packages and the specification is
+published from another.
+
 ## Language and direction
 
 Arabic and English are both first-class, and the language is switched at runtime in a
