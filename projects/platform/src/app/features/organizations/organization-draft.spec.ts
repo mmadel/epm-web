@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
+import { onboardRequestFrom } from './data/onboard-request';
 import { OrganizationDraft } from './organization-draft';
 
 /**
@@ -9,8 +10,12 @@ import { OrganizationDraft } from './organization-draft';
  * `LLD-ORGANIZATION.md` §2.1 calls the position-based assignment the defect most
  * likely to ship, and it fails silently - the request succeeds and the wrong
  * people are assigned to the wrong branch. The model holds keys and computes
- * positions once, in `request()`; these are the cases that would catch it
+ * positions once, in `onboardRequestFrom`; these are the cases that would catch it
  * regressing to positions in state.
+ *
+ * They are asserted against the request the mapper builds rather than against the
+ * draft's own signals on purpose: positions are what the server acts on, so a test
+ * that stopped at the keys would pass while the wrong numbers went out.
  */
 function draft(): OrganizationDraft {
   TestBed.resetTestingModule();
@@ -53,7 +58,7 @@ describe('OrganizationDraft', () => {
   it('computes branch positions only when the request is built', () => {
     const { draft: organization } = withThreeBranches();
 
-    expect(organization.request().staff[0].branchPositions).toEqual([1, 2]);
+    expect(onboardRequestFrom(organization).staff[0].clinics).toEqual([1, 2]);
   });
 
   it('keeps every assignment correct when a branch moves', () => {
@@ -69,7 +74,7 @@ describe('OrganizationDraft', () => {
       'Maadi',
       'Nasr City',
     ]);
-    expect(organization.request().staff[0].branchPositions).toEqual([2, 0]);
+    expect(onboardRequestFrom(organization).staff[0].clinics).toEqual([2, 0]);
   });
 
   it('drops only the removed branch from an assignment, and renumbers nothing', () => {
@@ -81,7 +86,7 @@ describe('OrganizationDraft', () => {
     organization.removeBranch(keys[0]);
 
     expect(organization.branches().map((branch) => branch.name)).toEqual(['Nasr City', 'Zamalek']);
-    expect(organization.request().staff[0].branchPositions).toEqual([0, 1]);
+    expect(onboardRequestFrom(organization).staff[0].clinics).toEqual([0, 1]);
   });
 
   it('leaves a staff member at their other branches when one of theirs is removed', () => {
@@ -90,7 +95,7 @@ describe('OrganizationDraft', () => {
     organization.removeBranch(keys[1]);
 
     expect(organization.staff()[0].branchKeys).toEqual([keys[2]]);
-    expect(organization.request().staff[0].branchPositions).toEqual([1]);
+    expect(onboardRequestFrom(organization).staff[0].clinics).toEqual([1]);
   });
 
   it('never sends a position for a branch that is gone', () => {
@@ -100,8 +105,8 @@ describe('OrganizationDraft', () => {
     organization.removeBranch(keys[2]);
 
     // Not `[-1]`, which a server would read as a real index. The removal path
-    // already dropped these; `request()` refuses them a second time.
-    expect(organization.request().staff[0].branchPositions).toEqual([]);
+    // already dropped these; the mapper refuses them a second time.
+    expect(onboardRequestFrom(organization).staff[0].clinics).toEqual([]);
   });
 
   it('refuses to move a branch off either end of the list', () => {
@@ -124,12 +129,12 @@ describe('OrganizationDraft', () => {
     organization.setPlan('Standard');
     organization.setBranch(organization.addBranchEntry(), { name: '  Maadi  ', phone: '   ' });
 
-    const request = organization.request();
+    const request = onboardRequestFrom(organization);
 
     expect(request.name).toBe('Cairo Physio');
     // An empty phone is absent rather than `''`: a blank string is a value, and
     // the field is optional (P-05.2).
-    expect(request.branches[0]).toEqual({ name: 'Maadi' });
+    expect(request.clinics[0]).toEqual({ name: 'Maadi' });
   });
 
   // ---------------------------------------------------------------------------

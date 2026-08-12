@@ -25,26 +25,6 @@ export interface StaffDraft {
 }
 
 /**
- * What the console will send. Positions appear here and nowhere else.
- *
- * This is the only shape in the console that speaks the API's language, and it is
- * produced at the moment of submission rather than being kept in sync with the
- * form.
- */
-export interface OrganizationRequest {
-  readonly name: string;
-  readonly plan: string;
-  readonly branches: readonly { readonly name: string; readonly phone?: string }[];
-  readonly staff: readonly {
-    readonly fullName: string;
-    readonly email: string;
-    readonly roles: readonly string[];
-    readonly specialityCode?: string;
-    readonly branchPositions: readonly number[];
-  }[];
-}
-
-/**
  * The organization being built: one practice, its branches and its staff.
  *
  * THE WHOLE CONSOLE IS THIS ONE OBJECT. The four steps on screen are four views of
@@ -58,7 +38,8 @@ export interface OrganizationRequest {
  * to "Page not found" and back would be a bad surprise.
  *
  * STAFF REFERENCE BRANCHES BY KEY, AND POSITIONS ARE COMPUTED ONCE, IN
- * `request()`. The API takes each staff member's branches as positions in the
+ * `onboardRequestFrom` (`data/onboard-request.ts`). The API takes each staff
+ * member's branches as positions in the
  * branches array (`LLD-ORGANIZATION.md` §2.1), and the branches do not exist yet so
  * they have no ids. Holding positions in state means every removal and every
  * reorder has to renumber every staff member, and the milestone calls that out as
@@ -107,22 +88,32 @@ export class OrganizationDraft {
   });
 
   /**
-   * Every staff row complete (P-05.3) - which is vacuously true of none.
+   * At least one staff member, and every row complete.
    *
-   * A practice with no staff is allowed to be created: they can be added later
-   * from inside it, and F1 §5 open question 5 notes that staff onboarded here
-   * cannot sign in yet anyway. A HALF-FILLED ROW IS NOT ALLOWED, because that is
-   * somebody who started typing a person and stopped.
+   * IT USED TO ALLOW NONE. T-30 read F1 §5 as permitting a practice with nobody in
+   * it - they can be added later from inside it - and T-64 §4 says otherwise:
+   * `staff` is required, at least one. The ticket is the contract, so the rule
+   * changed here; the difference is reported in the PR rather than resolved
+   * quietly, because "can a practice be created empty" is a product question and
+   * this is only where the answer is enforced.
+   *
+   * A HALF-FILLED ROW IS NOT ALLOWED either, because that is somebody who started
+   * typing a person and stopped.
    */
-  readonly staffAreComplete = computed(() =>
-    this.staffRows().every(
-      (member) =>
-        member.fullName.trim().length > 0 &&
-        member.email.trim().length > 0 &&
-        member.roles.length > 0 &&
-        member.branchKeys.length > 0,
-    ),
-  );
+  readonly staffAreComplete = computed(() => {
+    const rows = this.staffRows();
+
+    return (
+      rows.length > 0 &&
+      rows.every(
+        (member) =>
+          member.fullName.trim().length > 0 &&
+          member.email.trim().length > 0 &&
+          member.roles.length > 0 &&
+          member.branchKeys.length > 0,
+      )
+    );
+  });
 
   readonly isComplete = computed(
     () => this.practiceIsComplete() && this.branchesAreComplete() && this.staffAreComplete(),
@@ -235,38 +226,12 @@ export class OrganizationDraft {
   // Submission
   // ---------------------------------------------------------------------------
 
-  /**
-   * The draft as the API wants it. THE ONLY PLACE A POSITION IS EVER COMPUTED.
-   *
-   * A key that no longer matches a branch contributes nothing rather than a `-1`:
-   * the removal path above already drops those, so this is a second line of
-   * defence against sending an index that means "the last branch" to a server that
-   * reads it as one.
-   */
-  request(): OrganizationRequest {
-    const branches = this.branchRows();
-    const positionOf = new Map(branches.map((branch, at) => [branch.key, at]));
-
-    return {
-      name: this.practiceName().trim(),
-      plan: this.practicePlan(),
-      branches: branches.map((branch) => ({
-        name: branch.name.trim(),
-        // Absent rather than `''`: an empty string is a value, and the field is
-        // optional (P-05.2).
-        ...(branch.phone.trim() ? { phone: branch.phone.trim() } : {}),
-      })),
-      staff: this.staffRows().map((member) => ({
-        fullName: member.fullName.trim(),
-        email: member.email.trim(),
-        roles: [...member.roles],
-        ...(member.specialityCode.trim() ? { specialityCode: member.specialityCode.trim() } : {}),
-        branchPositions: member.branchKeys
-          .map((key) => positionOf.get(key))
-          .filter((at) => at !== undefined),
-      })),
-    };
-  }
+  // THERE IS NO `request()` HERE, deliberately. Turning this draft into what the
+  // API takes is `onboardRequestFrom` in `data/`, which is the only folder in a
+  // feature allowed to name the server's types (`app/README.md`). Nothing in this
+  // file knows what a clinic, a specialty or a position is - which is why the
+  // vocabulary of the console and the vocabulary of the API can differ without
+  // either one leaking into the other.
 
   /** Ends this draft. Called after a submission succeeds, never on destroy. */
   reset(): void {

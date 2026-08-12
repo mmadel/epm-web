@@ -24,8 +24,10 @@ src/app/
       data/                  the only place that touches api-client
 ```
 
-`components/` and `data/` do not exist yet. The one screen has nothing it shares
-with a second one, and nothing calls the API until P-05.
+`data/` holds the four files that name the server's shapes: the request mapper, the
+submission, the plans, and the two halves of the error table. Nothing outside it
+imports `api-client`, which is what keeps the console's vocabulary and the API's
+independent of each other.
 
 Feature folders, not type folders. `components/`, `services/` and `models/` at the
 top level were rejected: they scale by type rather than by change, so every change
@@ -82,18 +84,28 @@ opened from it — a change to `route-paths.ts` and one redirect.
 
 **`OrganizationDraft` is the thing being built**, and all four steps are views of
 it. Staff hold their branches **by key**, and array positions are computed once, in
-`request()` — see the class note and `organization-draft.spec.ts`. That is the
-defect `LLD-ORGANIZATION.md` calls the most likely to ship, and it fails silently.
+`onboardRequestFrom` (`data/onboard-request.ts`) — see the class note and
+`organization-draft.spec.ts`. That is the defect `LLD-ORGANIZATION.md` calls the
+most likely to ship, and it fails silently.
 
-**What is not built yet:** submission. The call, the idempotency key, the in-flight
-state and the error-code mapping are P-05.5 to P-05.7, all specified in
-`LLD-ORGANIZATION.md` §2.1. The plan and role values in `organization-vocabulary.ts`
-are placeholders, marked as such in the file and on screen.
+**The idempotency key lives in `data/onboarding.ts`**, claimed on the first submit,
+reused by every retry of that practice, and dropped only when a new practice is
+started. A key regenerated on retry creates a second practice, and nothing on
+screen would say so.
+
+**Nothing on this screen is a list this repository keeps.** Plans come from
+`listPlans` and roles from the generated enum; the placeholder
+`organization-vocabulary.ts` was deleted with T-64. The one list still missing a
+route is the speciality codes, which is why that control is a free-text field —
+reported rather than invented (T-64 §10).
 
 ## Two things specific to this console
 
 **It is English-only and LTR-only, permanently.** Nothing here reads the language
-service, there is no translation pipe in any template, and the workspace's
+service — which is also why the onboarding screen words its own server failures in
+`data/error-messages.ts` rather than reusing `ui`'s `ErrorMessage`, whose wording
+resolves through the translations. There is no translation pipe in any template,
+and the workspace's
 direction lint rules are switched off for `projects/platform` in
 `stylelint.config.mjs`. That override is where the decision to add Arabic would
 get made.
@@ -102,6 +114,7 @@ get made.
 not organization or tenant; branch, not clinic or site; "Add a branch", not
 "Append a clinic". The folder is called `organizations` because that is the
 milestone's structure and the API's noun - the words a user reads are not. The one
-place the schema's noun surfaces is the primary action, "Create organization",
-because that is the single call being made and naming it after one of its three
-parts would understate it.
+place the schema's noun surfaced was the primary action, "Create organization" —
+and T-64 took even that away. It reads "Create practice" now, because a platform
+administrator pressing it is creating a practice, and the one word on screen that
+said otherwise was the schema's rather than theirs.
