@@ -6,7 +6,7 @@
     "generators": {
       "api-client": {
         "generatorName": "typescript-angular",
-        "inputSpec": "openapi/openapi.json",
+        "inputSpec": "node_modules/@mmadel/openapi-spec/openapi.json",
         "output": "projects/api-client/src/generated",
         "additionalProperties": {
           "ngVersion": "22.1.0",

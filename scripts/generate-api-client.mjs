@@ -2,12 +2,22 @@
 /**
  * Regenerates the typed API client into `projects/api-client/src/generated/`.
  *
- * The input is `openapi/openapi.json`, which is produced from the backend's own
- * controllers (ticket T-84) and vendored into this repository. Nothing in this
- * workspace may hand-write a request or response type: the server's shapes have
- * exactly one definition, and it is the specification. A field the backend
- * renames therefore breaks `ng build` here, rather than reaching a user as an
- * undefined at runtime.
+ * The input is `node_modules/@mmadel/openapi-spec/openapi.json`: the
+ * specification the backend generates from its own controllers (T-84) and
+ * publishes as a versioned npm package (T-90). Nothing in this workspace may
+ * hand-write a request or response type: the server's shapes have exactly one
+ * definition, and it is the specification. A field the backend renames therefore
+ * breaks `ng build` here, rather than reaching a user as an undefined at runtime.
+ *
+ * The package is PINNED EXACTLY in package.json, so this script produces the same
+ * client today as it did last month, and an API change arrives the only way it
+ * should: as a deliberate version bump, reviewed as a diff. Before T-91 the
+ * specification was a file copied into this repository by hand, which had the
+ * same shape as a pin and none of its guarantees - nothing recorded which version
+ * of the backend the copy came from, or whether the copy was current.
+ *
+ * Reading it from node_modules is why `npm ci` here needs a registry token; see
+ * .npmrc and scripts/check-packages-token.mjs.
  *
  * The output is COMMITTED. That is what lets a clean checkout build without Java
  * installed, and it is what CI's staleness check compares against - CI runs this
@@ -31,7 +41,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,7 +50,8 @@ const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // Both paths are also declared in openapitools.json, which is what the generator
 // itself reads. They are repeated here only to check the input exists and to wipe
 // the output; openapitools.json stays the single source of truth for the run.
-const SPEC = join(workspaceRoot, 'openapi', 'openapi.json');
+const SPEC_PACKAGE = '@mmadel/openapi-spec';
+const SPEC = join(workspaceRoot, 'node_modules', ...SPEC_PACKAGE.split('/'), 'openapi.json');
 const OUTPUT = join(workspaceRoot, 'projects', 'api-client', 'src', 'generated');
 
 // Files the generator emits for a client published as its own npm package.
@@ -50,13 +61,18 @@ if (!existsSync(SPEC)) {
   fail(
     `The OpenAPI specification is missing: ${relative(workspaceRoot, SPEC)}`,
     [
-      'It is generated from the backend controllers by ticket T-84, and vendored',
-      'into this repository by copying it from the backend repository - see',
-      'openapi/README.md for where it comes from and how to refresh it.',
+      `It ships in ${SPEC_PACKAGE}, which is a devDependency of this workspace,`,
+      'so the usual cause is that nothing has installed it yet:',
       '',
-      'Do not hand-write it, and do not hand-write the types it would have',
-      'produced: a specification written here would describe the API this',
-      'workspace imagines rather than the one the backend serves.',
+      '  npm ci',
+      '',
+      'If that failed with a 401 or a 404 from npm.pkg.github.com, the package is',
+      'not missing - the token is. See scripts/check-packages-token.mjs.',
+      '',
+      'Do not hand-write the specification, and do not hand-write the types it',
+      'would have produced: a specification written here would describe the API',
+      'this workspace imagines rather than the one the backend serves. It is',
+      "generated from the backend's controllers, and arrives here as a version.",
     ].join('\n  '),
   );
 }
@@ -74,8 +90,18 @@ rmSync(OUTPUT, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }
 mkdirSync(OUTPUT, { recursive: true });
 writeFileSync(join(OUTPUT, '.openapi-generator-ignore'), ignoreFileContents(), 'utf8');
 
+// The version is printed rather than merely used: it is the one fact that tells
+// you which API this client is about to describe, and it is otherwise invisible
+// in the output.
+const specVersion = JSON.parse(
+  readFileSync(
+    join(workspaceRoot, 'node_modules', ...SPEC_PACKAGE.split('/'), 'package.json'),
+    'utf8',
+  ),
+).version;
+
 console.log(
-  `[generate-api-client] ${relative(workspaceRoot, SPEC)} -> ${relative(workspaceRoot, OUTPUT)}`,
+  `[generate-api-client] ${SPEC_PACKAGE}@${specVersion} -> ${relative(workspaceRoot, OUTPUT)}`,
 );
 
 // No arguments: the generator name, the input and every additional property live
