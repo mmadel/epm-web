@@ -25,6 +25,7 @@
     "lint:es": "eslint .",
     "lint:styles": "stylelint \"projects/**/*.scss\"",
     "lint:api-spec": "node tools/api-spec/check-pin.mjs",
+    "lint:dev-proxy": "node tools/dev-proxy/check-proxy.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:lint-rules": "node --test \"tools/**/*.test.js\"",

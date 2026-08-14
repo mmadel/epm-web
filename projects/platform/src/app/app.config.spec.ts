@@ -6,7 +6,7 @@ import { API_BASE_URL } from 'core';
 import { API_BASE_URL_VALUE } from '../environments/environment.generated';
 import { appConfig } from './app.config';
 
-describe('patient appConfig', () => {
+describe('platform appConfig', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [...appConfig.providers] });
   });
@@ -19,21 +19,16 @@ describe('patient appConfig', () => {
     const apiBaseUrl = TestBed.inject(API_BASE_URL);
 
     // Two legal shapes, and which one this is depends on what the build was given.
-    // Shipped, this app is a Capacitor bundle on a `capacitor://` origin and the
-    // URL must be absolute. Under `ng serve` it is the empty string, and
-    // proxy.conf.json forwards /api to the local backend (T-92).
+    // Deployed, the console is not served from the API's origin and the URL is
+    // absolute. Under `ng serve` it is the empty string, and proxy.conf.json
+    // forwards /api to the local backend (T-92) - same origin, so the onboarding
+    // request's `Idempotency-Key` never has to survive a preflight.
     if (apiBaseUrl === '') {
       expect(API_BASE_URL_VALUE.trim()).toBe('/');
     } else {
       expect(['http:', 'https:']).toContain(new URL(apiBaseUrl).protocol);
       expect(apiBaseUrl.endsWith('/')).toBe(false);
     }
-  });
-});
-
-describe('patient appConfig and the generated client', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [...appConfig.providers] });
   });
 
   it('gives the generated client the validated base URL', () => {

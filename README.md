@@ -4,18 +4,34 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Environment configuration
 
-The API base URL is supplied at build time and is never relative or same-origin: the
-staff console and the patient app (which ships as a Capacitor bundle served from a
-`capacitor://` origin) are deployed separately from the API.
-
-Set `EPM_API_BASE_URL` to an absolute `http:`/`https:` URL before building, starting or
-testing. Either export it in the environment, or copy `.env.example` to `.env` at the
-workspace root and fill it in:
+The API base URL is supplied at build time. Set `EPM_API_BASE_URL` before building,
+starting or testing — either export it in the environment, or copy `.env.example` to
+`.env` at the workspace root:
 
 ```bash
 cp .env.example .env
-# EPM_API_BASE_URL=https://api.example.com
 ```
+
+Two values are legal:
+
+- **`/`** — locally. It means "the origin this app is served from" and is written
+  through as the empty string. `ng serve` proxies `/api` to the backend, so requests
+  are same-origin. This is what `.env.example` contains; see
+  [Running against a local backend](#running-against-a-local-backend).
+- **An absolute `http:`/`https:` URL** — for anything deployed. There is no proxy in
+  a built bundle, and a deployed app is generally not served from the API's origin:
+  the patient app ships as a Capacitor bundle on a `capacitor://` origin, where a
+  same-origin request resolves to the bundle and reaches no backend at all.
+
+Anything else is rejected, **including the empty value** — an unset variable and a
+blanked line both look like that, and neither is a decision. `/` is the one relative
+value accepted, and the asymmetry is the safeguard.
+
+**How a deployed environment reaches the API is not settled here.** Same origin works
+locally because the dev server proxies; there is no proxy in a built bundle. Whether a
+deployed app ends up same-origin behind one reverse proxy, or cross-origin with CORS
+on the backend, is a topology decision, and until it is made the deployed value is an
+absolute URL.
 
 `npm run build`, the `npm start` scripts and `npm test` all run
 `scripts/generate-environment.mjs` first. That script writes `projects/<app>/src/environments/environment.generated.ts`
@@ -26,6 +42,13 @@ Applications do not read the environment file directly; only each app's
 `app.config.ts` does, passing the value to `provideApiBaseUrl()` from the `core`
 library. Components and services inject the `API_BASE_URL` token instead. The token has
 no default, so a missing provider is a hard injection failure.
+
+The generated client's own `BASE_PATH` is provided in the same place, once, derived
+from `API_BASE_URL` rather than handed the build value a second time — one value,
+checked once. It is wired even in the apps that call nothing yet, because the
+generated `BaseService` falls back to `http://localhost` when `BASE_PATH` is absent:
+the first request would not fail, it would quietly go to whatever is on port 80 of the
+machine the browser is on.
 
 CI must define `EPM_API_BASE_URL` for build and test jobs.
 
@@ -186,6 +209,49 @@ npx ng build core --watch
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+### Running against a local backend
+
+Two commands, in two terminals: start the backend, then start an app.
+
+```bash
+.\mvnw.cmd spring-boot:run    # in the backend repository
+npm start                     # here
+```
+
+That is the whole setup. `proxy.conf.json` at the workspace root forwards `/api` to
+`http://localhost:8080`, and every application's `serve` target proxies through it, so
+the browser sees `localhost:4200/api/…` — a same-origin request. Nothing has to be
+configured on the backend, and nothing needs to be allowed for `localhost:4200`.
+
+The absence of a preflight is the point rather than a detail: the onboarding request
+carries an `Idempotency-Key` header, which a cross-origin request would have to
+negotiate first, and a failed negotiation surfaces in the browser as a network error
+that reads exactly like the API being down.
+
+If the backend is not running, the request fails immediately and the terminal says so
+by name:
+
+```
+[proxy] GET /api/v1/platform/plans -> http://localhost:8080 failed: ECONNREFUSED
+[proxy] Nothing is listening on http://localhost:8080. The app is fine; the backend is not running.
+```
+
+That is the difference between "the backend is not up" and "the app is broken", so
+read it before debugging anything else. If your backend listens somewhere other than
+`8080`, change the target in `proxy.conf.json` — it is the only place the port appears.
+
+**Two files, and only one of them is configuration.** `proxy.conf.json` holds the
+rules; `proxy.conf.mjs` is what `angular.json` references, and all it does is
+re-export those rules with the error handler that prints the lines above. It exists
+because this workspace serves with Vite, whose proxy reports a refused connection as a
+bare `ECONNREFUSED` without saying where it was connecting to — and a failure that
+names nothing is the one people spend an afternoon on. Add rules to the JSON; the
+wrapper picks them up. `npm run lint` fails if an application serves without it.
+
+The proxy is a `ng serve` feature and exists in no built bundle, so it says nothing
+about how a deployed application reaches the API. That is settled under
+[Environment configuration](#environment-configuration), not here.
 
 ## Code scaffolding
 

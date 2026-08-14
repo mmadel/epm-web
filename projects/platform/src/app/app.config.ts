@@ -38,7 +38,9 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     // Validated here: an empty, relative or non-http value throws at bootstrap
     // rather than producing a console that sends every request to a URL nobody
-    // will look at until it 404s.
+    // will look at until it 404s. The one relative value it accepts is `/`, which
+    // resolves to the empty string - same origin, which under `ng serve` is
+    // proxy.conf.json forwarding /api to the local backend (T-92).
     provideApiBaseUrl(API_BASE_URL_VALUE),
     // THE GENERATED CLIENT'S TOKEN, DERIVED FROM THE VALIDATED ONE rather than
     // given the raw build value a second time. `provideApi(API_BASE_URL_VALUE)`
