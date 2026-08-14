@@ -35,6 +35,26 @@ describe('provideApiBaseUrl', () => {
     expect(TestBed.inject(API_BASE_URL)).toBe('http://localhost:8080');
   });
 
+  // ---------------------------------------------------------------------------
+  // Same origin
+  // ---------------------------------------------------------------------------
+
+  it('reads "/" as the origin the application is served from', () => {
+    TestBed.configureTestingModule({ providers: [provideApiBaseUrl('/')] });
+
+    // The empty string, not "/" - the generated client concatenates the base onto
+    // an operation path that already starts with a slash, so anything else here
+    // produces `//api/v1/...`, which is protocol-relative and goes to a host named
+    // `api`.
+    expect(TestBed.inject(API_BASE_URL)).toBe('');
+  });
+
+  it('reads a padded "/" the same way', () => {
+    TestBed.configureTestingModule({ providers: [provideApiBaseUrl('  /  ')] });
+
+    expect(TestBed.inject(API_BASE_URL)).toBe('');
+  });
+
   it('throws when the URL is empty', () => {
     expect(() => provideApiBaseUrl('')).toThrowError(/non-empty absolute http\(s\) URL/);
   });

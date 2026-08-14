@@ -68,6 +68,9 @@
               "buildTarget": "staff:build:development"
             }
           },
+          "options": {
+            "proxyConfig": "proxy.conf.mjs"
+          },
           "defaultConfiguration": "development"
         },
         "test": {
@@ -136,6 +139,9 @@
             "development": {
               "buildTarget": "patient:build:development"
             }
+          },
+          "options": {
+            "proxyConfig": "proxy.conf.mjs"
           },
           "defaultConfiguration": "development"
         },
@@ -285,7 +291,8 @@
             }
           },
           "options": {
-            "port": 4400
+            "port": 4400,
+            "proxyConfig": "proxy.conf.mjs"
           },
           "defaultConfiguration": "development"
         },

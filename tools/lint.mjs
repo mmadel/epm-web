@@ -13,6 +13,10 @@ const LINTERS = [
   // run here: it is about what the repository says, it has no build to hang off,
   // and it must run even when the API client is untouched.
   ['API specification pin', 'lint:api-spec'],
+  // Same kind of check again: it is about what the repository says, and it has
+  // nothing to hang off otherwise. A dev-server proxy exists in no build and in
+  // no test, so the only thing that can be verified about it is its wiring.
+  ['Development proxy', 'lint:dev-proxy'],
 ];
 
 const failed = [];
