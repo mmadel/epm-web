@@ -1,0 +1,44 @@
+<section class="created" aria-labelledby="created-heading">
+  <h2 class="created__heading" id="created-heading" tabindex="-1">
+    {{ practiceName() || 'The practice' }} was created
+  </h2>
+
+  <dl class="created__ids">
+    <dt>Practice</dt>
+    <dd class="created__id">{{ created().organizationId }}</dd>
+    <dt>Subscription</dt>
+    <dd class="created__id">{{ created().subscriptionId }}</dd>
+  </dl>
+
+  <!--
+    Branch and staff ids come back in the order they were sent, each beside the name
+    or the address it belongs to, so nothing here has to be matched up by counting.
+  -->
+  @if (created().clinics?.length) {
+    <h3 class="created__section">Branches</h3>
+    <ul class="created__list">
+      @for (clinic of created().clinics; track clinic.id) {
+        <li>
+          <span class="created__name">{{ clinic.name }}</span>
+          <span class="created__id">{{ clinic.id }}</span>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (created().staff?.length) {
+    <h3 class="created__section">Staff</h3>
+    <ul class="created__list">
+      @for (member of created().staff; track member.id) {
+        <li>
+          <span class="created__name">{{ member.email }}</span>
+          <span class="created__id">{{ member.id }}</span>
+        </li>
+      }
+    </ul>
+  }
+
+  <button class="created__another" type="button" (click)="another.emit()">
+    Create another practice
+  </button>
+</section>

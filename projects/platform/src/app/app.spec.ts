@@ -1,7 +1,11 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { inject } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
 import { provideRouter, Router, TitleStrategy, withInMemoryScrolling } from '@angular/router';
-import { providePlatformAdminSession } from 'core';
+import { BASE_PATH } from 'api-client';
+import { API_BASE_URL, provideApiBaseUrl, providePlatformAdminSession } from 'core';
 
 import { App } from './app';
 import { routes } from './app.routes';
@@ -21,12 +25,32 @@ async function open(url: string, environment = 'production'): Promise<ComponentF
       providePlatformAdminSession(),
       provideEnvironmentName(environment),
       { provide: TitleStrategy, useClass: PlatformTitleStrategy },
+      // The onboarding screen reads `listPlans` as it opens, so the console cannot
+      // be mounted at all without the client it is wired with. The base URL is the
+      // real one's shape - the screen's own spec is what asserts the URLs.
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      provideApiBaseUrl('https://api.test.invalid'),
+      { provide: BASE_PATH, useFactory: () => inject(API_BASE_URL) },
     ],
   });
 
   const fixture = TestBed.createComponent(App);
   await TestBed.inject(Router).navigateByUrl(url);
-  await fixture.whenStable();
+  TestBed.tick();
+
+  // Whatever the screen asked for as it opened, answered so that nothing is left in
+  // flight. `match` rather than `expectOne`: the screens behind "Page not found"
+  // ask for nothing at all.
+  for (const request of TestBed.inject(HttpTestingController).match(() => true)) {
+    request.flush([{ plan: 'STANDARD', seatLimit: 20, branchLimit: 5 }]);
+  }
+
+  // The response reaches the resource on a microtask, and the plan select has no
+  // options until it does - so a test that chose a plan before this point would be
+  // setting a value the control does not have.
+  await Promise.resolve();
+  TestBed.tick();
 
   return fixture;
 }
@@ -38,9 +62,9 @@ function element(fixture: ComponentFixture<App>): HTMLElement {
 /**
  * Fills in the practice step and presses Continue, landing on the branches step.
  *
- * The plan is a radio in a card rather than a `select`, which is why this clicks
- * one rather than setting a value: the control a reader operates is the card, and
- * a test that set the draft directly would pass with the cards wired to nothing.
+ * The plan is a `select` whose options come from `listPlans` (T-64 §4), which is why
+ * this sets a value and dispatches the event a reader's choice dispatches: a test
+ * that set the draft directly would pass with the control wired to nothing.
  */
 async function complete(fixture: ComponentFixture<App>): Promise<void> {
   const name = element(fixture).querySelector<HTMLInputElement>('#practice-name')!;
@@ -48,11 +72,14 @@ async function complete(fixture: ComponentFixture<App>): Promise<void> {
   name.value = 'Cairo Physio';
   name.dispatchEvent(new Event('input'));
 
-  element(fixture).querySelector<HTMLInputElement>('#plan-standard')!.click();
-  await fixture.whenStable();
+  const plan = element(fixture).querySelector<HTMLSelectElement>('#practice-plan')!;
+
+  plan.value = 'STANDARD';
+  plan.dispatchEvent(new Event('change'));
+  TestBed.tick();
 
   element(fixture).querySelector<HTMLButtonElement>('.primary-button')!.click();
-  await fixture.whenStable();
+  TestBed.tick();
 }
 
 describe('the platform console', () => {
@@ -104,7 +131,7 @@ describe('the platform console', () => {
     // The practice step is now one ticked line saying what is in it - not gone,
     // and not still open. This is what makes the page assemble as it is filled in.
     expect(element(fixture).querySelector('.step__summary')?.textContent?.trim()).toBe(
-      'Cairo Physio · Standard',
+      'Cairo Physio · STANDARD',
     );
     expect(element(fixture).querySelector('.step--done')).not.toBeNull();
     expect(element(fixture).querySelector('.step__panel .add-tile')?.textContent).toContain(

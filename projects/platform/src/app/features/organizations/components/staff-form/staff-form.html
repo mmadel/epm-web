@@ -104,7 +104,13 @@
     sharing one question needs the question announced with each of them, and a
     legend is the only thing that does that without repeating it in every label.
   -->
-  <fieldset class="entry-form__set">
+  <!--
+    `tabindex="-1"` on both sets, and an id: a fieldset is not focusable, and the
+    server answers `EPM-REQ-002` and `EPM-ORG-001` about a whole group rather than
+    about one checkbox in it (§4). Focus lands on the group, whose legend is what a
+    screen reader then reads out - which is the question that was answered wrongly.
+  -->
+  <fieldset class="entry-form__set" id="staff-form-roles" tabindex="-1">
     <legend class="entry-form__legend">
       Roles <span class="field__optional">at least one</span>
     </legend>
@@ -116,13 +122,13 @@
       arrangement as the plan cards on the first step.
     -->
     <div class="choices">
-      @for (role of roleOptions; track role) {
-        <label class="choice" [class.choice--chosen]="has(roles(), role)">
+      @for (role of roleOptions; track role.value) {
+        <label class="choice" [class.choice--chosen]="has(roles(), role.value)">
           <input
             class="visually-hidden"
             type="checkbox"
-            [checked]="has(roles(), role)"
-            (change)="toggleRole(role)"
+            [checked]="has(roles(), role.value)"
+            (change)="toggleRole(role.value)"
           />
           <span class="choice__mark" aria-hidden="true">
             <svg viewBox="0 0 12 12" focusable="false">
@@ -136,13 +142,13 @@
               />
             </svg>
           </span>
-          {{ role }}
+          {{ role.label }}
         </label>
       }
     </div>
   </fieldset>
 
-  <fieldset class="entry-form__set">
+  <fieldset class="entry-form__set" id="staff-form-branches" tabindex="-1">
     <legend class="entry-form__legend">
       Works at <span class="field__optional">at least one</span>
     </legend>

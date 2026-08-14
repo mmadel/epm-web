@@ -225,116 +225,83 @@
 }
 
 // ---------------------------------------------------------------------------
-// The plan cards
+// Counters, and what is wrong
 // ---------------------------------------------------------------------------
 
-.plans {
-  min-inline-size: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.plans__legend {
-  padding: 0;
+// What the chosen plan comes with. A fact, not a warning: it appears with the plan
+// and says nothing about whether anything is over.
+.allowance {
+  margin: var(--space-2) 0 0;
   color: var(--color-muted-text);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
 }
 
-// `legend` is not a grid item in any browser, so the space under it is a margin on
-// what follows rather than a gap on the fieldset.
-.plans__grid {
-  display: grid;
-  gap: var(--space-2);
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-  margin-block-start: var(--space-2);
-}
-
-// The whole card is the label, so the click target is the card and not a 13px
-// circle beside it. The radio itself is `visually-hidden` - present, focusable and
-// announced, just not drawn.
-.plan {
-  display: grid;
-  gap: var(--space-1);
-  grid-template-areas:
-    'icon name'
-    'icon description';
-  grid-template-columns: auto 1fr;
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
+// The seat and branch counters, in the steps they count. `--over` is a WARNING and
+// nothing more - the button beside it stays live, because the server owns the limit
+// and disagreeing with it silently would be worse than not counting at all.
+.counter {
+  flex: none;
+  margin: 0 0 0 auto;
+  padding: var(--space-1) var(--space-2);
   border-radius: 0.75rem;
-  cursor: pointer;
-}
-
-.plan:hover {
-  border-color: var(--color-border-strong);
-}
-
-// Chosen is a border, a tint and a filled icon - three signals, because the one a
-// reader notices depends on the reader. Never colour alone.
-.plan--chosen {
-  border-color: var(--color-primary);
   background-color: var(--color-primary-soft);
-}
-
-.plan--chosen:hover {
-  border-color: var(--color-primary);
-}
-
-// `:has`, so the ring lands on the card rather than on a control nobody can see.
-.plan:has(input:focus-visible) {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.plan__icon {
-  display: inline-flex;
-  grid-area: icon;
-  align-items: center;
-  justify-content: center;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
-  margin-inline-end: var(--space-2);
-  border-radius: 0.625rem;
-  background-color: var(--color-muted-surface);
   color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
 }
 
-.plan--chosen .plan__icon {
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
-}
-
-.plan__icon svg {
-  inline-size: 1.375rem;
-  block-size: 1.375rem;
-}
-
-.plan__name {
-  grid-area: name;
-  align-self: end;
+.counter--over {
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger-text);
   font-weight: var(--font-weight-bold);
 }
 
-.plan__description {
-  grid-area: description;
-  color: var(--color-muted-text);
+// A message about a whole step, at the top of it: the one that could not be pinned
+// to a control, and the one about the submission itself.
+.region-fault {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 3px solid var(--color-danger-mark);
+  border-radius: 0.25rem;
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger-text);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
 }
 
-// Mono, because it names a ticket. In this console an identifier is set in mono and
-// prose never is.
-.plans__note {
-  margin: var(--space-2) 0 0;
-  color: var(--color-subtle-text);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-xs);
+.field__fault {
+  margin: var(--space-1) 0 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
 }
 
-// ---------------------------------------------------------------------------
-// The foot of a step
+.entry__fault {
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+}
+
+// The row itself is marked as well as the message being shown, because criteria 9
+// and 10 are about finding the OTHER row - the one somebody has to look for.
+// A RULE DOWN THE START EDGE, not a shadow: this console has no shadow anywhere and
+// one added here would match nothing around it (F1 design handoff §1). The tint
+// carries it as well, so the mark is told twice and not in colour alone.
+.entry--faulted {
+  border-inline-start: 3px solid var(--color-danger-mark);
+  background-color: var(--color-danger-surface);
+}
+
+// A button that reads as the sentence it sits in - the retry offered when the plans
+// could not be loaded.
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 // ---------------------------------------------------------------------------
 
 .step-actions {
@@ -474,4 +441,12 @@
 .review__none {
   margin: 0 0 var(--space-4);
   color: var(--color-muted-text);
+}
+
+// A row that is open as a form rather than as a summary line. It carries the row's
+// mark and its message, so neither disappears at the moment the reader starts
+// fixing the thing they name.
+.entry--editing {
+  display: block;
+  margin-block-end: var(--space-3);
 }

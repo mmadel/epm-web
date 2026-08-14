@@ -1,7 +1,7 @@
 import { Component, computed, input, linkedSignal, output } from '@angular/core';
 
+import { ROLE_OPTIONS } from '../../data/roles';
 import { BranchDraft } from '../../organization-draft';
-import { ROLE_OPTIONS } from '../../organization-vocabulary';
 
 /** What the form hands back when it is submitted. */
 export interface StaffValues {

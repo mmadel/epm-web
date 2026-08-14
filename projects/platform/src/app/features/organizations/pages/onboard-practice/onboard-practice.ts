@@ -1,12 +1,28 @@
-import { Component, computed, ElementRef, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  signal,
+  untracked,
+} from '@angular/core';
 
 import { PageHeader } from '../../../../layout/page-header';
 import { BranchForm, BranchValues } from '../../components/branch-form/branch-form';
+import { CreatedPanel } from '../../components/created-panel/created-panel';
 import { Ledger } from '../../components/ledger/ledger';
 import { StaffForm, StaffValues } from '../../components/staff-form/staff-form';
 import { Step, StepState } from '../../components/step/step';
+import { onboardRequestFrom } from '../../data/onboard-request';
+import { Onboarding } from '../../data/onboarding';
+import { Plans } from '../../data/plans';
+import { roleLabel } from '../../data/roles';
+import { faultFrom } from '../../data/server-faults';
+import { Fault, FaultField, FaultRegion, faultsIn } from '../../faults';
 import { OrganizationDraft } from '../../organization-draft';
-import { PLAN_OPTIONS } from '../../organization-vocabulary';
 
 /** The four steps, in order. */
 const PRACTICE = 1;
@@ -47,15 +63,18 @@ const LAST = REVIEW;
  */
 @Component({
   selector: 'app-onboard-practice',
-  imports: [PageHeader, Step, Ledger, BranchForm, StaffForm],
+  imports: [PageHeader, Step, Ledger, BranchForm, StaffForm, CreatedPanel],
   templateUrl: './onboard-practice.html',
   styleUrl: './onboard-practice.scss',
 })
 export class OnboardPractice {
   private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly injector = inject(Injector);
 
   protected readonly draft = inject(OrganizationDraft);
-  protected readonly plans = PLAN_OPTIONS;
+  protected readonly plans = inject(Plans);
+  protected readonly onboarding = inject(Onboarding);
+  protected readonly roleLabel = roleLabel;
 
   // ---------------------------------------------------------------------------
   // Which form, if any, is open
@@ -139,6 +158,31 @@ export class OnboardPractice {
 
   protected readonly total = LAST;
 
+  constructor() {
+    // THE SERVER'S ANSWER, PUT WHERE IT BELONGS. A refusal names a code, the code
+    // names a control (§4), and the reader is taken to it - which is the difference
+    // between "something was wrong" and a form they can finish.
+    //
+    // The mapping runs `untracked` because it reads the draft to find the row the
+    // server meant. Tracked, this effect would re-run on every keystroke that
+    // followed and drag focus back to the fault each time, which is the behaviour
+    // of a form nobody can escape.
+    effect(() => {
+      const submission = this.onboarding.submission();
+
+      untracked(() => {
+        if (submission.kind !== 'rejected') {
+          return;
+        }
+
+        const fault = faultFrom(submission.problem, this.draft);
+
+        this.faults.set([fault]);
+        this.reveal(fault);
+      });
+    });
+  }
+
   protected state(step: number): StepState {
     if (this.openStep() === step) {
       return 'current';
@@ -174,6 +218,13 @@ export class OnboardPractice {
 
   protected continueFrom(step: number): void {
     this.open(Math.min(step + 1, LAST));
+  }
+
+  /** This staff member's roles, as a reader reads them rather than as they are sent. */
+  protected rolesOf(staffKey: string): string {
+    return (this.draft.staff().find((row) => row.key === staffKey)?.roles ?? [])
+      .map(roleLabel)
+      .join(', ');
   }
 
   /** Which of the branches this staff member works at, for the review. */
@@ -231,18 +282,6 @@ export class OnboardPractice {
 
   protected onName(event: Event): void {
     this.draft.setName((event.target as HTMLInputElement).value);
-  }
-
-  /**
-   * Chooses a plan.
-   *
-   * The plan is a set of three with a sentence each, so it renders as cards over
-   * the full set rather than as a `select`: a dropdown hides two thirds of a
-   * decision that costs money to get wrong, and there is nowhere in a dropdown to
-   * put the sentence that says which one is which.
-   */
-  protected choosePlan(plan: string): void {
-    this.draft.setPlan(plan);
   }
 
   // ---------------------------------------------------------------------------
@@ -309,6 +348,144 @@ export class OnboardPractice {
     this.closeStaffForm();
   }
 
+  // ---------------------------------------------------------------------------
+  // The plan, and what it entitles the practice to
+  // ---------------------------------------------------------------------------
+
+  protected onPlan(event: Event): void {
+    this.draft.setPlan((event.target as HTMLSelectElement).value);
+  }
+
+  /**
+   * Staff against the chosen plan's seats, and branches against its branches.
+   *
+   * Both are `null` until a plan whose limits are known is chosen - before that
+   * there is no number to count against, and "3 of ?" says nothing. They appear the
+   * moment a plan is picked rather than only when something goes wrong (§5), and
+   * they follow a plan change without touching a row: they are derived from the
+   * plan and the rows, so changing either recomputes both and clears nothing.
+   *
+   * NEITHER BLOCKS SUBMIT. They warn; the server decides (§5, `EPM-ORG-006`).
+   */
+  protected readonly seats = computed(() =>
+    counted(this.draft.staffCount(), this.plans.limitsOf(this.draft.plan())?.seatLimit),
+  );
+
+  protected readonly branchAllowance = computed(() =>
+    counted(this.draft.branchCount(), this.plans.limitsOf(this.draft.plan())?.branchLimit),
+  );
+
+  // ---------------------------------------------------------------------------
+  // Creating it
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Everything wrong with the form right now, from either side of the network.
+   *
+   * Set when submit is pressed and when the server answers, and cleared by the next
+   * attempt. It is not recomputed as the reader types: a message that vanishes
+   * halfway through fixing the thing it is about takes the explanation with it.
+   */
+  protected readonly faults = signal<readonly Fault[]>([]);
+
+  protected readonly isSubmitting = computed(
+    () => this.onboarding.submission().kind === 'submitting',
+  );
+
+  /** The response, once there is one. Both a 201 and a 200 arrive here (§4). */
+  protected readonly created = computed(() => {
+    const submission = this.onboarding.submission();
+
+    return submission.kind === 'created' ? submission.created : null;
+  });
+
+  /** No answer at all - as opposed to a refusal, which arrives as a fault. */
+  protected readonly isUnreachable = computed(
+    () => this.onboarding.submission().kind === 'unreachable',
+  );
+
+  /**
+   * Checks the form and, if it holds up, sends it.
+   *
+   * The client's rules are checked first so that the two mistakes §4 says should
+   * never reach the server - a repeated branch name, a repeated email - do not, and
+   * so that a reader is not made to wait on a round trip to be told a field is
+   * empty. When they fail, nothing is sent at all (criteria 9-12).
+   */
+  protected create(): void {
+    const found = faultsIn(this.draft);
+
+    this.faults.set(found);
+
+    if (found.length > 0) {
+      this.reveal(found[0]);
+
+      return;
+    }
+
+    this.onboarding.submit(onboardRequestFrom(this.draft));
+  }
+
+  /**
+   * Clears the screen for another practice.
+   *
+   * Both halves matter and they belong together: the draft is emptied, and the
+   * submission - with the idempotency key inside it - is ended. Doing one without
+   * the other is either a blank form that would repeat the key (creating nothing on
+   * the second submit, and looking as though it had) or a filled form with a fresh
+   * key (creating a duplicate practice). Criterion 6.
+   */
+  protected startAnother(): void {
+    this.draft.reset();
+    this.onboarding.startAnother();
+    this.faults.set([]);
+    this.furthest.set(PRACTICE);
+    this.open(PRACTICE);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Where the messages go
+  // ---------------------------------------------------------------------------
+
+  /** The faults about a region as a whole, rather than about one of its rows. */
+  protected regionFaults(region: FaultRegion): readonly Fault[] {
+    return this.faults().filter((fault) => fault.region === region && fault.rowKey === undefined);
+  }
+
+  /** The faults about one branch or staff row. */
+  protected rowFaults(region: FaultRegion, rowKey: string): readonly Fault[] {
+    return this.faults().filter((fault) => fault.region === region && fault.rowKey === rowKey);
+  }
+
+  protected hasRowFault(region: FaultRegion, rowKey: string): boolean {
+    return this.rowFaults(region, rowKey).length > 0;
+  }
+
+  /**
+   * Opens whatever it takes to see a fault, and puts focus on it.
+   *
+   * A message beside a control inside a collapsed step is a message nobody reads,
+   * and this form keeps its rows collapsed to a line until one is being edited - so
+   * showing a fault means opening its step AND, when it is about a row, opening
+   * that row's form. Only then is there a control to focus.
+   *
+   * A fault with no field is shown at the top of its step and the step panel takes
+   * focus, which is the honest place for "one of these is wrong" (criteria 13, 15).
+   */
+  private reveal(fault: Fault): void {
+    const step = STEP_OF[fault.region];
+
+    if (fault.rowKey !== undefined) {
+      if (fault.region === 'branches') {
+        this.startEditBranch(fault.rowKey);
+      } else if (fault.region === 'staff') {
+        this.startEditStaff(fault.rowKey);
+      }
+    }
+
+    this.open(step, controlIdFor(fault));
+  }
+
   /**
    * Opens a step and moves focus into it.
    *
@@ -316,18 +493,91 @@ export class OnboardPractice {
    * keyboard reader's focus at the bottom of a panel that has just closed, and a
    * screen-reader user hears nothing at all - the page changed somewhere they are
    * not. The panel is focused rather than its first field, so what is read out is
-   * the step they arrived at and not a lone label.
+   * the step they arrived at and not a lone label - unless a fault named a control,
+   * in which case that control is the whole point of the move.
    */
-  private open(step: number): void {
+  private open(step: number, controlId?: string): void {
     this.openStep.set(step);
     this.furthest.update((furthest) => Math.max(furthest, step));
 
     // The panel it names does not exist until the view has caught up with the
-    // signal, so this waits a frame rather than reaching for it now.
-    requestAnimationFrame(() => {
-      (this.host.nativeElement as HTMLElement)
-        .querySelector<HTMLElement>(`#step-panel-${step}`)
-        ?.focus();
-    });
+    // signal, so this waits for the render rather than reaching for it now.
+    // `afterNextRender` rather than `requestAnimationFrame`: it is the same moment
+    // in a browser and a defined one in a test, which is what lets criterion 14 -
+    // "focus moves to the speciality control of the staff row the server named" -
+    // be asserted rather than described.
+    afterNextRender(
+      () => {
+        const host = this.host.nativeElement as HTMLElement;
+        const target =
+          (controlId === undefined ? null : host.querySelector<HTMLElement>(`#${controlId}`)) ??
+          host.querySelector<HTMLElement>(`#step-panel-${step}`);
+
+        target?.focus();
+      },
+      { injector: this.injector },
+    );
+  }
+}
+
+/** A count against a limit, or `null` when there is no limit to count against. */
+interface Counter {
+  readonly used: number;
+  readonly limit: number;
+  readonly isOver: boolean;
+}
+
+function counted(used: number, limit: number | undefined): Counter | null {
+  return limit === undefined ? null : { used, limit, isOver: used > limit };
+}
+
+/** Which step owns each region's messages. */
+const STEP_OF: Readonly<Record<FaultRegion, number>> = {
+  practice: PRACTICE,
+  branches: BRANCHES,
+  staff: STAFF,
+  // Not a region of the form: it is the submission itself, and the create button is
+  // on the review step.
+  form: REVIEW,
+};
+
+/** Where a staff fault's field lives, inside the one open staff form. */
+const STAFF_CONTROL_OF: Readonly<Partial<Record<FaultField, string>>> = {
+  fullName: 'staff-form-name',
+  email: 'staff-form-email',
+  speciality: 'staff-form-speciality',
+  roles: 'staff-form-roles',
+  branches: 'staff-form-branches',
+};
+
+/**
+ * The element a fault names, by id - or nothing, which focuses the step instead.
+ *
+ * THE REGION IS PART OF THE ANSWER, not decoration: `name` means the practice's
+ * name in one region and a branch's in another, and a lookup by field alone would
+ * send a branch fault to the practice step's input. That is the kind of mistake
+ * that only shows up when somebody hits the error, which is the worst time.
+ *
+ * The row forms use fixed ids because at most one of each is ever open (see
+ * `OnboardPractice`'s note on a list and a form), so an id is unique on the page
+ * even though the row it belongs to is not.
+ */
+function controlIdFor(fault: Fault): string | undefined {
+  if (fault.field === undefined) {
+    return undefined;
+  }
+
+  switch (fault.region) {
+    case 'practice':
+      return fault.field === 'plan' ? 'practice-plan' : 'practice-name';
+
+    case 'branches':
+      return fault.field === 'name' ? 'branch-form-name' : undefined;
+
+    case 'staff':
+      return STAFF_CONTROL_OF[fault.field];
+
+    default:
+      return undefined;
   }
 }
