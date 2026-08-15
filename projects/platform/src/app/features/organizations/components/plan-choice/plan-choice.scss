@@ -1,0 +1,141 @@
+// A fieldset carries a browser border and padding of its own, and neither belongs
+// here: the cards are the shape on this screen.
+.plans {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+// The same label the rest of the form's fields carry, expressed here because a
+// legend cannot inherit `.field__label` from a stylesheet that does not reach into
+// this component. It is a copy of four declarations rather than a fifth global
+// class; if a third caller ever needs it, it belongs in `ui`.
+.plans__legend {
+  padding: 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+// AS MANY ACROSS AS FIT, and they wrap rather than scroll. `auto-fit` rather than a
+// breakpoint or a fixed count, because what decides it is whether a plan's name and
+// its allowance still fit on a card - and the number of plans is the server's to
+// change, not this console's.
+.plans__grid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin-block-start: var(--space-2);
+}
+
+// A CARD, NOT A CHIP. The chips on the staff form are a set of small answers to one
+// question; a plan is the decision this step is about and it carries two facts of
+// its own, so it is the same rounded rectangle a card is, at a card's size. The
+// whole card is the label, so the target is the plan rather than a 13px circle
+// beside it.
+.plan {
+  display: grid;
+  gap: var(--space-1) var(--space-2);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.625rem;
+  background-color: var(--color-surface);
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.plan:hover {
+  border-color: var(--color-primary);
+}
+
+// `:has`, so the ring lands on the card rather than on a control nobody can see.
+.plan:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// Chosen is an edge, a tint and a filled mark - three signals, the same three the
+// role chips use, because which one a reader notices depends on the reader. Never
+// colour alone.
+.plan--chosen {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.plan__mark {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background-color: var(--color-surface-raised);
+  color: transparent;
+}
+
+.plan--chosen .plan__mark {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.plan__mark svg {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+}
+
+.plan__name {
+  grid-area: 1 / 2;
+  overflow-wrap: anywhere;
+  font-weight: var(--font-weight-medium);
+}
+
+.plan--chosen .plan__name {
+  color: var(--color-primary-deep);
+}
+
+// The two numbers the response sent, under the name rather than beside it: they are
+// what one plan is compared with another by, and a column of allowances is what makes
+// that comparison a glance instead of a read.
+.plan__allowance {
+  grid-area: 2 / 2;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.plans__note {
+  margin: var(--space-2) 0 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-sm);
+}
+
+.plans__fault {
+  margin: var(--space-2) 0 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+}
+
+// A button that reads as the sentence it sits in.
+.plans__retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan {
+    transition: none;
+  }
+}

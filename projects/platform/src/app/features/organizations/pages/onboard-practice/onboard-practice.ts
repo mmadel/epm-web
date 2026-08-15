@@ -12,17 +12,20 @@ import {
 
 import { PageHeader } from '../../../../layout/page-header';
 import { BranchForm, BranchValues } from '../../components/branch-form/branch-form';
+import { Dialog } from '../../components/dialog/dialog';
 import { CreatedPanel } from '../../components/created-panel/created-panel';
 import { Ledger } from '../../components/ledger/ledger';
+import { PlanChoice } from '../../components/plan-choice/plan-choice';
+import { Review } from '../../components/review/review';
 import { StaffForm, StaffValues } from '../../components/staff-form/staff-form';
 import { Step, StepState } from '../../components/step/step';
 import { onboardRequestFrom } from '../../data/onboard-request';
 import { Onboarding } from '../../data/onboarding';
 import { Plans } from '../../data/plans';
-import { roleLabel } from '../../data/roles';
 import { faultFrom } from '../../data/server-faults';
 import { Fault, FaultField, FaultRegion, faultsIn } from '../../faults';
 import { OrganizationDraft } from '../../organization-draft';
+import { branchesOf, counted, rolesOf, staffAt } from '../../organization-summary';
 
 /** The four steps, in order. */
 const PRACTICE = 1;
@@ -63,7 +66,17 @@ const LAST = REVIEW;
  */
 @Component({
   selector: 'app-onboard-practice',
-  imports: [PageHeader, Step, Ledger, BranchForm, StaffForm, CreatedPanel],
+  imports: [
+    PageHeader,
+    Step,
+    Ledger,
+    PlanChoice,
+    Review,
+    Dialog,
+    BranchForm,
+    StaffForm,
+    CreatedPanel,
+  ],
   templateUrl: './onboard-practice.html',
   styleUrl: './onboard-practice.scss',
 })
@@ -74,7 +87,6 @@ export class OnboardPractice {
   protected readonly draft = inject(OrganizationDraft);
   protected readonly plans = inject(Plans);
   protected readonly onboarding = inject(Onboarding);
-  protected readonly roleLabel = roleLabel;
 
   // ---------------------------------------------------------------------------
   // Which form, if any, is open
@@ -220,31 +232,20 @@ export class OnboardPractice {
     this.open(Math.min(step + 1, LAST));
   }
 
-  /** This staff member's roles, as a reader reads them rather than as they are sent. */
+  // The three read-models the lists are built from live in `organization-summary.ts`,
+  // because the review asks the same three questions of the same draft. These are the
+  // template's way in - a template cannot call a bare imported function.
+
   protected rolesOf(staffKey: string): string {
-    return (this.draft.staff().find((row) => row.key === staffKey)?.roles ?? [])
-      .map(roleLabel)
-      .join(', ');
+    return rolesOf(this.draft, staffKey);
   }
 
-  /** Which of the branches this staff member works at, for the review. */
   protected branchesOf(staffKey: string): string {
-    const member = this.draft.staff().find((row) => row.key === staffKey);
-
-    return this.draft
-      .branches()
-      .filter((branch) => member?.branchKeys.includes(branch.key))
-      .map((branch, at) => branch.name || `Branch ${at + 1}`)
-      .join(', ');
+    return branchesOf(this.draft, staffKey);
   }
 
-  /** Everyone at this branch, for the review - the direction the form cannot answer. */
   protected staffAt(branchKey: string): string {
-    return this.draft
-      .staff()
-      .filter((member) => member.branchKeys.includes(branchKey))
-      .map((member, at) => member.fullName || `Staff member ${at + 1}`)
-      .join(', ');
+    return staffAt(this.draft, branchKey);
   }
 
   // ---------------------------------------------------------------------------
@@ -288,6 +289,18 @@ export class OnboardPractice {
   // Branches
   // ---------------------------------------------------------------------------
 
+  /**
+   * The branch the dialog is open over, or null.
+   *
+   * The dialog needs the row's values and `editingBranch` holds only its key, so the
+   * lookup is here rather than in the template - and it answers `null` for a key
+   * whose row has since gone, which closes the dialog rather than opening it over
+   * nothing.
+   */
+  protected readonly branchBeingEdited = computed(
+    () => this.draft.branches().find((row) => row.key === this.editingBranch()) ?? null,
+  );
+
   protected startAddBranch(): void {
     this.editingBranch.set(null);
     this.addingBranch.set(true);
@@ -298,9 +311,20 @@ export class OnboardPractice {
     this.editingBranch.set(key);
   }
 
+  /**
+   * Closes the branch dialog, however it ended, and puts focus back on the plus.
+   *
+   * THE FOCUS MOVE IS NOT OPTIONAL. A modal dialog holds focus while it is open, and
+   * this one closes by no longer being rendered - so the element focus was inside is
+   * removed from the document and focus falls back to `<body>`. A keyboard reader
+   * would be returned to the top of the page having just added one branch of four.
+   * The plus is where they were before they opened it, and where they will press
+   * next.
+   */
   protected closeBranchForm(): void {
     this.addingBranch.set(false);
     this.editingBranch.set(null);
+    this.focusById('add-branch');
   }
 
   /**
@@ -333,9 +357,16 @@ export class OnboardPractice {
     this.editingStaff.set(key);
   }
 
+  /** The staff member the dialog is open over, or null. See {@link branchBeingEdited}. */
+  protected readonly staffBeingEdited = computed(
+    () => this.draft.staff().find((row) => row.key === this.editingStaff()) ?? null,
+  );
+
+  /** Closes the staff dialog and puts focus back on the plus. See {@link closeBranchForm}. */
   protected closeStaffForm(): void {
     this.addingStaff.set(false);
     this.editingStaff.set(null);
+    this.focusById('add-staff');
   }
 
   protected addStaff(values: StaffValues): void {
@@ -352,9 +383,9 @@ export class OnboardPractice {
   // The plan, and what it entitles the practice to
   // ---------------------------------------------------------------------------
 
-  protected onPlan(event: Event): void {
-    this.draft.setPlan((event.target as HTMLSelectElement).value);
-  }
+  // Choosing it belongs to `app-plan-choice`, which writes the same draft this page
+  // reads. What is left here is what the choice ENTITLES the practice to, because
+  // that is counted in the two steps below rather than on the card.
 
   /**
    * Staff against the chosen plan's seats, and branches against its branches.
@@ -518,17 +549,24 @@ export class OnboardPractice {
       { injector: this.injector },
     );
   }
-}
 
-/** A count against a limit, or `null` when there is no limit to count against. */
-interface Counter {
-  readonly used: number;
-  readonly limit: number;
-  readonly isOver: boolean;
-}
+  /**
+   * Focuses one control once the view has caught up with the signal that changed.
+   *
+   * The same `afterNextRender` reasoning as {@link open}: the element does not exist
+   * yet at the moment the decision to focus it is taken, and this is a defined
+   * moment in a test as well as in a browser.
+   */
+  private focusById(id: string): void {
+    afterNextRender(
+      () => {
+        const host = this.host.nativeElement as HTMLElement;
 
-function counted(used: number, limit: number | undefined): Counter | null {
-  return limit === undefined ? null : { used, limit, isOver: used > limit };
+        host.querySelector<HTMLElement>(`#${id}`)?.focus();
+      },
+      { injector: this.injector },
+    );
+  }
 }
 
 /** Which step owns each region's messages. */

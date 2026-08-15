@@ -1,0 +1,38 @@
+<!--
+  `(close)` covers every way out that is not the form inside finishing: Escape, the
+  close control, and anything the browser decides counts as dismissing a dialog. One
+  handler for all of them, because "the reader did not finish this" is one outcome
+  however it was reached - and the caller's response to it is to stop rendering the
+  dialog, which is what closes it for good.
+
+  One id rather than a generated one: only one dialog is ever open, because opening
+  either of them is what closes the other.
+-->
+<dialog class="dialog" #dialog aria-labelledby="dialog-title" (close)="closed.emit()">
+  <header class="dialog__head">
+    <h3 class="dialog__title" id="dialog-title">{{ title() }}</h3>
+
+    <button class="dialog__close" type="button" (click)="closed.emit()">
+      <span class="visually-hidden">Close</span>
+      <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+        <path
+          d="M3 3l6 6M9 3l-6 6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  </header>
+
+  <!--
+    Scrolls on its own rather than letting the dialog grow past the window. The staff
+    form is three fields and two sets of chips, which on a laptop in a browser with a
+    toolbar is taller than the space a modal is given - and a dialog whose submit
+    button is below the fold is a dialog nobody can finish.
+  -->
+  <div class="dialog__body">
+    <ng-content />
+  </div>
+</dialog>

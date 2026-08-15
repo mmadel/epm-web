@@ -117,16 +117,31 @@ export class OnboardingHarness {
     await this.settle();
   }
 
+  /**
+   * Chooses one of a set of radios by its value - a plan, from its card.
+   *
+   * It CLICKS the input the card hides rather than setting `checked` and dispatching
+   * an event, because that is what pressing the card does: the input is
+   * `visually-hidden` inside its label, so a reader's press lands on the label and
+   * the browser forwards it. A test that set the property would pass with the card
+   * wired to nothing.
+   */
   async choose(id: string, value: string): Promise<void> {
-    const select = this.query<HTMLSelectElement>(`#${id}`);
+    const chosen = this.all(`#${id} input[type="radio"]`).find(
+      (input) => (input as HTMLInputElement).value === value,
+    );
 
-    if (select === null) {
-      throw new Error(`No select #${id} on screen.`);
+    if (chosen === undefined) {
+      throw new Error(`No option "${value}" in #${id}. Offered: ${this.optionsIn(id).join(' | ')}`);
     }
 
-    select.value = value;
-    select.dispatchEvent(new Event('change'));
+    chosen.click();
     await this.settle();
+  }
+
+  /** What a radio set is offering, in the order it offers it. */
+  optionsIn(id: string): readonly string[] {
+    return this.all(`#${id} input[type="radio"]`).map((input) => (input as HTMLInputElement).value);
   }
 
   /** Ticks a checkbox by the label it sits in - "Doctor", "Maadi". */

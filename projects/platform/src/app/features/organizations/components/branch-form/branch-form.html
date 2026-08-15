@@ -1,4 +1,10 @@
-<div class="entry-form">
+<!--
+  `--bare`: this form is only ever shown inside the branch dialog now, and a tinted,
+  bordered card inside a dialog is a card inside a card. The modifier rather than a
+  change to `.entry-form` itself, because the staff form still opens in the list and
+  still needs the chrome that tells it apart from the rows above it.
+-->
+<div class="entry-form entry-form--bare">
   <div class="entry-form__fields">
     <div class="field">
       <label class="field__label" for="branch-form-name">Branch name</label>

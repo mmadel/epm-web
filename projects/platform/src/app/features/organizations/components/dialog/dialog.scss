@@ -1,0 +1,86 @@
+// The dialog is a card, in the one place a card cannot be told from the page by a
+// tonal step - it is floating over the whole screen rather than sitting on it. What
+// separates it here is the backdrop below and its own border, NOT a shadow: this
+// console has none anywhere, and one added on the one element that could plausibly
+// carry it is how a rule starts leaking.
+
+// A column, so the head stays put and only the body scrolls. `padding: 0`, because
+// the head and whatever is projected in carry their own.
+.dialog {
+  display: flex;
+  flex-direction: column;
+  max-inline-size: 36rem;
+  inline-size: 100%;
+  max-block-size: 85vh;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+// The page, dimmed. `color-mix` rather than a raw value or a new token: it composes
+// the palette instead of spelling a colour out, which is the one function the token
+// rules deliberately leave open (docs/design-tokens.md).
+
+// It is mixed from `--color-text` and not from black, so a console that ever moves
+// its ink moves this with it.
+.dialog::backdrop {
+  background-color: color-mix(in srgb, var(--color-text) 45%, transparent);
+}
+
+.dialog__head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.dialog__title {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+// A chip, by the console's rule: outlined and rounded, because it is not the action
+// this dialog is for. The form's own Cancel is the worded way out; this is the one in
+// the corner that every dialog has, for the reader who looks there first.
+.dialog__close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--color-muted-text);
+  cursor: pointer;
+}
+
+.dialog__close:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.dialog__close:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.dialog__close svg {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+}
+
+.dialog__body {
+  overflow-y: auto;
+}

@@ -27,6 +27,14 @@
   align-items: start;
 }
 
+// The review step takes the whole display, because the ledger is not rendered beside
+// it - it would be repeating the screen it sits next to. The column has to be dropped
+// as well as emptied: a `22rem` track with nothing in it is 22rem of canvas, and the
+// two trees are the part of this console that most wants the room.
+.workspace--wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 // One breakpoint, the same one the frame uses. Below it the ledger goes under the
 // flow rather than beside it: two columns in 60rem leaves neither of them usable.
 @media (width <= 60rem) {
@@ -39,49 +47,118 @@
 // The progress bar
 // ---------------------------------------------------------------------------
 
+// A BAND OF ITS OWN, and it is the first object on the page. The meter used to
+// float on the canvas between the title and the steps, which left the top third of
+// the screen as three rows of loose text with nothing holding any of them; the eye
+// landed on the first white card, which was the middle of the form. It is the same
+// card every other object here is - white on the canvas, one border, one radius - so
+// the page reads as "where you are, then what you are doing" rather than as a form
+// with a caption above it.
 .progress {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--space-4);
-  margin-block: var(--space-3) var(--space-5);
+  margin-block: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
 }
 
 .progress__flow {
-  display: grid;
+  display: flex;
   flex: 1;
-  gap: var(--space-2);
-  grid-auto-columns: 1fr;
-  grid-auto-flow: column;
+  align-items: flex-start;
+  min-inline-size: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.progress__label {
-  display: block;
-  margin-block-end: var(--space-1);
-  overflow: hidden;
-  color: var(--color-subtle-text);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.04em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
+// One step: its node, the rail reaching towards the next one, and its name under
+// both. Every step but the last takes an equal share of the line, which is what
+// keeps the nodes evenly spaced however long the names are.
+.progress__step {
+  display: grid;
+  flex: 1;
+  gap: 0 var(--space-2);
+  grid-template-columns: auto minmax(var(--space-4), 1fr);
+  align-items: center;
+  min-inline-size: 0;
 }
 
-// The bar of one step. Flat, like everything else here - this console has no
-// gradients and no shadow, so a segment is a filled shape or an empty one.
-.progress__track {
-  display: block;
-  block-size: 0.375rem;
-  border-radius: 0.1875rem;
+// It has no rail to give room to, so it takes only the width of its own node.
+.progress__step:last-child {
+  flex: none;
+  grid-template-columns: auto;
+}
+
+// The node. Sized and shaped like the step markers on the spine below, because it
+// is the same step: a reader who has learnt that a filled circle with a tick is
+// behind them should not have to learn it twice on one screen.
+.progress__node {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 50%;
+  background-color: var(--color-surface-raised);
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.progress__node svg {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+}
+
+// Flat, like everything else here - this console has no gradients and no shadow, so
+// the rail is a filled line or an empty one.
+.progress__rail {
+  block-size: 2px;
+  border-radius: 1px;
   background-color: var(--color-border-strong);
   transition: background-color 160ms ease;
 }
 
-// Finished: the accent, and the name comes out of the quiet step of text.
-.progress__step--done .progress__track {
+// The names under the nodes, and the count at the end of the line: one treatment,
+// because they are the same register - the quiet labelling of a meter, not content.
+.progress__label,
+.progress__count {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.progress__label {
+  grid-column: 1 / -1;
+  margin-block-start: var(--space-2);
+  overflow: hidden;
+  font-weight: var(--font-weight-medium);
+  text-overflow: ellipsis;
+}
+
+// Finished: the accent fills the node and the rail out of it, and the name comes up
+// out of the quietest step of text.
+.progress__step--done .progress__node {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.progress__step--done .progress__rail {
   background-color: var(--color-primary);
 }
 
@@ -89,16 +166,16 @@
   color: var(--color-muted-text);
 }
 
-// Being worked on: OUTLINED, not filled. The tint alone was barely a step away from
-// the empty grey of the segments after it, so the one segment a reader is looking
-// for was the hardest to find. An edge in the accent around a tinted middle reads as
-// the slot being worked in rather than one already filled, and it is told three
-// times over - the edge, the tint and the weight of the name - because a state told
-// once in colour is a state somebody misses.
-.progress__step--current .progress__track {
-  border: 1px solid var(--color-primary);
+// Being worked on: OUTLINED, not filled. A tint alone was barely a step away from
+// the empty grey ahead of it, so the one place a reader is looking for was the
+// hardest to find. An accent edge round a tinted middle reads as the slot being
+// worked in rather than one already filled, and it is told three times over - the
+// edge, the tint and the weight of the name - because a state told once in colour is
+// a state somebody misses.
+.progress__step--current .progress__node {
+  border-color: var(--color-primary);
   background-color: var(--color-primary-soft);
-  box-sizing: border-box;
+  color: var(--color-primary-deep);
 }
 
 .progress__step--current .progress__label {
@@ -106,21 +183,30 @@
   font-weight: var(--font-weight-bold);
 }
 
-// Beside the flow rather than above it, and it does not wrap - the segments keep
-// the rest of the line however long the count gets.
+// Beside the flow rather than above it, and it does not wrap - the nodes keep the
+// rest of the line however long the count gets.
 .progress__count {
   flex: none;
   margin: 0;
-  color: var(--color-muted-text);
-  font-size: var(--font-size-sm);
+}
+
+// The number is the answer and the word is the unit, so they are not set the same
+// way. Tabular, because this is a count that changes in place and digits of different
+// widths make the word beside it twitch. The review's section counts are the same
+// reading of the same job, and are set the same way in `app-review`.
+.progress__tally {
+  color: var(--color-text);
+  font-size: var(--font-size-md);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: normal;
 }
 
 // Nothing in this console moves beyond a colour change, and for a reader who asked
 // for less motion, not even that.
 @media (prefers-reduced-motion: reduce) {
-  .progress__track {
+  .progress__node,
+  .progress__rail {
     transition: none;
   }
 }
@@ -156,20 +242,20 @@
   border-inline-start: 2px solid var(--color-border);
 }
 
-// One sentence under a step's heading saying what the step is for. It is not a
-// subtitle on the heading itself, because a collapsed step shows its summary there
-// and the two would fight.
-.step__lede {
-  max-inline-size: 34rem;
-  margin: 0 0 var(--space-3);
-  color: var(--color-muted-text);
-  line-height: var(--line-height-normal);
-}
+// `.step__lede` was here - one sentence under a step's heading saying what the step
+// is for. Only the review step ever carried one, and what it said ("everything below
+// is created by one call") is now the sentence immediately above the button that does
+// it, where the decision is actually taken.
 
 // ---------------------------------------------------------------------------
 // The practice's own fields
 // ---------------------------------------------------------------------------
 
+// ONE COLUMN, AND THE PLANS FILL IT. This was briefly two columns, to answer a step
+// whose start edge carried a name field and a plan select with two thirds of the card
+// empty beside them. The plans are a set of cards now and they take the width on
+// their own, so a second column would only put the practice's name beside them - and
+// a name field is the first thing on the first step, not something to read past.
 .practice {
   display: flex;
   flex-direction: column;
@@ -228,12 +314,76 @@
 // Counters, and what is wrong
 // ---------------------------------------------------------------------------
 
-// What the chosen plan comes with. A fact, not a warning: it appears with the plan
-// and says nothing about whether anything is over.
-.allowance {
-  margin: var(--space-2) 0 0;
-  color: var(--color-muted-text);
-  font-size: var(--font-size-sm);
+// ---------------------------------------------------------------------------
+// The branch list's columns
+// ---------------------------------------------------------------------------
+
+// The proportions live here rather than with the `.grid-list` mechanism in
+// styles.scss, because they are a fact about branches: the name gets the most room
+// because it is what a reader looks for, the phone the least because it is one fixed
+// length, and the controls take exactly what four icon buttons need.
+
+// Every text column has a `minmax` floor rather than a fixed width, so a long branch
+// name pushes the columns around instead of being cut in half - the row still has to
+// say which branch it is.
+
+// THE FIRST AND LAST COLUMNS ARE FIXED, AND THEY HAVE TO BE. The head and the rows
+// are two separate grids that only agree because they are given the same template,
+// and `auto` breaks that agreement: it sizes to the content of ITS OWN grid, so the
+// head's empty last cell measured 0 while a row's four icon buttons measured seven
+// rem, and every `fr` column after it landed somewhere different. The headings sat
+// off to the side of the values they named, which is worse than having no headings.
+
+// `8rem` is the four row controls (4 x 1.75rem, with three 0.25rem gaps) and a little
+// air. If a fifth control is ever added to a row, this is what has to grow with it.
+.branches {
+  --grid-list-columns: 1.5rem minmax(6rem, 1.4fr) minmax(5rem, 1fr) minmax(6rem, 1.2fr) 8rem;
+}
+
+// The same list, for people. NO `#` COLUMN: a branch's position is what the API
+// reads, so numbering branches states a fact, and the order of staff means nothing.
+// The email gets the widest share because it is the longest thing on the row and the
+// one nobody can guess the rest of from.
+
+// `4rem` of controls rather than the branch list's 8rem - there is no reordering
+// here, so a row carries two buttons rather than four.
+.staff {
+  --grid-list-columns: minmax(6rem, 1.2fr) minmax(8rem, 1.6fr) minmax(5rem, 1fr) minmax(5rem, 1.1fr)
+    4rem;
+}
+
+// Against the end of its column, so the controls line up down the right of the list
+// however wide the columns before them resolve.
+.branches .entry__controls,
+.staff .entry__controls {
+  justify-content: flex-end;
+}
+
+// The name shares its cell with the speciality code and with the message that says
+// what is wrong with the row, and the three stack. See `.branches__name`.
+.staff__name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+// A code, so it is mono - the same rule the speciality field and the receipt's ids
+// follow, and the reason nobody types a name into it.
+.staff__code {
+  color: var(--color-subtle-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+}
+
+// The name shares its cell with the message that says what is wrong with it, and the
+// two stack: the message is a sentence and the name is a word, so side by side the
+// name would be squeezed to nothing on the one row a reader most needs to read.
+.branches__name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
 }
 
 // The seat and branch counters, in the steps they count. `--over` is a WARNING and
@@ -290,18 +440,6 @@
   background-color: var(--color-danger-surface);
 }
 
-// A button that reads as the sentence it sits in - the retry offered when the plans
-// could not be loaded.
-.link-button {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-primary);
-  font: inherit;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 // ---------------------------------------------------------------------------
 
 .step-actions {
@@ -312,19 +450,41 @@
   margin-block-start: var(--space-4);
 }
 
-// Pill-shaped, and the only pill in the content area. The shape is load-bearing:
-// nothing else in a step is one, so the step's own action cannot be mistaken for a
-// row control.
+// SQUARED OFF, ON THE SAME RADIUS AS EVERYTHING ELSE. It was a pill, and the pill
+// was argued for as the thing that stopped a step's action being read as a row
+// control - but the shape was never what did that. THE FILL IS: nothing else in a
+// step is filled in the accent, and a filled accent shape is unmistakable at any
+// radius. What the pill did instead was make the one control a reader is heading for
+// look smaller and softer than the cards and fields around it.
+
+// So the rule the console now follows is a fill-and-shape one rather than a shape
+// one: AN ACTION IS FILLED AND SQUARED, A CHIP IS OUTLINED AND ROUNDED. `.step__edit`
+// and the receipt's copy controls stay rounded on purpose - they are chips, and they
+// are outlined, so neither half of them says "action".
 .primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  // Sized rather than padded to a height: the label is a single line, so the block
+  // padding alone would put the height at the mercy of the font size the reader has
+  // set. `min-block-size` is not a spacing property and takes a length.
+  min-block-size: 2.5rem;
   padding: var(--space-2) var(--space-4);
   border: 0;
-  border-radius: 1.25rem;
+  border-radius: 0.5rem;
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   font-family: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-bold);
   cursor: pointer;
+}
+
+.primary-button svg {
+  flex: none;
+  inline-size: 1rem;
+  block-size: 1rem;
 }
 
 .primary-button:hover:not(:disabled) {
@@ -345,10 +505,13 @@
 }
 
 // The last one is the only irreversible thing in the console, and it is bigger than
-// the three Continues above it for exactly that reason.
+// the three Continues above it for exactly that reason. It carries NO GLYPH: an
+// arrow means "onward" and there is nothing after this, and the label swaps to
+// "Creating…" mid-press, where a mark that stayed still would say nothing happened.
 .primary-button--create {
-  padding: var(--space-3) var(--space-5);
-  font-size: var(--font-size-md);
+  min-block-size: 3rem;
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--font-size-lg);
 }
 
 .step-actions__note {
@@ -358,95 +521,12 @@
 }
 
 // ---------------------------------------------------------------------------
-// The review
-// ---------------------------------------------------------------------------
 
-.review__facts {
-  display: grid;
-  gap: var(--space-1) var(--space-3);
-  grid-template-columns: 8rem 1fr;
-  margin: 0 0 var(--space-4);
-}
+// The review's own styles are `app-review`'s - the tiles, the two lists and the
+// sentence above the button all moved into that component with the markup. What is
+// left of the last step in this file is the button, which is the page's: this file
+// describes the flow and the component describes what is being read back.
 
-.review__facts dt {
-  color: var(--color-muted-text);
-  font-size: var(--font-size-sm);
-}
-
-.review__facts dd {
-  margin: 0;
-}
-
-.review__heading {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-2);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-bold);
-}
-
-.review__count {
-  color: var(--color-subtle-text);
-  font-size: var(--font-size-sm);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-regular);
-}
-
-.review__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  margin: 0 0 var(--space-4);
-  padding: 0;
-  list-style: none;
-}
-
-.review__item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1) var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  background-color: var(--color-surface-raised);
-}
-
-.review__name {
-  font-weight: var(--font-weight-medium);
-}
-
-.review__detail {
-  color: var(--color-muted-text);
-  font-size: var(--font-size-sm);
-}
-
-// A separator between the facts on a row, because "mona@example.com Clinician
-// Maadi" is three answers reading as one sentence. Generated rather than written
-// into the template: it is punctuation between boxes, it must not appear before
-// the first one, and it is not content a screen reader should read out.
-.review__detail + .review__detail::before {
-  content: '·';
-  margin-inline-end: var(--space-2);
-  color: var(--color-border-strong);
-}
-
-// A branch with nobody at it is worth noticing and is not an error - a practice can
-// open a location before it staffs it.
-.review__detail--empty {
-  font-style: italic;
-}
-
-.review__none {
-  margin: 0 0 var(--space-4);
-  color: var(--color-muted-text);
-}
-
-// A row that is open as a form rather than as a summary line. It carries the row's
-// mark and its message, so neither disappears at the moment the reader starts
-// fixing the thing they name.
-.entry--editing {
-  display: block;
-  margin-block-end: var(--space-3);
-}
+// `.entry--editing` was here - a row that opened as a form in place of itself. Both
+// lists open a dialog now, so a row is never anything but a row, and the rule that
+// made room for the form it turned into has nothing left to style.

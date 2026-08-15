@@ -1,44 +1,147 @@
 <section class="created" aria-labelledby="created-heading">
-  <h2 class="created__heading" id="created-heading" tabindex="-1">
-    {{ practiceName() || 'The practice' }} was created
-  </h2>
-
-  <dl class="created__ids">
-    <dt>Practice</dt>
-    <dd class="created__id">{{ created().organizationId }}</dd>
-    <dt>Subscription</dt>
-    <dd class="created__id">{{ created().subscriptionId }}</dd>
-  </dl>
-
   <!--
-    Branch and staff ids come back in the order they were sent, each beside the name
-    or the address it belongs to, so nothing here has to be matched up by counting.
+    THE ANSWER IS A BAND, NOT A LINE OF TEXT. This is the one screen in the console
+    that reports something irreversible having happened, and it arrived as a heading
+    in the same white as everything under it - the reader had to read the sentence to
+    find out whether the practice existed. A tinted band across the top of the card
+    says it before the sentence does, and the sentence still says it: colour alone
+    does not carry a state (docs/design-tokens.md), and a tick with no words is a
+    state nobody can read out.
   -->
-  @if (created().clinics?.length) {
-    <h3 class="created__section">Branches</h3>
-    <ul class="created__list">
-      @for (clinic of created().clinics; track clinic.id) {
-        <li>
-          <span class="created__name">{{ clinic.name }}</span>
-          <span class="created__id">{{ clinic.id }}</span>
-        </li>
-      }
-    </ul>
-  }
+  <header class="created__banner">
+    <span class="created__mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M5 12.5 10 17.5 19 7" />
+      </svg>
+    </span>
 
-  @if (created().staff?.length) {
-    <h3 class="created__section">Staff</h3>
-    <ul class="created__list">
-      @for (member of created().staff; track member.id) {
-        <li>
-          <span class="created__name">{{ member.email }}</span>
-          <span class="created__id">{{ member.id }}</span>
-        </li>
-      }
-    </ul>
-  }
+    <div class="created__said">
+      <!--
+        The ledger beside the form is headed "Will be created". This is the same
+        label in the past tense, in the same treatment, because it is the same
+        reading: the reader has been watching that list fill up, and this is what
+        became of it.
+      -->
+      <p class="created__eyebrow">Created</p>
 
-  <button class="created__another" type="button" (click)="another.emit()">
-    Create another practice
-  </button>
+      <h2 class="created__heading" id="created-heading" tabindex="-1">
+        {{ practiceName() || 'The practice' }} was created
+      </h2>
+    </div>
+  </header>
+
+  <div class="created__body">
+    <!--
+      ONE ROW SHAPE FOR ALL FOUR, and the uniformity is the point: the practice, its
+      subscription, every branch and every member of staff are the same kind of thing
+      on this screen - something that now exists, and the id it exists under. The
+      practice and its subscription were a description list here before, which said
+      they were a different kind of row than a branch. They are not.
+
+      They are ABOVE the two columns rather than in one of them, because there is one
+      of each and they belong to the whole practice; putting them in a column would
+      make them the first entries of a list they are not part of.
+    -->
+    <ul class="created__rows created__rows--top">
+      <li class="created__row">
+        <span class="created__label">Practice</span>
+        <span class="created__id">{{ created().organizationId }}</span>
+        <button
+          class="created__copy"
+          [class.created__copy--done]="copied(created().organizationId)"
+          type="button"
+          aria-label="Copy the practice id"
+          (click)="copy(created().organizationId, 'Practice')"
+        >
+          <span aria-hidden="true">{{ copyLabel(created().organizationId) }}</span>
+        </button>
+      </li>
+      <li class="created__row">
+        <span class="created__label">Subscription</span>
+        <span class="created__id">{{ created().subscriptionId }}</span>
+        <button
+          class="created__copy"
+          [class.created__copy--done]="copied(created().subscriptionId)"
+          type="button"
+          aria-label="Copy the subscription id"
+          (click)="copy(created().subscriptionId, 'Subscription')"
+        >
+          <span aria-hidden="true">{{ copyLabel(created().subscriptionId) }}</span>
+        </button>
+      </li>
+    </ul>
+
+    <!--
+      Branch and staff ids come back in the order they were sent, each beside the name
+      or the address it belongs to, so nothing here has to be matched up by counting.
+
+      Side by side, on the same measure the review step reads them at - this is that
+      step answered, and a receipt that reorganised what it is a receipt for would
+      make the reader find everything twice.
+    -->
+    <div class="created__columns">
+      @if (branches().length) {
+        <section>
+          <h3 class="created__section">
+            Branches <span class="created__tally">{{ branches().length }}</span>
+          </h3>
+          <ul class="created__rows">
+            @for (clinic of branches(); track clinic.id) {
+              <li class="created__row">
+                <span class="created__label created__label--name">{{ clinic.name }}</span>
+                <span class="created__id">{{ clinic.id }}</span>
+                <button
+                  class="created__copy"
+                  [class.created__copy--done]="copied(clinic.id)"
+                  type="button"
+                  [attr.aria-label]="'Copy the id for ' + clinic.name"
+                  (click)="copy(clinic.id, clinic.name ?? 'Branch')"
+                >
+                  <span aria-hidden="true">{{ copyLabel(clinic.id) }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (staff().length) {
+        <section>
+          <h3 class="created__section">
+            Staff <span class="created__tally">{{ staff().length }}</span>
+          </h3>
+          <ul class="created__rows">
+            @for (member of staff(); track member.id) {
+              <li class="created__row">
+                <span class="created__label created__label--name">{{ member.email }}</span>
+                <span class="created__id">{{ member.id }}</span>
+                <button
+                  class="created__copy"
+                  [class.created__copy--done]="copied(member.id)"
+                  type="button"
+                  [attr.aria-label]="'Copy the id for ' + member.email"
+                  (click)="copy(member.id, member.email ?? 'Staff member')"
+                >
+                  <span aria-hidden="true">{{ copyLabel(member.id) }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+
+    <!--
+      The one place a copy is worded. It is empty until something has been copied, so
+      it announces the result and nothing else.
+    -->
+    <p class="created__status" role="status">{{ status() }}</p>
+  </div>
+
+  <div class="created__actions">
+    <button class="created__another" type="button" (click)="another.emit()">
+      Create another practice
+    </button>
+    <p class="created__note">The ids above are what other systems will ask for.</p>
+  </div>
 </section>

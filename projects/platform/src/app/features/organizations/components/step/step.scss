@@ -162,10 +162,18 @@
 // steps around it are just lines of a list. Without it the open step floated in
 // the canvas with nothing holding it, which is most of why the screen read as
 // unfinished.
+
+// AND ITS START EDGE IS THE ACCENT. Four cards down a page are four cards; the one
+// being filled in has to be findable without reading any of them, and on a screen
+// where the finished steps collapse to a line the open card was told apart from the
+// canvas by a 1px grey border and nothing else. The edge is the same accent the
+// spine's marker beside it carries, so the two read as one thing - this step, here -
+// rather than as a stripe somebody added.
 .step__panel {
   margin-block: var(--space-1) var(--space-3);
   padding: var(--space-4);
   border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-primary);
   border-radius: 0.75rem;
   background-color: var(--color-surface-raised);
 }

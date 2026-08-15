@@ -1,0 +1,79 @@
+<!--
+  A `fieldset` with a `legend`, not a `div` with a label above it: a group of radios
+  sharing one question needs that question announced with each of them, and a legend
+  is the only thing that does it without repeating the word "plan" in every label.
+
+  `tabindex="-1"` and the id the page's faults point at. A fieldset is not focusable
+  on its own, and the server answers about the plan as a whole rather than about one
+  card in the set - so focus lands on the group, and what a screen reader reads out
+  is the question that was answered wrongly.
+-->
+<fieldset class="plans" id="practice-plan" tabindex="-1">
+  <legend class="plans__legend">Plan</legend>
+
+  <!--
+    NOTHING IS CHOSEN UNTIL SOMEBODY CHOOSES. There is no card marked by default: a
+    default here is a plan nobody picked, on a practice that will be billed for it.
+  -->
+  @if (plans.all().length) {
+    <div class="plans__grid">
+      @for (plan of plans.all(); track plan.plan) {
+        <label class="plan" [class.plan--chosen]="draft.plan() === plan.plan">
+          <!--
+            CARDS OVER THE FULL SET, and the radio is still what it is: the input is
+            `visually-hidden` rather than absent, so this is a radio group to the
+            keyboard and to a screen reader - arrow keys move between the plans - and
+            a card is what it looks like. Same arrangement as the role chips on the
+            staff form.
+          -->
+          <input
+            class="visually-hidden"
+            type="radio"
+            name="practice-plan-choice"
+            [value]="plan.plan"
+            [checked]="draft.plan() === plan.plan"
+            (change)="onPlan($event)"
+          />
+
+          <!--
+            The mark is always in the DOM and only filled when it is true, so nothing
+            moves or resizes when a card is chosen - the row does not reflow under the
+            pointer at the moment it is pressed.
+          -->
+          <span class="plan__mark" aria-hidden="true">
+            <svg viewBox="0 0 12 12" focusable="false">
+              <circle cx="6" cy="6" r="3" fill="currentColor" />
+            </svg>
+          </span>
+
+          <span class="plan__name">{{ plan.plan }}</span>
+
+          @if (allowanceOf(plan); as allowance) {
+            <span class="plan__allowance">{{ allowance }}</span>
+          }
+        </label>
+      }
+    </div>
+  }
+
+  <!--
+    The first call is still out. It is said rather than shown as an empty set,
+    because a set with nothing in it and a set that has not arrived look identical.
+  -->
+  @if (plans.areLoading()) {
+    <p class="plans__note">Loading plans…</p>
+  }
+
+  <!--
+    A RETRY, NOT A FALLBACK LIST (T-64 §4, criterion 22). With no plans there is no
+    practice to create, so this says so and offers the one thing that can help.
+    Inventing three cards to fill the set would let somebody put a practice on a plan
+    that does not exist.
+  -->
+  @if (plans.haveFailed()) {
+    <p class="plans__fault" role="alert">
+      The plans could not be loaded, so none can be chosen.
+      <button class="plans__retry" type="button" (click)="plans.retry()">Try again</button>
+    </p>
+  }
+</fieldset>

@@ -1,0 +1,347 @@
+<!--
+  FOUR TILES, AND EACH CARRIES THE MARK ITS OWN STEP CARRIES. The clinic, the pin and
+  the two people are the same glyphs the practice, branches and staff steps are headed
+  with, so the review reads as those three steps answered rather than as a new screen
+  with icons on it. A mark that means one thing in one place and another somewhere
+  else is worse than no mark.
+-->
+<dl class="tiles">
+  <div class="tile">
+    <span class="tile__mark" aria-hidden="true">
+      <svg viewBox="0 0 16 16" focusable="false">
+        <path
+          d="M2.6 13.8V5.4L8 2.4l5.4 3v8.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M8 6.9v3.8M6.1 8.8h3.8"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+        />
+      </svg>
+    </span>
+
+    <dt class="tile__label">Practice</dt>
+    <dd class="tile__value">{{ draft.name() || '—' }}</dd>
+  </div>
+
+  <div class="tile">
+    <span class="tile__mark" aria-hidden="true">
+      <svg viewBox="0 0 16 16" focusable="false">
+        <rect
+          x="2.2"
+          y="3.6"
+          width="11.6"
+          height="8.8"
+          rx="1.6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+        />
+        <path
+          d="M2.2 6.6h11.6M5 9.6h3.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+        />
+      </svg>
+    </span>
+
+    <dt class="tile__label">Plan</dt>
+    <dd class="tile__value">{{ draft.plan() || '—' }}</dd>
+
+    <!--
+      WHAT THE PLAN COMES WITH, on the screen where it is being spent. It is a fact
+      rather than a warning - the two tiles beside it are what say whether anything is
+      over.
+    -->
+    @if (allowance(); as allowance) {
+      <p class="tile__note">{{ allowance }}</p>
+    }
+  </div>
+
+  <div class="tile" [class.tile--over]="branchAllowance()?.isOver">
+    <span class="tile__mark" aria-hidden="true">
+      <svg viewBox="0 0 16 16" focusable="false">
+        <path
+          d="M8 14.2c2.8-3 4.2-5.3 4.2-7.1a4.2 4.2 0 1 0-8.4 0c0 1.8 1.4 4.1 4.2 7.1Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linejoin="round"
+        />
+        <circle cx="8" cy="7" r="1.5" fill="none" stroke="currentColor" stroke-width="1.3" />
+      </svg>
+    </span>
+
+    <dt class="tile__label">Branches</dt>
+    <dd class="tile__value">{{ draft.branchCount() }}</dd>
+
+    @if (branchAllowance(); as branches) {
+      <p class="tile__note">of {{ branches.limit }} allowed</p>
+    }
+  </div>
+
+  <div class="tile" [class.tile--over]="seats()?.isOver">
+    <span class="tile__mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path
+          d="M9.3 11.3a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4ZM3.4 19.4c0-2.9 2.6-4.8 5.9-4.8s5.9 1.9 5.9 4.8"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M16.4 10.9a2.6 2.6 0 1 0 0-5.2M17.5 14.9c1.9.5 3.1 1.8 3.1 3.6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </svg>
+    </span>
+
+    <dt class="tile__label">Staff</dt>
+    <dd class="tile__value">{{ draft.staffCount() }}</dd>
+
+    @if (seats(); as seats) {
+      <p class="tile__note">of {{ seats.limit }} seats</p>
+    }
+  </div>
+</dl>
+
+<!--
+  IT WARNS AND DOES NOT BLOCK (T-64 §5). Steps 2 and 3 each warn about their own
+  count; this is the only screen where both are in view at once, and it is the screen
+  with the irreversible button on it - so the last thing a reader passes before
+  pressing says it plainly. The server owns the limit and gets the final word.
+-->
+@if (isOverPlan()) {
+  <p class="warning" role="status">
+    This is more than the {{ draft.plan() }} plan allows. It can still be created — the server
+    decides, and it may refuse.
+  </p>
+}
+
+<!--
+  TWO TREES, ONE PER DIRECTION. The same assignment read from both ends: a branch with
+  its people under it, and a person with their branches under them. It is the shape the
+  data actually has - the flat lists said "Maadi · Mona Hassan, Karim Saleh" and left a
+  reader to parse a sentence, where a node with nothing under it is a branch nobody
+  staffs and that can be seen without reading it at all.
+
+  `<details>` and `<summary>` rather than a hand-built tree with `role="tree"`. The
+  browser gives the disclosure, the keyboard handling and the announced
+  expanded/collapsed state for free, and every one of those is something an ARIA tree
+  has to reimplement and usually gets subtly wrong.
+
+  EVERY NODE STARTS OPEN. This is the screen before something irreversible, so nothing
+  it is a reader's job to check is put behind a press: collapsing is for shortening a
+  list once it has been read, not for hiding it in the first place.
+-->
+<div class="columns">
+  <section>
+    <h4 class="heading">
+      <span class="heading__mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" focusable="false">
+          <path
+            d="M8 14.2c2.8-3 4.2-5.3 4.2-7.1a4.2 4.2 0 1 0-8.4 0c0 1.8 1.4 4.1 4.2 7.1Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+          />
+          <circle cx="8" cy="7" r="1.5" fill="none" stroke="currentColor" stroke-width="1.3" />
+        </svg>
+      </span>
+      Branches <span class="heading__count">{{ draft.branchCount() }}</span>
+    </h4>
+
+    <ul class="tree">
+      @for (branch of draft.branches(); track branch.key; let at = $index) {
+        <li>
+          @let people = staffAtBranch(branch.key);
+
+          <!--
+            A NODE WITH NOTHING UNDER IT IS NOT A DISCLOSURE. A branch nobody works at
+            gets a plain row and a leaf mark rather than a twisty that opens onto
+            nothing: a control that does nothing when pressed is worse than no control,
+            and "nobody assigned" is an answer rather than a missing one.
+          -->
+          @if (people.length === 0) {
+            <div class="tree__row">
+              <span class="tree__twist tree__twist--leaf" aria-hidden="true"></span>
+              <span class="entry__position" aria-hidden="true">{{ at + 1 }}</span>
+
+              <span class="tree__body">
+                <span class="entry__name">{{ branch.name || 'Branch ' + (at + 1) }}</span>
+                @if (branch.phone) {
+                  <span class="entry__meta">{{ branch.phone }}</span>
+                } @else {
+                  <span class="entry__meta entry__meta--absent">No phone</span>
+                }
+              </span>
+
+              <span class="tally tally--none">Nobody assigned</span>
+            </div>
+          } @else {
+            <details open>
+              <summary class="tree__row">
+                <span class="tree__twist" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" focusable="false">
+                    <path
+                      d="M4.5 2.5 8 6l-3.5 3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+
+                <span class="entry__position" aria-hidden="true">{{ at + 1 }}</span>
+
+                <span class="tree__body">
+                  <span class="entry__name">{{ branch.name || 'Branch ' + (at + 1) }}</span>
+                  @if (branch.phone) {
+                    <span class="entry__meta">{{ branch.phone }}</span>
+                  } @else {
+                    <span class="entry__meta entry__meta--absent">No phone</span>
+                  }
+                </span>
+
+                <span class="tally">
+                  {{ people.length }} {{ people.length === 1 ? 'person' : 'people' }}
+                </span>
+              </summary>
+
+              <ul class="tree__children">
+                @for (person of people; track person.key) {
+                  <li class="tree__child">
+                    <span class="tree__leaf">{{ person.label }}</span>
+                    @if (person.detail) {
+                      <span class="entry__meta">{{ person.detail }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            </details>
+          }
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section>
+    <h4 class="heading">
+      <span class="heading__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path
+            d="M9.3 11.3a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4ZM3.4 19.4c0-2.9 2.6-4.8 5.9-4.8s5.9 1.9 5.9 4.8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M16.4 10.9a2.6 2.6 0 1 0 0-5.2M17.5 14.9c1.9.5 3.1 1.8 3.1 3.6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </span>
+      Staff <span class="heading__count">{{ draft.staffCount() }}</span>
+    </h4>
+
+    @if (draft.staff().length === 0) {
+      <p class="none">None. At least one person is needed to create the practice.</p>
+    } @else {
+      <ul class="tree">
+        @for (member of draft.staff(); track member.key; let at = $index) {
+          <li>
+            <details open>
+              <summary class="tree__row">
+                <span class="tree__twist" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" focusable="false">
+                    <path
+                      d="M4.5 2.5 8 6l-3.5 3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+
+                <span class="tree__body">
+                  <span class="entry__name">{{
+                    member.fullName || 'Staff member ' + (at + 1)
+                  }}</span>
+                  <span class="entry__meta">{{ member.email }}</span>
+                </span>
+
+                @if (member.specialityCode) {
+                  <span class="code">{{ member.specialityCode }}</span>
+                }
+
+                <span class="tally">{{ rolesOf(member.key) }}</span>
+              </summary>
+
+              <!--
+                THE OTHER DIRECTION. The branch tree says who is at each location; this
+                says where each person is, and somebody covering one branch is told
+                from somebody covering four without counting a sentence.
+              -->
+              <ul class="tree__children">
+                @for (branch of branchesFor(member.key); track branch.key) {
+                  <li class="tree__child">
+                    <span class="tree__leaf">{{ branch.label }}</span>
+                  </li>
+                } @empty {
+                  <li class="tree__child">
+                    <span class="tree__leaf tree__leaf--none">No branch</span>
+                  </li>
+                }
+              </ul>
+            </details>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>
+
+<!--
+  THE SENTENCE THAT NAMES EVERYTHING, immediately above the button that does it. It is
+  at the bottom rather than the top because this is where the decision is taken - a
+  note at the head of a screen is read before the thing it is about, and this one is
+  the summary of what pressing costs.
+-->
+<p class="statement">
+  <span class="statement__mark" aria-hidden="true">
+    <svg viewBox="0 0 16 16" focusable="false">
+      <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.3" />
+      <path
+        d="M8 7.2v4M8 4.9v.1"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+      />
+    </svg>
+  </span>
+  {{ whatIsCreated() }}
+</p>

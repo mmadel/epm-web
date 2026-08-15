@@ -9,39 +9,138 @@
       <p class="ledger__plan">{{ draft.plan() }}</p>
     }
 
+    <!--
+      THE COUNTS AGAINST WHAT THE PLAN ALLOWS, so being over one shows while the form
+      is being filled in rather than only on the last step. They warn and never block:
+      the server owns the limit and answers `EPM-ORG-006` if it disagrees (T-64 §5).
+
+      The two marks are the same pin and pair of people the steps and the review carry,
+      because they are the same two things being counted.
+    -->
     <dl class="ledger__counts">
-      <div>
+      <div class="count" [class.count--over]="branchAllowance()?.isOver">
+        <span class="count__mark" aria-hidden="true">
+          <svg viewBox="0 0 16 16" focusable="false">
+            <path
+              d="M8 14.2c2.8-3 4.2-5.3 4.2-7.1a4.2 4.2 0 1 0-8.4 0c0 1.8 1.4 4.1 4.2 7.1Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linejoin="round"
+            />
+            <circle cx="8" cy="7" r="1.5" fill="none" stroke="currentColor" stroke-width="1.3" />
+          </svg>
+        </span>
+
         <dt>Branches</dt>
-        <dd>{{ draft.branchCount() }}</dd>
+        <dd>
+          {{ draft.branchCount() }}
+          @if (branchAllowance(); as branches) {
+            <span class="count__limit">of {{ branches.limit }}</span>
+          }
+        </dd>
       </div>
-      <div>
+
+      <div class="count" [class.count--over]="seats()?.isOver">
+        <span class="count__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M9.3 11.3a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4ZM3.4 19.4c0-2.9 2.6-4.8 5.9-4.8s5.9 1.9 5.9 4.8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M16.4 10.9a2.6 2.6 0 1 0 0-5.2M17.5 14.9c1.9.5 3.1 1.8 3.1 3.6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+
         <dt>Staff</dt>
-        <dd>{{ draft.staffCount() }}</dd>
+        <dd>
+          {{ draft.staffCount() }}
+          @if (seats(); as seats) {
+            <span class="count__limit">of {{ seats.limit }}</span>
+          }
+        </dd>
       </div>
     </dl>
 
-    @if (draft.branches().length > 0) {
+    @if (branches().length > 0) {
       <h3 class="ledger__section">Branches</h3>
       <ul class="ledger__list">
-        @for (branch of draft.branches(); track branch.key; let at = $index) {
-          <li [class.ledger__item--empty]="!branch.name.trim()">
-            {{ branch.name.trim() || 'Branch ' + (at + 1) }}
-          </li>
+        @for (branch of shownBranches(); track $index) {
+          <li [class.ledger__item--empty]="branch.isEmpty">{{ branch.label }}</li>
+        }
+        @if (moreBranches() > 0) {
+          <li class="ledger__more">+{{ moreBranches() }} more</li>
         }
       </ul>
     }
 
-    @if (draft.staff().length > 0) {
+    @if (staff().length > 0) {
       <h3 class="ledger__section">Staff</h3>
       <ul class="ledger__list">
-        @for (member of draft.staff(); track member.key; let at = $index) {
-          <li [class.ledger__item--empty]="!member.fullName.trim()">
-            {{ member.fullName.trim() || 'Staff member ' + (at + 1) }}
-          </li>
+        @for (member of shownStaff(); track $index) {
+          <li [class.ledger__item--empty]="member.isEmpty">{{ member.label }}</li>
+        }
+        @if (moreStaff() > 0) {
+          <li class="ledger__more">+{{ moreStaff() }} more</li>
         }
       </ul>
     }
 
-    <p class="ledger__note">Nothing exists until the last step.</p>
+    <!--
+      WHAT IS STILL MISSING, which is the one question this panel could not answer
+      before. Every step disables its own button and explains why in small print at the
+      foot of that step; this says all three at once, from wherever the reader is.
+
+      A DONE ITEM IS A TICK AND AN OUTSTANDING ONE IS AN OPEN CIRCLE - not a cross. A
+      cross says something is wrong, and nothing here is: these are things not done
+      yet, on a form being filled in. The state is in the shape as well as the colour,
+      and the words beside each mark say which rule it is.
+    -->
+    <h3 class="ledger__section">Ready to create</h3>
+    <ul class="checks">
+      @for (check of checks(); track check.label) {
+        <li class="check" [class.check--done]="check.done">
+          <span class="check__mark" aria-hidden="true">
+            @if (check.done) {
+              <svg viewBox="0 0 12 12" focusable="false">
+                <path
+                  d="M2.5 6.3 4.8 8.6 9.5 3.9"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            }
+          </span>
+
+          <span class="visually-hidden">{{ check.done ? 'Done:' : 'Still needed:' }}</span>
+          {{ check.label }}
+        </li>
+      }
+    </ul>
+
+    <!--
+      The panel's last line for the whole form, and it is the sentence the receipt
+      answers in the past tense once the call returns.
+    -->
+    <p class="ledger__note">
+      @if (isReady()) {
+        Everything is ready. Nothing exists until the last step.
+      } @else {
+        Nothing exists until the last step.
+      }
+    </p>
   </div>
 </aside>

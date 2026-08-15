@@ -62,9 +62,9 @@ function element(fixture: ComponentFixture<App>): HTMLElement {
 /**
  * Fills in the practice step and presses Continue, landing on the branches step.
  *
- * The plan is a `select` whose options come from `listPlans` (T-64 §4), which is why
- * this sets a value and dispatches the event a reader's choice dispatches: a test
- * that set the draft directly would pass with the control wired to nothing.
+ * The plan is a card per plan, built from `listPlans` (T-64 §4), which is why this
+ * presses one rather than setting the draft: a test that set the draft directly
+ * would pass with the cards wired to nothing.
  */
 async function complete(fixture: ComponentFixture<App>): Promise<void> {
   const name = element(fixture).querySelector<HTMLInputElement>('#practice-name')!;
@@ -72,10 +72,11 @@ async function complete(fixture: ComponentFixture<App>): Promise<void> {
   name.value = 'Cairo Physio';
   name.dispatchEvent(new Event('input'));
 
-  const plan = element(fixture).querySelector<HTMLSelectElement>('#practice-plan')!;
+  const plans = [
+    ...element(fixture).querySelectorAll<HTMLInputElement>('#practice-plan input[type="radio"]'),
+  ];
 
-  plan.value = 'STANDARD';
-  plan.dispatchEvent(new Event('change'));
+  plans.find((plan) => plan.value === 'STANDARD')!.click();
   TestBed.tick();
 
   element(fixture).querySelector<HTMLButtonElement>('.primary-button')!.click();
@@ -134,7 +135,11 @@ describe('the platform console', () => {
       'Cairo Physio · STANDARD',
     );
     expect(element(fixture).querySelector('.step--done')).not.toBeNull();
-    expect(element(fixture).querySelector('.step__panel .add-tile')?.textContent).toContain(
+
+    // And the branches step is open behind it, with the control that adds one. It is
+    // drawn as a plus and named in a `visually-hidden` span, which is why this can
+    // still ask for it by name rather than by shape.
+    expect(element(fixture).querySelector('.step__panel .add-button')?.textContent).toContain(
       'Add a branch',
     );
   });

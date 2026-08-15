@@ -172,10 +172,32 @@
 // The field a screen is about - the practice's name on the step that names it.
 // One size up and capped at a name's length, so it reads as the subject of the
 // step rather than as the first of a list of equals.
+
+// AND IT IS A TONE DOWN FROM THE CARD IT SITS ON, which the dense fields are not:
+// those sit inside a tinted entry form, where white is the step up that makes them
+// controls. This one sits directly on a white step, where white against white left
+// one grey line doing the whole job of saying "type here". Same tonal step, used the
+// other way round - the console's only depth cue, and it costs no shadow.
 .field__control--lead {
-  max-inline-size: 26rem;
+  max-inline-size: 28rem;
   padding: var(--space-3);
+  background-color: var(--color-surface);
   font-size: var(--font-size-lg);
+}
+
+// It takes a glyph as well, and needs more room for one than a dense field does: the
+// face is a size up and the padding a step wider, so the text has to start further
+// in. Declared after both modifiers because `--lead` sets the `padding` shorthand,
+// which would otherwise put the text back under its own icon.
+.field__control--lead.field__control--iconed {
+  padding-inline-start: 2.75rem;
+}
+
+// The lead field's own glyph is a size up with it - a 16px mark inside a 17px field
+// reads as something that was left there rather than as part of the control.
+.field__box:has(.field__control--lead) .field__icon svg {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
 }
 
 // A placeholder is a hint, not a value, and at the same colour as one it gets read
@@ -241,15 +263,6 @@
   line-height: 1;
 }
 
-.entry__body {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1) var(--space-3);
-  min-inline-size: 0;
-}
-
 .entry__name {
   font-weight: var(--font-weight-medium);
 }
@@ -276,6 +289,153 @@
 // The form that adds one
 // ---------------------------------------------------------------------------
 
+// The bar above a repeatable list: what the list is, and the control that adds to
+// it. The control is at the TOP rather than under the last row, so it does not move
+// down the screen as the list grows - by the sixth branch, "where do I add another"
+// had become a scroll.
+.list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-2);
+}
+
+.list-head__title {
+  margin: 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// A PLUS, AND NOTHING ELSE DRAWN, in a circle.
+
+// The console's shape rule is that an action is filled and squared and a chip is
+// outlined and rounded, and this is the one deliberate exception to the second half
+// of it. The rule is about WORDED controls, where the shape is all that separates a
+// thing you press from a thing that reports a state; a lone glyph has no label to
+// square off around, and a circle is the shape a single mark sits in - the same
+// circle the step markers, the row numbers and the receipt's tick already use. It
+// stays filled, which is the half of the rule that carries "this is an action".
+
+// The name is carried by a `visually-hidden` span rather than by a `title` or an
+// `aria-label`: it is then in the accessibility tree AND in the page's text, which
+// is what lets it be found by name rather than by shape.
+.add-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.add-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.add-button svg {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+}
+
+// ---------------------------------------------------------------------------
+// A list with named columns
+// ---------------------------------------------------------------------------
+
+// `.entries` above is the console's list of things that have been added, and it
+// answers "what is in here" - a name, and whatever else the row has, run together on
+// one line. THIS IS THE SAME LIST WHEN THE ROWS HAVE FIELDS RATHER THAN DETAILS: a
+// branch has an order, a name, a phone and the people at it, and four facts down a
+// list of six rows cannot be compared unless they are in columns with the columns
+// named. Reading "which of these has no phone" off the first shape means reading
+// every row; off this one it means looking down one column.
+
+// The column widths are NOT here. A list sets `--grid-list-columns` for itself,
+// because the proportions belong to what is in the columns, and this file has no
+// business knowing that a branch's name deserves more room than its phone.
+.grid-list {
+  margin: 0 0 var(--space-2);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+}
+
+// The head and a row share one template, which is the whole mechanism: they are
+// declared together so that a column added to one cannot miss the other.
+.grid-list__head,
+.grid-list__row {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: var(--grid-list-columns);
+  align-items: center;
+}
+
+// THE NAMES OF THE COLUMNS, and they are `aria-hidden` where they are used. A screen
+// reader reads a row as "Maadi, +20 2 2358 1100, Mona Hassan" and each control names
+// the branch it acts on, so the association a real `<table>` would carry is already
+// in the content; a heading row announced on top of that is four more words before
+// the first branch. It is a visual aid, and it says so.
+
+// On the canvas colour rather than white, so the head reads as the edge of the list
+// rather than as its first row.
+.grid-list__head {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.grid-list__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grid-list__row {
+  padding: var(--space-3);
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.grid-list__row:last-child {
+  border-block-end: 0;
+}
+
+// A cell holding nothing - a branch with no phone, or one nobody works at yet.
+// Neither is an error, so it is quiet and italic rather than absent: an empty cell in
+// a row of full ones reads as something that failed to load.
+.grid-list__absent {
+  color: var(--color-subtle-text);
+  font-style: italic;
+}
+
+// A list with nothing in it yet. It is a row of the list rather than a message above
+// it, so the bordered box is there from the start and the first branch lands inside
+// something that was already on screen.
+.grid-list__empty {
+  padding: var(--space-3);
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
 // Tinted rather than white, so an open form is visibly a different thing from the
 // entries above it: those are what exists, this is what is being written.
 .entry-form {
@@ -287,6 +447,15 @@
   border: 1px solid var(--color-primary);
   border-radius: 0.625rem;
   background-color: var(--color-surface);
+}
+
+// The same form with the card taken off it, for a caller that is already a card -
+// the branch dialog. A tint inside a dialog is a second surface for no reason: the
+// dialog is the thing being filled in, and there is nothing behind the form for it
+// to be told apart from.
+.entry-form--bare {
+  border: 0;
+  background: none;
 }
 
 .entry-form__fields {
@@ -302,10 +471,15 @@
   gap: var(--space-2) var(--space-3);
 }
 
+// Filled and squared, the same shape a step's own action is - an action is an action
+// wherever it is. It is one step SMALLER than the step's action, because it finishes
+// a form inside a step rather than the step itself, and two identical buttons on one
+// screen would say the two presses were the same size of decision.
 .entry-form__submit {
+  min-block-size: 2.25rem;
   padding: var(--space-2) var(--space-4);
   border: 0;
-  border-radius: 1.25rem;
+  border-radius: 0.5rem;
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   font-family: inherit;
@@ -390,44 +564,11 @@
 }
 
 // ---------------------------------------------------------------------------
-// Adding a row
-// ---------------------------------------------------------------------------
 
-// THE FULL WIDTH OF THE LIST IT APPENDS TO, dashed, so it reads as the next row
-// waiting to exist rather than as a button that happens to sit under some rows. It
-// is how both repeatable lists in this console grow, and a small bordered button
-// under a stack of cards was the least findable control on the screen.
-.add-tile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  inline-size: 100%;
-  padding: var(--space-3);
-  border: 1px dashed var(--color-border-strong);
-  border-radius: 0.625rem;
-  background: none;
-  color: var(--color-primary);
-  font-family: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-}
-
-.add-tile:hover {
-  border-color: var(--color-primary);
-  background-color: var(--color-primary-soft);
-}
-
-.add-tile:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.add-tile svg {
-  inline-size: 1rem;
-  block-size: 1rem;
-}
+// `.add-tile` was here: a dashed, full-width "Add a branch" under the last row. Both
+// lists are added to from `.add-button` at their head now, because a control under
+// the last row moves down the screen with every row added - the one control a reader
+// presses repeatedly was the one that never stayed put.
 
 // The choice chips that replaced the bare checkbox rows live with the form that
 // uses them - see staff-form.scss. They are still checkboxes over the full set,

@@ -1,5 +1,5 @@
-// Sticky, because "what am I making" does not stop being asked when the form
-// scrolls. The offset clears the frame's header.
+// Sticky, because "what am I making" and "what is left" do not stop being asked when
+// the form scrolls. The offset clears the frame's header.
 .ledger__card {
   position: sticky;
   inset-block-start: var(--space-4);
@@ -26,8 +26,8 @@
   line-height: var(--line-height-tight);
 }
 
-// Nothing named yet is not an error - it is the first field of the first step - so
-// it is the quiet step of text rather than the danger tone.
+// Nothing named yet is not an error - it is the first field of the first step - so it
+// is the quiet step of text rather than the danger tone.
 .ledger__practice--empty {
   color: var(--color-muted-text);
   font-size: var(--font-size-md);
@@ -40,27 +40,95 @@
   font-size: var(--font-size-sm);
 }
 
+// ---------------------------------------------------------------------------
+// The two counts
+// ---------------------------------------------------------------------------
+
+// A pair of tiles on the canvas colour - the same shape and the same tone the review
+// reads them back in, because they are the same two numbers one step later.
 .ledger__counts {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   grid-template-columns: 1fr 1fr;
   margin: var(--space-4) 0 0;
-  padding-block-start: var(--space-3);
-  border-block-start: 1px solid var(--color-border-soft);
+}
+
+.count {
+  display: grid;
+  gap: 0 var(--space-2);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  background-color: var(--color-surface);
+}
+
+.count__mark {
+  grid-area: 1 / 1 / span 2;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
+
+.count__mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
 }
 
 .ledger__counts dt {
+  grid-area: 1 / 2;
   color: var(--color-muted-text);
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .ledger__counts dd {
+  grid-area: 2 / 2;
   margin: 0;
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
 }
+
+// What the plan allows, beside what has been used. Quiet, because the number before it
+// is the answer and this is the scale it is read against.
+.count__limit {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+}
+
+// Over what the plan allows. The tint carries it, the text repeats it, and the review
+// says it in words on the step that creates it - never colour alone.
+.count--over {
+  border-color: var(--color-danger-mark);
+  background-color: var(--color-danger-surface);
+}
+
+.count--over .count__mark {
+  background-color: var(--color-danger-mark);
+  color: var(--color-text-inverse);
+}
+
+.count--over dt,
+.count--over dd,
+.count--over .count__limit {
+  color: var(--color-danger-text);
+}
+
+// ---------------------------------------------------------------------------
+// What is in it
+// ---------------------------------------------------------------------------
 
 .ledger__section {
   margin: var(--space-4) 0 var(--space-1);
@@ -95,10 +163,76 @@
   font-style: italic;
 }
 
+// What the cap left out. It is not a control: the step itself holds the full list, and
+// a second way to reach it from here would be a second place to keep working.
+.ledger__more {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------------------------------------------------------------------------
+// What is still needed
+// ---------------------------------------------------------------------------
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+// AN OPEN CIRCLE, NOT A CROSS. A cross says something is wrong; an outstanding rule on
+// a form being filled in is not wrong, it is not done yet. The mark is always there
+// and only its inside changes, so nothing moves as the rules are met one by one.
+.check__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+
+  // Half a line's worth, so a 1.125rem circle sits on the middle of the first line of
+  // a label that may wrap onto two.
+  margin-block-start: 0.0625rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  color: transparent;
+}
+
+.check__mark svg {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+}
+
+// Done: filled, ticked, and the words come up out of the quiet step of text.
+.check--done {
+  color: var(--color-text);
+}
+
+.check--done .check__mark {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
 .ledger__note {
   margin: var(--space-4) 0 0;
   padding-block-start: var(--space-3);
   border-block-start: 1px solid var(--color-border-soft);
   color: var(--color-subtle-text);
   font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
 }

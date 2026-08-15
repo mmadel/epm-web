@@ -1,0 +1,372 @@
+// The whole organization read back, on the step that creates it.
+
+// ---------------------------------------------------------------------------
+// The four tiles
+// ---------------------------------------------------------------------------
+
+// AS MANY ACROSS AS FIT, down to one. `auto-fit` rather than a breakpoint: what
+// decides it is whether a practice's name still fits on a tile, which is a measure
+// and not a viewport.
+.tiles {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  margin: 0 0 var(--space-4);
+}
+
+// Set on the CANVAS colour inside the white step - this console's one depth cue used
+// the other way round. The same tonal step that makes a card sit on the page makes a
+// tile sit in a card, and it costs no shadow and no second border weight.
+.tile {
+  display: grid;
+  gap: 0 var(--space-2);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  background-color: var(--color-surface);
+}
+
+// The tinted mark tile the steps' own headings use, one size down. It is the domain's
+// mark rather than decoration: a clinic, a location, a pair of people.
+.tile__mark {
+  grid-area: 1 / 1 / span 2;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: 0.625rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
+
+.tile__mark svg {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+}
+
+.tile__label {
+  grid-area: 1 / 2;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// The answer, and the biggest thing on the tile: the value is what a reader came here
+// to check, and the label above only says which question it answers.
+.tile__value {
+  grid-area: 2 / 2;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-lg);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// The limit under the count, and what the plan comes with under its name. It runs the
+// full width of the tile rather than staying in the value's column, because "of 20
+// seats" beside a two-character number would wrap on every tile.
+.tile__note {
+  grid-area: 3 / 1 / auto / -1;
+  margin: var(--space-1) 0 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+// Over what the plan allows. The tint carries it, the text colour repeats it, and the
+// sentence below says it - never colour alone (docs/design-tokens.md).
+.tile--over {
+  border-color: var(--color-danger-mark);
+  background-color: var(--color-danger-surface);
+}
+
+.tile--over .tile__mark {
+  background-color: var(--color-danger-mark);
+  color: var(--color-text-inverse);
+}
+
+.tile--over .tile__label,
+.tile--over .tile__value,
+.tile--over .tile__note {
+  color: var(--color-danger-text);
+}
+
+// It is a warning and not a fault: nothing is wrong yet, and the button below stays
+// live. `--warning` rather than `--danger` for exactly that reason - the red tones on
+// this screen mean "this was refused", and this has not been sent.
+.warning {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 3px solid var(--color-warning-mark);
+  border-radius: 0.25rem;
+  background-color: var(--color-warning-surface);
+  color: var(--color-warning-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+// ---------------------------------------------------------------------------
+// The two lists
+// ---------------------------------------------------------------------------
+
+// Side by side where there is room. They are two readings of the same practice rather
+// than two chapters of it, and the assignments only make sense held against each
+// other: this list says who is at each branch, that one says which branches each
+// person works at. Stacked, checking one against the other is a scroll.
+.columns {
+  display: grid;
+  gap: var(--space-4) var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  align-items: start;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// The same mark as the tile above it, unfilled: the tile is the object and this is a
+// label on a list, so the glyph is repeated at the weight of a label.
+.heading__mark {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-primary);
+}
+
+.heading__mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+// The loud half of the heading - "how many" is what somebody checks, and the word
+// beside it only says what they are counting.
+.heading__count {
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: normal;
+}
+
+// ---------------------------------------------------------------------------
+// The two trees
+// ---------------------------------------------------------------------------
+
+// The list's own edge, the same one every list in this console carries. A node keeps
+// only the rule that separates it from the next.
+.tree {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  list-style: none;
+}
+
+.tree > li {
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.tree > li:last-child {
+  border-block-end: 0;
+}
+
+// A node's own row. One template whether it is a `summary` or a plain `div`, so a
+// branch nobody works at lines up with the ones that do - the twist column is there
+// either way, holding the space its absent control would take.
+.tree__row {
+  display: grid;
+  gap: var(--space-1) var(--space-2);
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+}
+
+// The browser draws its own marker on a `summary` and it is not this one. `list-style`
+// covers Firefox and the modern spec; the `::-webkit-details-marker` rule is still
+// needed for Safari, which has not caught up.
+summary.tree__row {
+  cursor: pointer;
+  list-style: none;
+}
+
+summary.tree__row::-webkit-details-marker {
+  display: none;
+}
+
+summary.tree__row:hover {
+  background-color: var(--color-surface);
+}
+
+// The ring goes on the row rather than on the arrow, because the whole row is what
+// opens the node.
+summary.tree__row:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+// The twisty. It turns rather than swapping glyph, so what a reader tracks is one
+// shape moving instead of two shapes alternating.
+.tree__twist {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1rem;
+  block-size: 1rem;
+  color: var(--color-subtle-text);
+  transition: transform 120ms ease;
+}
+
+.tree__twist svg {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+}
+
+details[open] > .tree__row .tree__twist {
+  transform: rotate(90deg);
+}
+
+// A node with nothing under it keeps the column and draws a dot in it: the row still
+// lines up, and the mark says "this is the end of the line" rather than "the control
+// is missing".
+.tree__twist--leaf::before {
+  inline-size: 0.25rem;
+  block-size: 0.25rem;
+  border-radius: 50%;
+  background-color: var(--color-border-strong);
+  content: '';
+}
+
+.tree__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+// THE CHILDREN HANG OFF A LINE, and the line is what makes this a tree rather than an
+// indented list. It starts under the node's own badge, so the trunk runs through the
+// numbers down the side of the branch tree.
+.tree__children {
+  margin: 0 0 var(--space-2) 2.5rem;
+  padding: 0;
+  border-inline-start: 1px solid var(--color-border);
+  list-style: none;
+}
+
+// One child: the stub joining it to the trunk, drawn rather than typed.
+.tree__child {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+}
+
+.tree__child::before {
+  position: absolute;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0;
+  inline-size: var(--space-2);
+  block-size: 1px;
+  background-color: var(--color-border);
+  content: '';
+}
+
+.tree__leaf {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+// Somebody with no branch at all. It cannot happen through the form - a person needs
+// one to be complete - so this is the shape of a draft that got there another way, and
+// it says so rather than showing an empty node.
+.tree__leaf--none {
+  color: var(--color-subtle-text);
+  font-style: italic;
+}
+
+// What is under a node, counted, against the end of its row - so the counts line up
+// down one edge and read as a column of their own.
+.tally {
+  flex: none;
+  justify-self: end;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+// A branch nobody works at is worth noticing and is not an error - a practice can open
+// a location before it staffs it.
+.tally--none {
+  color: var(--color-subtle-text);
+  font-style: italic;
+}
+
+// A code, so it is mono - the same rule the speciality field and the receipt's ids
+// follow.
+.code {
+  flex: none;
+  color: var(--color-subtle-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree__twist {
+    transition: none;
+  }
+}
+
+.none {
+  margin: 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+// ---------------------------------------------------------------------------
+
+// What the press will do, in a sentence, immediately above the button that does it.
+// Tinted as information rather than as a warning: nothing here is wrong, and this is
+// the one fact the four tiles cannot state - that a subscription is created too.
+.statement {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3);
+  border-radius: 0.625rem;
+  background-color: var(--color-info-surface);
+  color: var(--color-info-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.statement__mark {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-info-mark);
+}
+
+.statement__mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}

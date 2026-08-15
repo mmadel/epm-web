@@ -37,32 +37,72 @@
       [attr.aria-valuetext]="progress() + ' of ' + total + ' steps finished'"
     >
       <!--
-      ONE SEGMENT PER STEP, NAMED. A single rail says how far along this is and
-      nothing else; four named segments say what the whole job consists of before
+      ONE NODE PER STEP, NAMED, ON A LINE. A single rail says how far along this is
+      and nothing else; four named nodes say what the whole job consists of before
       any of it is done, which step is being worked on, and which are behind. It is
       the same four titles the steps carry, from the same array.
 
-      The segments are `aria-hidden` and the region above carries the reading: a
+      IT IS A LINE RATHER THAN FOUR SEPARATE BARS. Four unconnected segments read as
+      four independent meters, each filling on its own; the rail between the nodes is
+      what says these are one sequence and that finishing here gets you there. The
+      node carries the state in a SHAPE as well as a colour - a tick behind, a number
+      ahead - which is the same rule the step markers below follow, and the reason a
+      colour-blind reader gets the same reading as anyone else.
+
+      The flow is `aria-hidden` and the region around it carries the reading: a
       screen reader gets "2 of 4 steps finished" rather than eight fragments, and
       the step headings below announce the names in their own right.
     -->
       <ol class="progress__flow" aria-hidden="true">
-        @for (step of flow; track step.number) {
+        @for (step of flow; track step.number; let last = $last) {
           <li
             class="progress__step"
             [class.progress__step--done]="state(step.number) === 'done'"
             [class.progress__step--current]="state(step.number) === 'current'"
           >
+            <span class="progress__node">
+              @if (state(step.number) === 'done') {
+                <svg viewBox="0 0 12 12" focusable="false">
+                  <path
+                    d="M2.5 6.3 4.8 8.6 9.5 3.9"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              } @else {
+                {{ step.number }}
+              }
+            </span>
+
+            <!--
+            The rail belongs to the step BEFORE it rather than being a divider of
+            its own, so it fills when that step is finished - which is what makes
+            the line grow towards the node you are heading for. The last step has
+            none: there is nothing after it to reach.
+          -->
+            @if (!last) {
+              <span class="progress__rail"></span>
+            }
+
             <span class="progress__label">{{ step.title }}</span>
-            <span class="progress__track"></span>
           </li>
         }
       </ol>
 
-      <p class="progress__count">{{ progress() }} of {{ total }} done</p>
+      <!--
+      The number is the answer and the rest is the unit, so they are not set the same
+      way - but the WORDING is unchanged. "1 of 4 done" is a sentence somebody reads;
+      "1/4" is a score, and this is a form rather than a game.
+    -->
+      <p class="progress__count">
+        <span class="progress__tally">{{ progress() }}</span> of {{ total }} done
+      </p>
     </div>
 
-    <div class="workspace">
+    <div class="workspace" [class.workspace--wide]="openStep() === steps.review">
       <ol class="steps">
         <!-- ------------------------------------------------------------------ -->
         <!-- 1. The practice                                                     -->
@@ -104,17 +144,49 @@
             </div>
 
             <div class="practice">
+              <!--
+              THE FIELD THE STEP IS ABOUT, and it now looks like it: a mark inside
+              it, and a fill a step down from the card it sits on. It was a white box
+              on a white card told apart from it by one grey line, which is the least
+              a control can be and still be a control - and it was the first thing on
+              the first step of the form.
+
+              The glyph is the same arrangement every other field in the console uses
+              (see the staff form): the label above still names the field, so the mark
+              is decoration that says which KIND of thing is being named, and it takes
+              no pointer events.
+            -->
               <div class="field">
                 <label class="field__label" for="practice-name">Practice name</label>
-                <input
-                  class="field__control field__control--lead"
-                  id="practice-name"
-                  type="text"
-                  autocomplete="off"
-                  placeholder="Cairo Physiotherapy Centre"
-                  [value]="draft.name()"
-                  (input)="onName($event)"
-                />
+                <div class="field__box">
+                  <span class="field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path
+                        d="M2.6 13.8V5.4L8 2.4l5.4 3v8.4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.3"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M8 6.9v3.8M6.1 8.8h3.8"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.3"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                  </span>
+                  <input
+                    class="field__control field__control--lead field__control--iconed"
+                    id="practice-name"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Cairo Physiotherapy Centre"
+                    [value]="draft.name()"
+                    (input)="onName($event)"
+                  />
+                </div>
 
                 @for (fault of regionFaults('practice'); track $index) {
                   @if (fault.field === 'name') {
@@ -124,70 +196,24 @@
               </div>
 
               <!--
-            THE OPTIONS COME FROM `listPlans`, NOT FROM THIS REPOSITORY (§4). A plan
-            added to the server's table appears here on the next page load, with no
-            frontend change - which is why there is no list to read in this file.
+            A CARD PER PLAN, and the whole set of them - its loading state, its
+            failure and its retry - is `app-plan-choice`. What each card may say is
+            decided there, and the short version is: the plan's name and the two
+            limits `listPlans` sends, never a sentence this console wrote.
 
-            It is a `select` and no longer a set of cards. The cards existed to carry
-            a sentence per plan; those sentences were invented placeholders that
-            nobody had written, and the API sends none - so what is left is a name
-            and two numbers, which is a select and a counter beside it.
-
-            Nothing is chosen until somebody chooses: a default here is a plan
-            nobody picked, on a practice that will be billed for it.
+            The line that used to sit here - "Includes 20 staff seats and 3 branches"
+            - is gone with the select that needed it. It existed because a select
+            shows one plan at a time, so what the chosen one came with had to be
+            reported underneath it; a card states its own allowance, and the two
+            COUNTERS in the steps that count them (§4) are unchanged.
           -->
               <div class="field">
-                <label class="field__label" for="practice-plan">Plan</label>
-
-                <select
-                  class="field__control"
-                  id="practice-plan"
-                  [disabled]="plans.areLoading() || plans.haveFailed()"
-                  [value]="draft.plan()"
-                  (change)="onPlan($event)"
-                >
-                  <option value="" disabled [selected]="draft.plan() === ''">
-                    {{ plans.areLoading() ? 'Loading plans…' : 'Choose a plan' }}
-                  </option>
-                  @for (plan of plans.all(); track plan.plan) {
-                    <option [value]="plan.plan" [selected]="draft.plan() === plan.plan">
-                      {{ plan.plan }}
-                    </option>
-                  }
-                </select>
-
-                <!--
-                A RETRY, NOT A FALLBACK LIST (§4, criterion 22). With no plans there
-                is no practice to create, so the form says so and offers the one
-                thing that can help. Inventing three plans to fill the select would
-                let somebody choose one that does not exist.
-              -->
-                @if (plans.haveFailed()) {
-                  <p class="field__fault" role="alert">
-                    The plans could not be loaded, so none can be chosen.
-                    <button class="link-button" type="button" (click)="plans.retry()">
-                      Try again
-                    </button>
-                  </p>
-                }
+                <app-plan-choice />
 
                 @for (fault of regionFaults('practice'); track $index) {
                   @if (fault.field === 'plan') {
                     <p class="field__fault" role="alert">{{ fault.message }}</p>
                   }
-                }
-
-                <!--
-                What the plan comes with, at the moment it is chosen. The COUNTERS
-                are in the two steps they count (§4); this is the fact behind them,
-                and it is here because this is where the decision is made.
-              -->
-                @if (seats(); as seats) {
-                  <p class="allowance">
-                    Includes {{ seats.limit }} staff {{ seats.limit === 1 ? 'seat' : 'seats' }} and
-                    {{ branchAllowance()!.limit }}
-                    {{ branchAllowance()!.limit === 1 ? 'branch' : 'branches' }}.
-                  </p>
                 }
               </div>
             </div>
@@ -200,6 +226,24 @@
                 (click)="continueFrom(steps.practice)"
               >
                 Continue
+                <!--
+                  The glyph says which way the press goes, which is the one thing the
+                  word does not: three identical Continues down a page all read as
+                  "the button", and the arrow is what makes each of them the way out
+                  of the step it sits in. It points inline-end - this console is
+                  English and LTR permanently (see stylelint.config.mjs), and if that
+                  ever changes this glyph is one of the things that has to be mirrored.
+                -->
+                <svg aria-hidden="true" viewBox="0 0 16 16" focusable="false">
+                  <path
+                    d="M3.2 8h9.2M8.8 4.4 12.4 8l-3.6 3.6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
               </button>
               @if (!isComplete(steps.practice)) {
                 <p class="step-actions__note">A name and a plan are needed</p>
@@ -265,162 +309,228 @@
               <p class="region-fault" role="alert">{{ fault.message }}</p>
             }
 
-            @if (draft.branches().length > 0) {
-              <ul class="entries">
-                @for (
-                  branch of draft.branches();
-                  track branch.key;
-                  let position = $index, count = $count
-                ) {
-                  @if (editingBranch() === branch.key) {
-                    <!--
-                    A ROW BEING EDITED KEEPS ITS MARK AND ITS MESSAGE. They belong to
-                    the row, not to the summary line: the message that says what is
-                    wrong has to be readable while the thing it is about is being
-                    fixed, and criteria 9 and 10 ask for BOTH duplicate rows to be
-                    marked - one of which is the row that was opened to fix it.
-                  -->
-                    <li
-                      class="entry--editing"
-                      [class.entry--faulted]="hasRowFault('branches', branch.key)"
-                    >
-                      @for (fault of rowFaults('branches', branch.key); track $index) {
-                        <p class="region-fault" role="alert">{{ fault.message }}</p>
-                      }
+            <!--
+            THE CONTROL THAT ADDS IS AT THE TOP OF THE LIST, and it stays there. It
+            used to be a full-width tile under the last row, which meant it moved down
+            the screen with every branch added - the one control a reader presses
+            repeatedly was the one that never stayed put.
 
-                      <app-branch-form
-                        submitLabel="Save branch"
-                        [initialName]="branch.name"
-                        [initialPhone]="branch.phone"
-                        (submitted)="saveBranch(branch.key, $event)"
-                        (cancelled)="closeBranchForm()"
-                      />
-                    </li>
-                  } @else {
-                    <li class="entry" [class.entry--faulted]="hasRowFault('branches', branch.key)">
-                      <span class="entry__position" aria-hidden="true">{{ position + 1 }}</span>
+            A PLUS AND NOTHING ELSE DRAWN, with its name in a `visually-hidden` span:
+            that puts "Add a branch" in the accessibility tree and in the page's text,
+            so the control is still findable by name even though it is drawn as a
+            shape.
+          -->
+            <div class="list-head">
+              <h4 class="list-head__title">Branches</h4>
 
-                      <span class="entry__body">
-                        <span class="entry__name">{{ branch.name }}</span>
-
-                        <!--
-                        BOTH rows of a duplicate pair carry this, not just the
-                        second (criterion 9): a reader shown one marked row has to
-                        find the other themselves.
-                      -->
-                        @for (fault of rowFaults('branches', branch.key); track $index) {
-                          <span class="entry__fault" role="alert">{{ fault.message }}</span>
-                        }
-                        @if (branch.phone) {
-                          <span class="entry__meta">{{ branch.phone }}</span>
-                        } @else {
-                          <span class="entry__meta entry__meta--absent">No phone</span>
-                        }
-                        @if (staffAt(branch.key); as who) {
-                          <span class="entry__meta">{{ who }}</span>
-                        }
-                      </span>
-
-                      <!--
-                      Each control names the branch it acts on, because "Move up"
-                      announced six times down a list is six identical
-                      announcements.
-                    -->
-                      <span class="entry__controls">
-                        <button
-                          class="icon-button"
-                          type="button"
-                          [disabled]="position === 0"
-                          (click)="draft.moveBranch(branch.key, -1)"
-                        >
-                          <span class="visually-hidden">Move {{ branch.name }} up</span>
-                          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                            <path
-                              d="M2.5 7.5 6 4l3.5 3.5"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.6"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </button>
-
-                        <button
-                          class="icon-button"
-                          type="button"
-                          [disabled]="position === count - 1"
-                          (click)="draft.moveBranch(branch.key, 1)"
-                        >
-                          <span class="visually-hidden">Move {{ branch.name }} down</span>
-                          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                            <path
-                              d="M2.5 4.5 6 8l3.5-3.5"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.6"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </button>
-
-                        <button
-                          class="icon-button"
-                          type="button"
-                          (click)="startEditBranch(branch.key)"
-                        >
-                          <span class="visually-hidden">Edit {{ branch.name }}</span>
-                          <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false">
-                            <path
-                              d="M9.4 2.4 11.6 4.6M2.5 11.5l.5-2.2 6.1-6.1a1 1 0 0 1 1.4 0l.8.8a1 1 0 0 1 0 1.4l-6.1 6.1z"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </button>
-
-                        <button
-                          class="icon-button"
-                          type="button"
-                          (click)="draft.removeBranch(branch.key)"
-                        >
-                          <span class="visually-hidden">Remove {{ branch.name }}</span>
-                          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                            <path
-                              d="M3 3l6 6M9 3l-6 6"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.6"
-                              stroke-linecap="round"
-                            />
-                          </svg>
-                        </button>
-                      </span>
-                    </li>
-                  }
-                }
-              </ul>
-            }
-
-            @if (addingBranch()) {
-              <app-branch-form (submitted)="addBranch($event)" (cancelled)="closeBranchForm()" />
-            } @else {
-              <button class="add-tile" type="button" (click)="startAddBranch()">
+              <button class="add-button" id="add-branch" type="button" (click)="startAddBranch()">
+                <span class="visually-hidden">Add a branch</span>
                 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                   <path
                     d="M8 3.2v9.6M3.2 8h9.6"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.6"
+                    stroke-width="1.8"
                     stroke-linecap="round"
                   />
                 </svg>
-                Add a branch
               </button>
+            </div>
+
+            <!--
+            EVERY BRANCH IS A ROW, ALWAYS. A row being added or changed no longer
+            turns into a form in place - the form is a dialog over the list now, so
+            the list never rearranges itself around the thing being typed, and A ROW
+            BEING EDITED KEEPS ITS MARK AND ITS MESSAGE simply by staying where it is
+            (criteria 9 and 10 ask for BOTH rows of a duplicate pair to be marked, one
+            of which is the row that was opened to fix it).
+          -->
+            <div class="grid-list branches">
+              <!--
+              THE COLUMNS, NAMED. A branch has four facts and they used to run
+              together on one line, so "which of these has no phone" was a question
+              you answered by reading every row instead of by looking down one
+              column. `aria-hidden`, because a screen reader already reads the row as
+              "Maadi, +20 2 2358 1100, Mona Hassan" and each control names the branch
+              it acts on - the association a real table would carry is in the content
+              already, and a heading row on top of it is four more words before the
+              first branch.
+            -->
+              <div class="grid-list__head" aria-hidden="true">
+                <span>#</span>
+                <span>Branch</span>
+                <span>Phone</span>
+                <span>Staff</span>
+                <span></span>
+              </div>
+
+              <ul class="grid-list__rows">
+                @for (
+                  branch of draft.branches();
+                  track branch.key;
+                  let position = $index, count = $count
+                ) {
+                  <li
+                    class="grid-list__row"
+                    [class.entry--faulted]="hasRowFault('branches', branch.key)"
+                  >
+                    <span class="entry__position" aria-hidden="true">{{ position + 1 }}</span>
+
+                    <span class="branches__name">
+                      <span class="entry__name">{{ branch.name }}</span>
+
+                      <!--
+                        BOTH rows of a duplicate pair carry this, not just the
+                        second (criterion 9): a reader shown one marked row has to
+                        find the other themselves.
+                      -->
+                      @for (fault of rowFaults('branches', branch.key); track $index) {
+                        <span class="entry__fault" role="alert">{{ fault.message }}</span>
+                      }
+                    </span>
+
+                    <span class="entry__meta">
+                      @if (branch.phone) {
+                        {{ branch.phone }}
+                      } @else {
+                        <span class="grid-list__absent">No phone</span>
+                      }
+                    </span>
+
+                    <!--
+                      THE ASSIGNMENTS, READ FROM THE BRANCH. It is empty until the
+                      staff step has been through, and a branch nobody works at is
+                      not an error - a practice can open a location before it staffs
+                      it - so it is the quiet absent cell rather than a blank.
+                    -->
+                    <span class="entry__meta">
+                      @if (staffAt(branch.key); as who) {
+                        {{ who }}
+                      } @else {
+                        <span class="grid-list__absent">Nobody yet</span>
+                      }
+                    </span>
+
+                    <!--
+                      Each control names the branch it acts on, because "Move up"
+                      announced six times down a list is six identical
+                      announcements.
+                    -->
+                    <span class="entry__controls">
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [disabled]="position === 0"
+                        (click)="draft.moveBranch(branch.key, -1)"
+                      >
+                        <span class="visually-hidden">Move {{ branch.name }} up</span>
+                        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                          <path
+                            d="M2.5 7.5 6 4l3.5 3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [disabled]="position === count - 1"
+                        (click)="draft.moveBranch(branch.key, 1)"
+                      >
+                        <span class="visually-hidden">Move {{ branch.name }} down</span>
+                        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                          <path
+                            d="M2.5 4.5 6 8l3.5-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      <button
+                        class="icon-button"
+                        type="button"
+                        (click)="startEditBranch(branch.key)"
+                      >
+                        <span class="visually-hidden">Edit {{ branch.name }}</span>
+                        <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                          <path
+                            d="M9.4 2.4 11.6 4.6M2.5 11.5l.5-2.2 6.1-6.1a1 1 0 0 1 1.4 0l.8.8a1 1 0 0 1 0 1.4l-6.1 6.1z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      <button
+                        class="icon-button"
+                        type="button"
+                        (click)="draft.removeBranch(branch.key)"
+                      >
+                        <span class="visually-hidden">Remove {{ branch.name }}</span>
+                        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                          <path
+                            d="M3 3l6 6M9 3l-6 6"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  </li>
+                } @empty {
+                  <!--
+                  The bordered box is there before the first branch is, so what a
+                  reader adds lands inside something that was already on screen
+                  rather than conjuring the list into existence.
+                -->
+                  <li class="grid-list__empty">No branches yet.</li>
+                }
+              </ul>
+            </div>
+
+            <!--
+            ONE DIALOG, TWO JOBS, AND NEVER BOTH AT ONCE - adding is the one with no
+            values behind it. They are separate blocks rather than one with a
+            conditional title because the two differ in every input they take, and a
+            single element juggling both was harder to read than the duplication.
+
+            Rendered by `@if` rather than kept in the DOM: the dialog opens itself on
+            the render that creates it, so "closed" is "not rendered" and there is no
+            second flag to fall out of step with this one.
+          -->
+            @if (addingBranch()) {
+              <app-dialog title="Add a branch" (closed)="closeBranchForm()">
+                <app-branch-form (submitted)="addBranch($event)" (cancelled)="closeBranchForm()" />
+              </app-dialog>
+            }
+
+            @if (branchBeingEdited(); as branch) {
+              <app-dialog
+                [title]="'Edit ' + (branch.name || 'branch')"
+                (closed)="closeBranchForm()"
+              >
+                <app-branch-form
+                  submitLabel="Save branch"
+                  [initialName]="branch.name"
+                  [initialPhone]="branch.phone"
+                  (submitted)="saveBranch(branch.key, $event)"
+                  (cancelled)="closeBranchForm()"
+                />
+              </app-dialog>
             }
 
             <div class="step-actions">
@@ -431,6 +541,24 @@
                 (click)="continueFrom(steps.branches)"
               >
                 Continue
+                <!--
+                  The glyph says which way the press goes, which is the one thing the
+                  word does not: three identical Continues down a page all read as
+                  "the button", and the arrow is what makes each of them the way out
+                  of the step it sits in. It points inline-end - this console is
+                  English and LTR permanently (see stylelint.config.mjs), and if that
+                  ever changes this glyph is one of the things that has to be mirrored.
+                -->
+                <svg aria-hidden="true" viewBox="0 0 16 16" focusable="false">
+                  <path
+                    d="M3.2 8h9.2M8.8 4.4 12.4 8l-3.6 3.6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
               </button>
               @if (!isComplete(steps.branches)) {
                 <p class="step-actions__note">At least one branch, and every one named</p>
@@ -498,107 +626,139 @@
               <p class="region-fault" role="alert">{{ fault.message }}</p>
             }
 
-            @if (draft.staff().length > 0) {
-              <ul class="entries">
-                @for (member of draft.staff(); track member.key) {
-                  @if (editingStaff() === member.key) {
-                    <li
-                      class="entry--editing"
-                      [class.entry--faulted]="hasRowFault('staff', member.key)"
-                    >
-                      @for (fault of rowFaults('staff', member.key); track $index) {
-                        <p class="region-fault" role="alert">{{ fault.message }}</p>
-                      }
+            <!--
+            The same head the branch list has, minus one thing: THERE IS NO `#`
+            COLUMN AND NO MOVE CONTROLS. A branch's position is what the API reads,
+            so numbering branches states a fact; the order of people means nothing,
+            and numbering them would say it did.
+          -->
+            <div class="list-head">
+              <h4 class="list-head__title">Staff</h4>
 
-                      <app-staff-form
-                        submitLabel="Save staff member"
-                        [branches]="draft.branches()"
-                        [initialFullName]="member.fullName"
-                        [initialEmail]="member.email"
-                        [initialSpecialityCode]="member.specialityCode"
-                        [initialRoles]="member.roles"
-                        [initialBranchKeys]="member.branchKeys"
-                        (submitted)="saveStaff(member.key, $event)"
-                        (cancelled)="closeStaffForm()"
-                      />
-                    </li>
-                  } @else {
-                    <li class="entry" [class.entry--faulted]="hasRowFault('staff', member.key)">
-                      <span class="entry__body">
-                        <span class="entry__name">{{ member.fullName }}</span>
-                        <span class="entry__meta">{{ member.email }}</span>
-                        <span class="entry__meta">{{ rolesOf(member.key) }}</span>
-                        <span class="entry__meta">{{ branchesOf(member.key) }}</span>
-                        @if (member.specialityCode) {
-                          <span class="entry__meta">{{ member.specialityCode }}</span>
-                        }
-
-                        @for (fault of rowFaults('staff', member.key); track $index) {
-                          <span class="entry__fault" role="alert">{{ fault.message }}</span>
-                        }
-                      </span>
-
-                      <span class="entry__controls">
-                        <button
-                          class="icon-button"
-                          type="button"
-                          (click)="startEditStaff(member.key)"
-                        >
-                          <span class="visually-hidden">Edit {{ member.fullName }}</span>
-                          <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false">
-                            <path
-                              d="M9.4 2.4 11.6 4.6M2.5 11.5l.5-2.2 6.1-6.1a1 1 0 0 1 1.4 0l.8.8a1 1 0 0 1 0 1.4l-6.1 6.1z"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </button>
-
-                        <button
-                          class="icon-button"
-                          type="button"
-                          (click)="draft.removeStaff(member.key)"
-                        >
-                          <span class="visually-hidden">Remove {{ member.fullName }}</span>
-                          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                            <path
-                              d="M3 3l6 6M9 3l-6 6"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.6"
-                              stroke-linecap="round"
-                            />
-                          </svg>
-                        </button>
-                      </span>
-                    </li>
-                  }
-                }
-              </ul>
-            }
-
-            @if (addingStaff()) {
-              <app-staff-form
-                [branches]="draft.branches()"
-                (submitted)="addStaff($event)"
-                (cancelled)="closeStaffForm()"
-              />
-            } @else {
-              <button class="add-tile" type="button" (click)="startAddStaff()">
+              <button class="add-button" id="add-staff" type="button" (click)="startAddStaff()">
+                <span class="visually-hidden">Add a staff member</span>
                 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                   <path
                     d="M8 3.2v9.6M3.2 8h9.6"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.6"
+                    stroke-width="1.8"
                     stroke-linecap="round"
                   />
                 </svg>
-                Add a staff member
               </button>
+            </div>
+
+            <div class="grid-list staff">
+              <div class="grid-list__head" aria-hidden="true">
+                <span>Name</span>
+                <span>Email</span>
+                <span>Role</span>
+                <span>Works at</span>
+                <span></span>
+              </div>
+
+              <ul class="grid-list__rows">
+                @for (member of draft.staff(); track member.key) {
+                  <li
+                    class="grid-list__row"
+                    [class.entry--faulted]="hasRowFault('staff', member.key)"
+                  >
+                    <span class="staff__name">
+                      <span class="entry__name">{{ member.fullName }}</span>
+
+                      <!--
+                        THE SPECIALITY CODE RIDES UNDER THE NAME rather than taking a
+                        column. It is optional and usually absent, and a column that
+                        is empty on most rows spends the width of a column saying so.
+                        Mono, because in this console a code is mono and prose never
+                        is.
+                      -->
+                      @if (member.specialityCode) {
+                        <span class="staff__code">{{ member.specialityCode }}</span>
+                      }
+
+                      @for (fault of rowFaults('staff', member.key); track $index) {
+                        <span class="entry__fault" role="alert">{{ fault.message }}</span>
+                      }
+                    </span>
+
+                    <span class="entry__meta">{{ member.email }}</span>
+                    <span class="entry__meta">{{ rolesOf(member.key) }}</span>
+                    <span class="entry__meta">{{ branchesOf(member.key) }}</span>
+
+                    <span class="entry__controls">
+                      <button
+                        class="icon-button"
+                        type="button"
+                        (click)="startEditStaff(member.key)"
+                      >
+                        <span class="visually-hidden">Edit {{ member.fullName }}</span>
+                        <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                          <path
+                            d="M9.4 2.4 11.6 4.6M2.5 11.5l.5-2.2 6.1-6.1a1 1 0 0 1 1.4 0l.8.8a1 1 0 0 1 0 1.4l-6.1 6.1z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      <button
+                        class="icon-button"
+                        type="button"
+                        (click)="draft.removeStaff(member.key)"
+                      >
+                        <span class="visually-hidden">Remove {{ member.fullName }}</span>
+                        <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                          <path
+                            d="M3 3l6 6M9 3l-6 6"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  </li>
+                } @empty {
+                  <li class="grid-list__empty">
+                    Nobody yet. At least one person is needed to create the practice.
+                  </li>
+                }
+              </ul>
+            </div>
+
+            @if (addingStaff()) {
+              <app-dialog title="Add a staff member" (closed)="closeStaffForm()">
+                <app-staff-form
+                  [branches]="draft.branches()"
+                  (submitted)="addStaff($event)"
+                  (cancelled)="closeStaffForm()"
+                />
+              </app-dialog>
+            }
+
+            @if (staffBeingEdited(); as member) {
+              <app-dialog
+                [title]="'Edit ' + (member.fullName || 'staff member')"
+                (closed)="closeStaffForm()"
+              >
+                <app-staff-form
+                  submitLabel="Save staff member"
+                  [branches]="draft.branches()"
+                  [initialFullName]="member.fullName"
+                  [initialEmail]="member.email"
+                  [initialSpecialityCode]="member.specialityCode"
+                  [initialRoles]="member.roles"
+                  [initialBranchKeys]="member.branchKeys"
+                  (submitted)="saveStaff(member.key, $event)"
+                  (cancelled)="closeStaffForm()"
+                />
+              </app-dialog>
             }
 
             <div class="step-actions">
@@ -609,6 +769,24 @@
                 (click)="continueFrom(steps.staff)"
               >
                 Continue
+                <!--
+                  The glyph says which way the press goes, which is the one thing the
+                  word does not: three identical Continues down a page all read as
+                  "the button", and the arrow is what makes each of them the way out
+                  of the step it sits in. It points inline-end - this console is
+                  English and LTR permanently (see stylelint.config.mjs), and if that
+                  ever changes this glyph is one of the things that has to be mirrored.
+                -->
+                <svg aria-hidden="true" viewBox="0 0 16 16" focusable="false">
+                  <path
+                    d="M3.2 8h9.2M8.8 4.4 12.4 8l-3.6 3.6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
               </button>
               @if (!isComplete(steps.staff)) {
                 <p class="step-actions__note">
@@ -632,60 +810,13 @@
             [locked]="isLocked(steps.review)"
             (toggled)="toggle(steps.review)"
           >
-            <p class="step__lede">
-              Everything below is created by one call. Nothing is created before it.
-            </p>
-
-            <dl class="review__facts">
-              <dt>Practice</dt>
-              <dd>{{ draft.name() || '—' }}</dd>
-              <dt>Plan</dt>
-              <dd>{{ draft.plan() || '—' }}</dd>
-            </dl>
-
-            <h3 class="review__heading">
-              Branches <span class="review__count">{{ draft.branchCount() }}</span>
-            </h3>
-            <ul class="review__list">
-              @for (branch of draft.branches(); track branch.key; let at = $index) {
-                <li class="review__item">
-                  <span class="review__name">{{ branch.name || 'Branch ' + (at + 1) }}</span>
-                  @if (branch.phone) {
-                    <span class="review__detail">{{ branch.phone }}</span>
-                  }
-                  <!--
-                THE ASSIGNMENTS, READ THE OTHER WAY ROUND. The staff step answers
-                "where does this person work"; a branch with nobody at it is only
-                visible from here.
-              -->
-                  @if (staffAt(branch.key); as staff) {
-                    <span class="review__detail">{{ staff }}</span>
-                  } @else {
-                    <span class="review__detail review__detail--empty">Nobody assigned</span>
-                  }
-                </li>
-              }
-            </ul>
-
-            <h3 class="review__heading">
-              Staff <span class="review__count">{{ draft.staffCount() }}</span>
-            </h3>
-            @if (draft.staff().length === 0) {
-              <p class="review__none">None. They can be added later, from inside the practice.</p>
-            } @else {
-              <ul class="review__list">
-                @for (member of draft.staff(); track member.key; let at = $index) {
-                  <li class="review__item">
-                    <span class="review__name">{{
-                      member.fullName || 'Staff member ' + (at + 1)
-                    }}</span>
-                    <span class="review__detail">{{ member.email }}</span>
-                    <span class="review__detail">{{ rolesOf(member.key) }}</span>
-                    <span class="review__detail">{{ branchesOf(member.key) }}</span>
-                  </li>
-                }
-              </ul>
-            }
+            <!--
+            THE WHOLE THING, READ BACK, and it is `app-review` rather than markup
+            here: it is the one part of this page with derived values of its own - the
+            plan's allowance against what has been used, and whether either is over -
+            and it was the largest block in the largest template in the console.
+          -->
+            <app-review />
 
             <div class="step-actions">
               <!--
@@ -737,10 +868,18 @@
       <!--
     Beside the flow rather than at the end of it: the ledger is what fills the half
     of a wide display a form column leaves empty, and it answers "what am I making"
-    without costing a scroll to the last step. It reads the same draft the steps
-    write to and owns none of it.
+    and "what is still missing" without costing a scroll to the last step. It reads
+    the same draft the steps write to and owns none of it.
+
+    NOT ON THE REVIEW STEP. That step says all of this and more, three columns wide,
+    immediately to its left - the same counts, the same names, the same readiness. A
+    panel repeating the screen beside it is the one thing on a console that teaches a
+    reader to stop reading, and the width it gives back is width the review's two
+    trees use.
   -->
-      <app-ledger />
+      @if (openStep() !== steps.review) {
+        <app-ledger />
+      }
     </div>
   }
 </div>

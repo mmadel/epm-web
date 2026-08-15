@@ -1,79 +1,311 @@
 // It replaces the form rather than sitting under it: the practice exists, and the
 // filled-in form beside it would only invite a second press of create.
+
+// The card is the ledger's card, several steps wider: same border, same radius, same
+// raised surface. This console has no shadow anywhere in it, so depth is the tonal
+// step between the canvas and the card and nothing else.
+
+// IT IS WIDER THAN THE FORM WAS, and the ids are why. It was capped at a 44rem
+// measure - a reading width, which is the right cap for prose and the wrong one for
+// a table. A 36-character identifier, the name it belongs to and the control that
+// copies it do not fit on one line at 44rem, so every row wrapped or truncated on the
+// one screen whose whole job is handing those identifiers over, while two thirds of
+// the display sat empty beside it.
+
+// `padding: 0`, because the band at the top runs to the card's own edges. The
+// sections inside carry their own.
 .created {
-  max-inline-size: 44rem;
+  max-inline-size: 72rem;
   margin-block-start: var(--space-4);
-  padding: var(--space-5);
-  border: 1px solid var(--color-border-soft);
-  border-radius: 1rem;
-  background-color: var(--color-surface);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+// ---------------------------------------------------------------------------
+// What happened
+// ---------------------------------------------------------------------------
+
+// The tinted band. It is `--color-primary-soft` rather than a success green because
+// this console has no success role and inventing one for a single band would put a
+// colour in the palette that one screen understands - see docs/design-tokens.md on
+// roles. The accent is the console's "this went through" colour everywhere else on
+// the screen (the copy confirmation, the finished step markers), so it is already
+// the reading a reader has been taught.
+.created__banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-block-end: 1px solid var(--color-border);
+  background-color: var(--color-primary-soft);
+}
+
+// FILLED, AND BIG ENOUGH TO BE THE THING THE EYE LANDS ON. It was a 1em tick tinted
+// on a tint, inside the heading - so the one mark on the screen that says the
+// irreversible thing happened was the faintest object on it. It carries its own
+// contrast now, which is also what lets it sit on the band without a third colour.
+.created__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.created__mark svg {
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.created__said {
+  min-inline-size: 0;
+}
+
+// The ledger's "Will be created", answered. Same size, weight, tracking and case,
+// so the two read as one thing before and after.
+.created__eyebrow {
+  margin: 0;
+  color: var(--color-primary-deep);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .created__heading {
-  margin: 0 0 var(--space-4);
-  font-size: var(--font-size-lg);
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-tight);
+  overflow-wrap: anywhere;
 }
 
-.created__ids {
+// Focused programmatically when the panel replaces the form, so it needs a ring
+// like anything else that can hold focus.
+.created__heading:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+
+// ---------------------------------------------------------------------------
+// What it is made of
+// ---------------------------------------------------------------------------
+
+.created__body {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+// The two lists side by side, on the same measure the review step read them at.
+// `auto-fit` rather than a breakpoint: what decides this is whether an id still fits
+// beside its name, which is a measure and not a viewport.
+.created__columns {
   display: grid;
-  gap: var(--space-1) var(--space-3);
-  grid-template-columns: auto 1fr;
-  margin: 0 0 var(--space-4);
+  gap: var(--space-4) var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(26rem, 1fr));
+  align-items: start;
+  margin-block-start: var(--space-5);
 }
 
-.created__ids dt {
-  color: var(--color-muted-text);
-  font-size: var(--font-size-sm);
-}
-
-.created__ids dd {
-  margin: 0;
-}
-
+// The ledger counted branches and staff in a strip of its own, because the list was
+// still being built and the count was the only stable thing about it. Here the rows
+// below say it exactly, so the count rides on the label instead - a strip repeating
+// what the next six lines spell out is a strip that has to be read twice.
 .created__section {
-  margin: 0 0 var(--space-2);
-  font-size: var(--font-size-md);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-1);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.created__list {
-  margin: 0 0 var(--space-4);
+// The loud half of the label: "how many" is what somebody checks first, and the word
+// beside it only says what they are counting. Same treatment as the review step's
+// counts, which are the same numbers one screen earlier.
+.created__tally {
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: normal;
+}
+
+// Separated by a dot rather than by brackets or a slash, drawn rather than typed so
+// it is not read out between the word and the number.
+.created__tally::before {
+  margin-inline-end: var(--space-2);
+  content: '·';
+  color: var(--color-border-strong);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+}
+
+// ONE BORDERED LIST, NOT A STACK OF BORDERED ROWS - the same shape the review step
+// and the branch list use. The edge belongs to the list; a row carries only the rule
+// that separates it from the next.
+.created__rows {
+  margin: var(--space-2) 0 0;
   padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
   list-style: none;
 }
 
-.created__list li {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  padding-block: var(--space-1);
+.created__rows--top {
+  margin-block-start: 0;
+}
+
+// WHAT IT IS, AND UNDER IT THE ID - with the control that copies it beside both.
+// The three were on one line, which fits while the panel is one column the width of
+// the display and does not fit the moment it is two: a 36-character identifier and a
+// copy control leave about a word's worth of room for the name, so a staff row read
+// "mona.hassan…" beside the id nobody could match it to.
+
+// Stacked, the row fits any width the card is ever given, and THE ID GETS THE WHOLE
+// LINE - which is what the screen is for. Nothing here is truncated any more: an id
+// with its middle removed cannot be read out, typed into another system, or checked
+// against what it was pasted into.
+.created__row {
+  display: grid;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--space-2) var(--space-3);
   border-block-end: 1px solid var(--color-border-soft);
 }
 
-.created__name {
-  min-inline-size: 12rem;
+.created__row:last-child {
+  border-block-end: 0;
+}
+
+.created__label {
+  grid-area: 1 / 1;
+  overflow: hidden;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// A branch's name and a staff member's address are content, not labels for it.
+.created__label--name {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
 }
 
 // Monospaced and selectable: an id is read out, typed into another system, or
 // pasted into a ticket, and every one of those is easier when the digits line up.
+// `user-select: all` also stands as the fallback when the clipboard is refused -
+// one press still selects the whole id.
 .created__id {
-  color: var(--color-muted-text);
-  font-family: var(--font-family-mono, ui-monospace, monospace);
+  grid-area: 2 / 1;
+  color: var(--color-subtle-text);
+  font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
   user-select: all;
 }
 
+// Quiet, and always there. Revealing it on hover would hide it from every reader
+// on a touch screen and from anybody who does not think to point at a row first.
+
+// WIDE ENOUGH FOR ITS LONGEST WORD, always. The label swaps between `Copy`,
+// `Copied` and `Couldn't copy` in place, and a button that resizes as it is pressed
+// drags the id beside it sideways - the row moves under the pointer at the exact
+// moment the reader is checking that the right thing was copied.
+.created__copy {
+  grid-area: 1 / 2 / span 2;
+  min-inline-size: 6.5rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 1.25rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.created__copy:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.created__copy:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// Confirmed in place, for a couple of seconds. It is the same tint the mark in the
+// banner sits on, so "this went through" looks the same everywhere on the screen.
+.created__copy--done {
+  border-color: var(--color-primary-soft);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
+
+// Announced, not shown twice: the button beside the id already says what happened,
+// and a second copy of that sentence in the layout would be read out twice.
+.created__status {
+  position: absolute;
+  overflow: hidden;
+  clip-path: inset(50%);
+  inline-size: 1px;
+  block-size: 1px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
+// What to do next
+// ---------------------------------------------------------------------------
+
+// On the canvas colour rather than on the card's white, which closes the receipt the
+// way the band opened it: what happened, what it is made of, and what there is left
+// to do, told apart by tone instead of by a rule nobody notices.
+.created__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-block-start: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
 // The page's `.primary-button` does not reach into this component, and copying it
-// would be a second definition of the console's one button shape. This is the same
-// pill, expressed once more because a component's styles are its own - the moment
-// there is a third caller it belongs in `ui`.
+// would be a second definition of the console's one button shape. This is that same
+// filled, squared action, expressed once more because a component's styles are its
+// own - the moment there is a third caller it belongs in `ui`.
 .created__another {
+  min-block-size: 2.5rem;
   padding: var(--space-2) var(--space-4);
   border: 0;
-  border-radius: 1.25rem;
+  border-radius: 0.5rem;
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   font-family: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-bold);
   cursor: pointer;
 }
@@ -85,4 +317,21 @@
 .created__another:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+.created__note {
+  margin: 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+}
+
+// The gutters come in on a narrow display. The rows need no breakpoint of their own
+// any more: stacking the id under its name is what they do at every width, so the
+// one layout is already the narrow one.
+@media (width <= 40rem) {
+  .created__banner,
+  .created__body,
+  .created__actions {
+    padding-inline: var(--space-4);
+  }
 }

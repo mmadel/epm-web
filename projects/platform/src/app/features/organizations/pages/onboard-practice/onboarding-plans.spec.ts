@@ -1,28 +1,47 @@
 import { PLANS, PLANS_URL, openOnboarding } from './onboarding.fixture';
 
 /**
- * The plan select, and the two counters that follow from it - criteria 18 to 22.
+ * The plan cards, and the two counters that follow from them - criteria 18 to 22.
  *
  * ONE THING RUNS THROUGH ALL OF THEM: no list of plans exists in this repository.
- * The options, the seat limit and the branch limit all come from `listPlans`, so a
+ * The cards, the seat limit and the branch limit all come from `listPlans`, so a
  * plan added to the server's table appears here on the next page load with no
  * frontend change - and a console that could not reach the route offers a retry
  * rather than a list of its own invention.
+ *
+ * The set was a `select` and is now a radio per card. Every test here asks what is
+ * OFFERED and what choosing does, rather than which element offers it, because the
+ * criteria are about the plans and not about the control.
  */
 describe('OnboardPractice, plans', () => {
   // -------------------------------------------------------------------------
   // Criterion 18 - the options are the response
   // -------------------------------------------------------------------------
 
-  it('builds the select from listPlans, in the order it answered (criterion 18)', async () => {
+  it('builds the set from listPlans, in the order it answered (criterion 18)', async () => {
     const harness = await openOnboarding();
 
-    const options = harness
-      .all('#practice-plan option')
-      .map((option) => (option as HTMLOptionElement).value)
-      .filter((value) => value !== '');
+    expect(harness.optionsIn('practice-plan')).toEqual(['BASIC', 'STANDARD', 'PRO']);
+  });
 
-    expect(options).toEqual(['BASIC', 'STANDARD', 'PRO']);
+  it('states what each plan comes with, from the same response (criterion 18)', async () => {
+    const harness = await openOnboarding();
+
+    // The numbers are on the cards, so two plans can be compared before either is
+    // chosen. They are `listPlans`' own, not this console's.
+    expect(harness.text).toContain('5 seats · 1 branch');
+    expect(harness.text).toContain('20 seats · 5 branches');
+    expect(harness.text).toContain('100 seats · 25 branches');
+  });
+
+  it('says nothing about a limit the response did not send', async () => {
+    const harness = await openOnboarding({ plans: [{ plan: 'STANDARD', seatLimit: 20 }] });
+
+    // Every member of the generated type is optional. A missing limit is dropped
+    // rather than rendered as a zero - "0 branches" is a number the server never
+    // sent, on a plan somebody is about to choose. Read off the card rather than off
+    // the page: the word "branches" is a step title two headings below.
+    expect(harness.query('.plan__allowance')?.textContent?.trim()).toBe('20 seats');
   });
 
   it('shows a plan nobody wrote into this console (criterion 18)', async () => {
@@ -45,8 +64,8 @@ describe('OnboardPractice, plans', () => {
     const harness = await openOnboarding();
 
     // Not per keystroke, and not per step: the plans do not change while a form is
-    // being filled in, and a select that reloaded under the reader would be a
-    // select whose value could vanish mid-decision.
+    // being filled in, and a set that reloaded under the reader would be a set
+    // whose chosen card could vanish mid-decision.
     await harness.fillPractice('Nile Care', 'STANDARD');
     await harness.addBranch('Maadi');
 
@@ -59,14 +78,9 @@ describe('OnboardPractice, plans', () => {
     });
 
     // Every member of the generated type is optional, so this is a response the
-    // compiler insists is possible. An option with no value would set the plan to
+    // compiler insists is possible. A card with no value would set the plan to
     // nothing, which is worse than not being offered.
-    const options = harness
-      .all('#practice-plan option')
-      .map((option) => (option as HTMLOptionElement).value)
-      .filter((value) => value !== '');
-
-    expect(options).toEqual(['STANDARD']);
+    expect(harness.optionsIn('practice-plan')).toEqual(['STANDARD']);
   });
 
   // -------------------------------------------------------------------------
@@ -164,20 +178,15 @@ describe('OnboardPractice, plans', () => {
   // Criterion 22 - when the route cannot be reached
   // -------------------------------------------------------------------------
 
-  it('disables the select and offers a retry when listPlans fails (criterion 22)', async () => {
+  it('offers nothing and offers a retry when listPlans fails (criterion 22)', async () => {
     const harness = await openOnboarding({ plans: 'failed' });
 
-    expect(harness.query<HTMLSelectElement>('#practice-plan')?.disabled).toBe(true);
     expect(harness.text).toContain('The plans could not be loaded');
 
     // NO LIST FROM NOWHERE. A fallback here would let somebody put a practice on a
-    // plan that does not exist.
-    const options = harness
-      .all('#practice-plan option')
-      .map((option) => (option as HTMLOptionElement).value)
-      .filter((value) => value !== '');
-
-    expect(options).toEqual([]);
+    // plan that does not exist. With no card there is nothing to press, which is a
+    // stronger statement than a disabled control: there is no plan on this screen.
+    expect(harness.optionsIn('practice-plan')).toEqual([]);
     expect(harness.text).not.toContain('STANDARD');
   });
 
@@ -188,20 +197,21 @@ describe('OnboardPractice, plans', () => {
     harness.answerPlans();
     await harness.settle();
 
-    expect(harness.query<HTMLSelectElement>('#practice-plan')?.disabled).toBe(false);
-    expect(harness.text).toContain('STANDARD');
+    expect(harness.optionsIn('practice-plan')).toEqual(['BASIC', 'STANDARD', 'PRO']);
     expect(harness.text).not.toContain('The plans could not be loaded');
   });
 
-  it('disables the select while the first call is still out', async () => {
+  it('offers no plan while the first call is still out, and says why', async () => {
     const harness = await openOnboarding({ plans: 'unanswered' });
 
-    expect(harness.query<HTMLSelectElement>('#practice-plan')?.disabled).toBe(true);
+    // An empty set and a set that has not arrived look identical, so it is said.
+    expect(harness.optionsIn('practice-plan')).toEqual([]);
     expect(harness.text).toContain('Loading plans');
 
     harness.answerPlans();
     await harness.settle();
 
-    expect(harness.query<HTMLSelectElement>('#practice-plan')?.disabled).toBe(false);
+    expect(harness.optionsIn('practice-plan')).toEqual(['BASIC', 'STANDARD', 'PRO']);
+    expect(harness.text).not.toContain('Loading plans');
   });
 });
