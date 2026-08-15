@@ -3,7 +3,7 @@
 **Repo:** `epm-web`
 **Application:** `projects/platform`
 **For:** frontend tech lead and engineers
-**Status:** structure ready · shell ready · landing page **blocked** · onboarding ready
+**Status:** structure ready · shell ready · landing page ready (§5 lifted) · onboarding ready
 
 **Depends on:** F0 merged. `LLD.md` §2 structure, §3 tenancy, §5 authorization, §6 request
 and response, §7 errors; `LLD-ORGANIZATION.md` §2.1.
@@ -103,14 +103,14 @@ operation.
 
 # 3. Tickets
 
-| #    | Ticket                                 | Status          |
-| ---- | -------------------------------------- | --------------- |
-| P-00 | Application scaffold and conventions   | ready           |
-| P-01 | Lint boundaries for three applications | ready           |
-| P-02 | Platform session seam and mock         | ready           |
-| P-03 | Shell and navigation                   | ready           |
-| P-04 | Landing page — practice list           | **blocked**, §5 |
-| P-05 | Onboard a practice                     | ready           |
+| #    | Ticket                                 | Status           |
+| ---- | -------------------------------------- | ---------------- |
+| P-00 | Application scaffold and conventions   | ready            |
+| P-01 | Lint boundaries for three applications | ready            |
+| P-02 | Platform session seam and mock         | ready            |
+| P-03 | Shell and navigation                   | ready            |
+| P-04 | Landing page — practice list           | ready, §5 lifted |
+| P-05 | Onboard a practice                     | ready            |
 
 ---
 
@@ -241,7 +241,11 @@ they are pointed at is worth one line of CSS.
 
 `f/P-04-landing`
 
-**Blocked. Do not start.** See §5.
+**No longer blocked.** §5 asked architecture for a list route and one exists:
+`GET /api/v1/platform/organizations`, `operationId` `listOrganizations`, in the
+generated client and specified in `LLD-ORGANIZATION.md` §2.8. It is not the shape
+§5 proposed — see the note under **Layout** — and the screen is built against what
+the client actually generates rather than against the proposal.
 
 ### What it is
 
@@ -250,15 +254,131 @@ exists, how big it is, and its status.
 
 ### Layout
 
-- A table, one row per practice
-- Search by name
-- Filter by status and by plan
+- ~~A table, one row per practice~~ — **two-line rows with a status leading edge**,
+  which is what the design review chose and what `Shell and navigation.html` §5
+  records the table as the rejected alternative to. It was built as a table first
+  and rebuilt; §5's decision table is the authority on this screen's shape
+- Search by name, in §6's field with the count inside it. `?name=` and `?page=` are
+  query parameters, so a search is shareable and the back button works (§6, "the URL
+  is the state"). The count is **inside the field** as §6 asks — it sat at the far
+  end of the toolbar first, answering about the field from the other side of the
+  screen. The field also says when a call is in flight (a line on its own bottom
+  edge), the rows **mark the run of each name that matched**, and an empty focused
+  field offers the searches this session has already run
+- **One search band, always on screen**, holding every criterion: the **name**, then
+  **Status**, **Plan** and **Size** as menus, then an **Onboarded** date range, then a
+  row of one-press **views** (`Needs attention`, `New this month`, `On trial`,
+  `Large accounts`) and the count of what it all leaves. Every option inside a menu
+  carries the number of practices it would leave, and every menu says what it is set
+  to on its own face. The route still offers none of it: `listOrganizations` takes
+  `name`, `page` and `size` and nothing else, and it is still raised for the backend
+  — see **How the filters are honest**
+- ~~A `Refine` button that opens the criteria~~ — **removed.** It put a click in front
+  of every question except one, made the name a first-class criterion and the rest
+  second-class, and hid what the list was narrowed by behind a control that had to be
+  pressed to find out. The band costs one row and removes all three
+- ~~A 25 / 50 / 100 rows-per-page control~~ — **removed.** It asked the reader to
+  answer a question about the screen before they could ask one about a practice, and
+  the console pages what MATCHED now rather than what the server sent — so the page
+  length is a reading decision with one right answer (fifty) rather than a preference
+
+- **Order from the column headings** — three presses: by that column, turned round,
+  back to the order the server sent. It is on the columns rather than in the panel
+  because the console now holds every matching practice, which is the only thing that
+  makes a sorting heading honest: a heading that sorted a page would arrange the
+  twenty-five rows in front of the reader and present the biggest of _those_ as the
+  biggest practice on the platform
 - An "Onboard a practice" control leading to P-05
 - Empty state on a fresh install, pointing at onboarding
+- A pager, which the proposal in §5 implied and this section did not name
 
 ### What each row shows
 
-Name, plan, status, clinic count, staff count, seat usage, created date.
+Name, plan, status, clinic count, staff count, ~~seat usage~~, created date.
+
+**The seat meter and the disclosure chevron are on `/practices/:id`**, a screen this
+milestone did not name and which the design implied by asking a row for a chevron.
+`getOrganizationById` is the route that carries a subscription, so that is where the
+meter's figures actually are — along with both statuses and every branch, active and
+inactive. The chevron opens it.
+
+### How the filters are honest
+
+**§6.1's objection was right and is still right:** a filter applied to the
+twenty-five rows the screen is holding answers about the page, not about the
+platform, and "3 suspended" computed that way is a statement about a page dressed up
+as one about the platform.
+
+So the console does not filter the page. `Practices` reads **every page for the
+current name** (100 at a time, in parallel after the first) and applies the criteria,
+the ordering and the paging to all of it. One sweep per name: pressing an option
+re-filters what is already held and issues no request at all — the resource is keyed
+on the only thing the server varies by, which is the name.
+
+It sweeps on arrival rather than waiting for a criterion to be engaged, because the
+band is always on screen and every count in it is always true. On a platform that
+fits in one page — most of them — that is still exactly one request.
+
+**It reads at most 2,000 practices**, and says so on the panel when there were more
+(`Counted over the first N practices. Search by name to narrow the rest.`). A count
+over part of the platform presented as a count over the platform is the one failure
+this whole arrangement exists to avoid, so the limit is on the screen rather than in
+a comment.
+
+**The onboarding criterion is a date range, not a named window.** "Last 90 days"
+cannot say "the second quarter", and a support thread or an invoice query is always
+about a period somebody else has already named. Both ends are inclusive and either
+may be left off. `New this month` survives as a view, for the reader who wants one
+press rather than two dates.
+
+**The size steps are read off the platform, not written here.** They were
+`2+ / 5+ / 10+`, which is a guess about a platform this console has never seen: on
+one made of single-site practices, `10+` is a chip that can never do anything. The
+median, the upper quartile and the top tenth of the practices actually there always
+cut the list somewhere. A threshold arriving from an older link is honoured and shown
+even when it is not one of the current steps — a filter applied to the list and
+missing from the panel is a filter nobody can turn off.
+
+**Every option carries its count, with its own group lifted.** With `Suspended`
+chosen, the number beside `Active` is how many would be there if it were pressed —
+not zero, which is how many are on screen. An option that would leave nothing is
+shown, counted and disabled: a set of options that changes shape as you use it is a
+set nobody can learn.
+
+**Every criterion is in the address**, so a filtered list is a link and the back
+button takes refinements off one at a time. The panel opens by itself when the
+address arrives carrying any.
+
+**When `listOrganizations` learns `status`, `plan` and `sort`,** what gets deleted is
+`Practices.everything` — one method. The criteria, the panel and every count on it
+stay exactly as they are.
+
+**§6.1's filter pills are still not built, and are not going to be.** The design has
+the search box parse a vocabulary — `trial`, `basic`, `read-only` — into pills. Two
+of those three words are not in the status enum at all, and a box that silently turns
+some words into filters and leaves the rest as a name is a box nobody can predict.
+The panel is what those pills were for.
+
+**Nothing in this console edits a practice**, because no route does. §7 item 1e.
+
+**A search is not a journey, and the frame had to be told.** `ConsoleLayout` moves
+focus to the new page's `h1` after every completed navigation, which is right for a
+link and wrong for this screen: the search and the pager keep their state in the
+address, so typing four letters was four completed navigations — each one taking the
+caret out of the box being typed into and reading "Practices" over the reader. The
+frame now compares the path and leaves focus alone when only the query changed. The
+search box was unusable with a keyboard until it did.
+
+**Seat usage is not on the row**, because `ListedOrganization` does not carry it —
+no `seatLimit`, no `subscriptionStatus`, no `trialEndsAt`. The shipped contract is
+narrower than the one §5 proposed, and the screen shows what it answers rather than
+computing a figure out of a plan's limit and a staff count, which would be a number
+nobody sent. `getOrganizationById` has the subscription with both limits and both
+usage figures, for the practice screen that reads one.
+
+Which also closes §5's open question for architecture: `subscriptionStatus` is not
+in the list response, so nothing on this screen can disagree with
+`organization.status`.
 
 ### What no row ever shows
 
@@ -270,9 +390,17 @@ reusing anything from the org slice.
 
 ### Done when
 
-- The route exists and is agreed — see §5
-- The empty state renders
-- No field on the screen is derived from patient data
+- The route exists and is agreed — see §5. **Done**: `listOrganizations`
+- The empty state renders. **Done**, and there are two of them: a platform with no
+  practices on it points at onboarding, and a search that matched nothing says so
+  rather than claiming the platform is empty
+- No field on the screen is derived from patient data. **Tested** — the screen's
+  spec asserts that nothing on it names a person or a patient, which fails the
+  moment somebody enriches a row from a second call
+- A failed call is not rendered as an empty platform. **Tested.** It was not on
+  this list and it is the defect that matters most here: "there are no practices"
+  and "we could not ask" are different facts, and rendering the first for the
+  second is how somebody onboards a practice that already exists
 
 ---
 
@@ -383,7 +511,29 @@ No component library, no state management, no auth. Build only what these ticket
 
 ---
 
-# 5. Blocker — the practice list route does not exist
+# 5. Blocker — the practice list route did not exist. It does now.
+
+**LIFTED.** `GET /api/v1/platform/organizations` is specified in
+`LLD-ORGANIZATION.md` §2.8 and generated into the client as `listOrganizations`.
+P-04 is built against it. The argument below is kept because it is why the route was
+asked for, and because the shape that arrived is narrower than the one proposed —
+whoever reads this next needs both to see which parts of the design survived.
+
+**What arrived, against what was proposed:**
+
+| Proposed here                                                | Shipped                                              |
+| ------------------------------------------------------------ | ---------------------------------------------------- |
+| `?status=&plan=&q=&page=&size=`                              | `?name=&page=&size=` — no status or plan filter      |
+| `q`                                                          | `name`, matched anywhere, case-insensitive           |
+| `{ items, page, size, total }`                               | `{ content, page, size, totalElements, totalPages }` |
+| `seatLimit`, `subscriptionStatus`, `trialEndsAt` on each row | absent — none of the three                           |
+| `clinicCount`, `staffCount`, `status`, `plan`, `createdAt`   | all present                                          |
+
+The counts-not-contents boundary held exactly, which was the point of asking.
+
+---
+
+**The original argument, for the record:**
 
 **P-04 cannot be built. There is no route behind it.**
 
@@ -447,38 +597,44 @@ path. Reading it here is not on the request path for any tenant — but it is a 
 that can disagree with `organization.status`, and someone should say out loud whether that
 is acceptable on this screen.
 
-## Until it is agreed
+## Until it was agreed
 
-P-04 stops at the empty state and the layout. Do not transcribe the shape above into a mock
-and build against it — that turns a proposal into a de facto contract.
-
-P-00, P-01, P-02, P-03, and P-05 are unaffected. **P-05 is the useful work here** and should
-be started first.
+P-04 stopped at the empty state and the layout. The shape above was deliberately never
+transcribed into a mock — building against a proposal turns it into a de facto contract,
+and the shipped route differs from it in five places, every one of which would have been
+a rewrite rather than a compile error.
 
 ---
 
 # 6. Decisions recorded here
 
-| Decision                                                              | Rejected                              | Reason                                                                                               |
-| --------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| The platform console is a third application                           | A route group inside `staff`          | `PRODUCT.md` made the platform admin's exclusion structural. One bundle undoes that                  |
-| English only, LTR only, permanently excluded from the i18n lint rules | Applying the workspace i18n rules     | It is an internal console. Adding Arabic later is a decision, and the override is where it gets made |
-| Feature folders, `data/` isolating `api-client`                       | `components/`, `services/`, `models/` | Type folders scale by type rather than by change. A feature folder is deletable in one operation     |
-| Branch positions computed at submit time from stable row keys         | Storing positions in component state  | The LLD names silent mis-assignment on reorder as the defect most likely to ship                     |
-| No login screen in this milestone                                     | Building one against the mock         | Auth is blocked on the token and realm decisions. It would be thrown away                            |
-| P-04 stops at the empty state                                         | Mocking the proposed list route       | Building against a proposal makes it a contract before anyone signs it off                           |
+| Decision                                                              | Rejected                               | Reason                                                                                                                                      |
+| --------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| The platform console is a third application                           | A route group inside `staff`           | `PRODUCT.md` made the platform admin's exclusion structural. One bundle undoes that                                                         |
+| English only, LTR only, permanently excluded from the i18n lint rules | Applying the workspace i18n rules      | It is an internal console. Adding Arabic later is a decision, and the override is where it gets made                                        |
+| Feature folders, `data/` isolating `api-client`                       | `components/`, `services/`, `models/`  | Type folders scale by type rather than by change. A feature folder is deletable in one operation                                            |
+| Branch positions computed at submit time from stable row keys         | Storing positions in component state   | The LLD names silent mis-assignment on reorder as the defect most likely to ship                                                            |
+| No login screen in this milestone                                     | Building one against the mock          | Auth is blocked on the token and realm decisions. It would be thrown away                                                                   |
+| P-04 stopped at the empty state until the route shipped               | Mocking the proposed list route        | Building against a proposal makes it a contract before anyone signs it off — and the shipped route differs from the proposal in five places |
+| The list is the console's home; `/onboard` is a task opened from it   | Keeping `/onboard` as the landing page | A console whose first screen makes a thing rather than showing what is there cannot answer "does this already exist"                        |
+| No navigation band for two screens                                    | A tab strip with two entries           | One entry is always where you already are; the list's own control opens onboarding and the wordmark comes back                              |
 
 ---
 
 # 7. Blocking, owned elsewhere
 
-| #   | Item                                                        | Blocks                                        | Owner                      |
-| --- | ----------------------------------------------------------- | --------------------------------------------- | -------------------------- |
-| 1   | `GET /platform/organizations` does not exist                | **P-04**                                      | Architecture, then backend |
-| 2   | Nothing generates an OpenAPI specification (`LLD.md` §13.4) | Every real call in P-05                       | Backend lead               |
-| 3   | Bearer tokens vs cookie sessions                            | Login, P-02.4                                 | Architecture               |
-| 4   | Is platform identity its own realm?                         | Login, P-02.4                                 | Architecture               |
-| 5   | Onboarded staff cannot sign in (`LLD-ORGANIZATION.md` §5.1) | The practice being usable after P-05 succeeds | Architecture               |
+| #      | Item                                                                                                           | Blocks                                                                                                                     | Owner                          |
+| ------ | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| ~~1~~  | ~~`GET /platform/organizations` does not exist~~ — **resolved**, `listOrganizations`                           | ~~P-04~~                                                                                                                   | ~~Architecture, then backend~~ |
+| 1a     | No status, plan or sort parameter on the list route                                                            | Nothing now — the console reads every page and filters it (see P-04). Still owed: this does not scale past 2,000 practices | Backend                        |
+| ~~1b~~ | ~~The list response carries no seat figure~~ — **resolved on the practice screen**, from `getOrganizationById` | ~~The seat meter~~                                                                                                         | ~~Backend~~                    |
+| 1c     | A filtered response carries no unfiltered total                                                                | `<matched> of <total>` in the field (design §6.2)                                                                          | Backend                        |
+| ~~1d~~ | ~~There is no practice screen, so nothing is behind a row~~ — **built**, `/practices/:id`                      | ~~The disclosure chevron~~                                                                                                 | ~~Frontend~~                   |
+| 1e     | No route changes a practice — the platform API is four reads and one create                                    | Any edit, suspend or close control in this console                                                                         | Architecture, then backend     |
+| 2      | Nothing generates an OpenAPI specification (`LLD.md` §13.4)                                                    | Every real call in P-05                                                                                                    | Backend lead                   |
+| 3      | Bearer tokens vs cookie sessions                                                                               | Login, P-02.4                                                                                                              | Architecture                   |
+| 4      | Is platform identity its own realm?                                                                            | Login, P-02.4                                                                                                              | Architecture                   |
+| 5      | Onboarded staff cannot sign in (`LLD-ORGANIZATION.md` §5.1)                                                    | The practice being usable after P-05 succeeds                                                                              | Architecture                   |
 
 **Item 5 deserves attention.** P-05 will onboard practices successfully, and every one of
 them will contain staff who cannot sign in. The screen works; the outcome is unusable. Worth

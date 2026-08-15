@@ -30,13 +30,18 @@ export function initialsOf(displayName: string): string {
  * slots that shell projects: the edge strip above the header, the brand at the
  * start of the header, and the environment and account at the end of it.
  *
- * THERE IS NO NAVIGATION, and no `nav` landmark. The console is one screen: the
- * practice being created, with its branches under it. A tab bar was tried here -
- * first with `Practices` and `Add a practice` in it, which is a place beside an
- * action, and later with the parts of the practice - and both were removed. The
- * second was closer to honest but it was navigation for a form you can read in one
- * scroll, and it hid fields from the server errors that name them (P-05.7). The
- * wordmark is therefore the route home, and it is the only route there is.
+ * THERE IS STILL NO NAVIGATION BAND, and no `nav` landmark, now that there are two
+ * screens. A tab bar was tried here twice - first with `Practices` and `Add a
+ * practice` in it, which is a place beside an action, and later with the parts of
+ * the practice, which was navigation for a form you can read in one scroll and hid
+ * fields from the server errors that name them (P-05.7). Neither is worth
+ * reviving for two screens that are already a place and the task opened from it:
+ * the list carries the one control that opens onboarding, and the wordmark is the
+ * way back to the list from anywhere. A band of two entries, one of which is
+ * always where you already are, is chrome that says nothing.
+ *
+ * THE WORDMARK GOES TO THE PRACTICE LIST, which is the console's home. It used to
+ * go to `/onboard` because that was the only screen there was.
  *
  * NOTHING HERE READS THE LANGUAGE SERVICE. This console is English-only and
  * LTR-only (P-03.2), the strings are written in the templates, and there is no
@@ -49,6 +54,15 @@ export function initialsOf(displayName: string): string {
  * politely. It is done here rather than in each page because "every completed
  * navigation" is a fact about the frame, and a page that forgot would fail
  * silently.
+ *
+ * A CHANGE OF QUERY IS NOT A CHANGE OF SCREEN, and that exception is the whole of
+ * `onNavigated`'s first half. The practice list keeps its search and its page
+ * number in the address (design §6), so typing four letters into its search box is
+ * four completed navigations - and moving focus for each of them took the caret out
+ * of the box the reader was still typing into, one keystroke after they paused, and
+ * read the page title over the top of them. Nobody went anywhere: the heading is
+ * the same heading, and what changed is a list under it that says what it found in
+ * its own live region.
  */
 @Component({
   selector: 'app-console-layout',
@@ -64,7 +78,7 @@ export class ConsoleLayout {
   /** Who is signed in. Read through the seam; never resolved here (P-02). */
   private readonly session = inject(SESSION_SOURCE).session;
 
-  protected readonly homeLink = ROUTE_PATHS.onboard;
+  protected readonly homeLink = ROUTE_PATHS.practices;
 
   /**
    * How this environment is presented. The layout uses two of its three fields:
@@ -118,10 +132,25 @@ export class ConsoleLayout {
    */
   private hasNavigated = false;
 
+  /** The path last arrived at, with whatever was after the `?` taken off. */
+  private lastPath: string | undefined;
+
   private onNavigated(): void {
+    const path = pathOf(this.router.url);
+    const isSameScreen = path === this.lastPath;
+
+    this.lastPath = path;
+
     if (!this.hasNavigated) {
       this.hasNavigated = true;
 
+      return;
+    }
+
+    // A search, a page turn, or a change of page size: the screen is the one the
+    // reader is already on and the address is how it holds its state. Taking focus
+    // for that is taking it out of the control they are using.
+    if (isSameScreen) {
       return;
     }
 
@@ -134,4 +163,15 @@ export class ConsoleLayout {
     heading.focus();
     this.announcement.set(heading.textContent?.trim() ?? '');
   }
+}
+
+/**
+ * A URL without its query or its fragment: which screen, rather than what that
+ * screen is currently showing.
+ *
+ * String work rather than `UrlTree`, because the question is only "is this the same
+ * screen", and `router.url` is already the serialised address the reader would copy.
+ */
+function pathOf(url: string): string {
+  return url.split(/[?#]/)[0] ?? url;
 }

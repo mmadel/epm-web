@@ -1,0 +1,249 @@
+<!--
+  ONE BAND, FILLED EDGE TO EDGE. The toolbar it replaces had a short field at one
+  end and two controls at the other with a third of the screen of nothing between
+  them - the gap was not room, it was the shape of a row that had never been laid
+  out. Every criterion is in this row now, and the row is as wide as the board it
+  narrows.
+-->
+<section class="band" aria-label="Search practices">
+  <div class="band__row">
+    <!--
+      THE NAME IS THE FIRST AND WIDEST CONTROL, because it is the one criterion the
+      server itself matches and the one a reader arriving with a practice in mind
+      goes straight to. It is a `form` so that Enter asks at once.
+    -->
+    <form
+      class="search"
+      role="search"
+      (submit)="onSubmit($event)"
+      (focusin)="isFocused.set(true)"
+      (focusout)="onFocusOut($event)"
+    >
+      <label class="visually-hidden" for="practice-search">Practice name</label>
+
+      <div class="search__field">
+        <span class="search__glyph" aria-hidden="true">
+          <svg viewBox="0 0 16 16" focusable="false">
+            <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4" />
+            <path
+              d="M10.4 10.4 14 14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+
+        <input
+          id="practice-search"
+          class="search__input"
+          type="search"
+          name="name"
+          autocomplete="off"
+          aria-describedby="practice-search-hint"
+          placeholder="Practice name"
+          [value]="typed()"
+          (input)="onSearch($event)"
+        />
+
+        @if (typed()) {
+          <button class="search__clear" type="button" (click)="clearSearch()">
+            <span class="visually-hidden">Clear the search</span>
+            <svg viewBox="0 0 16 16" focusable="false" aria-hidden="true">
+              <path
+                d="m4.5 4.5 7 7m0-7-7 7"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        } @else if (!isFocused()) {
+          <kbd class="search__key" aria-hidden="true">/</kbd>
+        }
+
+        <!--
+          A CALL IS IN FLIGHT, on the edge of the control that started it. Nothing
+          on this screen navigates, so without it the only sign of work is the board
+          going faintly quiet - which reads as a screen that has stopped.
+        -->
+        @if (isLoading()) {
+          <span class="search__progress" aria-hidden="true"></span>
+        }
+      </div>
+    </form>
+
+    <!--
+      THREE MENUS AND A DATE RANGE. Each says what it is set to on its own face, so
+      the band is a readable sentence about the list underneath it without anything
+      being opened.
+    -->
+    <app-filter-menu
+      class="band__menu"
+      label="Status"
+      anyLabel="Any status"
+      [options]="facets()?.statuses ?? []"
+      [anyCount]="total()"
+      (chose)="toggleStatus($event)"
+      (cleared)="clearStatuses()"
+    />
+
+    <app-filter-menu
+      class="band__menu"
+      label="Plan"
+      anyLabel="Any plan"
+      [options]="facets()?.plans ?? []"
+      [anyCount]="total()"
+      (chose)="togglePlan($event)"
+      (cleared)="clearPlans()"
+    />
+
+    <app-filter-menu
+      class="band__menu"
+      label="Size"
+      anyLabel="Any size"
+      [isMultiple]="false"
+      [options]="sizeOptions()"
+      [anyCount]="facets()?.anyBranches"
+      (chose)="setSize($event)"
+      (cleared)="clearSize()"
+    />
+
+    <!--
+      TWO DATES RATHER THAN A NAMED WINDOW. "Last 90 days" cannot say "the second
+      quarter", and a support thread or an invoice query is always about a period
+      somebody else has already named. Both ends are inclusive, and either may be
+      left off - `from 1 Mar 2026` is a question, not an incomplete answer.
+
+      `max` is the day the answer arrived rather than the clock: no practice was
+      onboarded tomorrow, and a date field that offers one is a field that answers
+      nothing.
+    -->
+    <div class="dates">
+      <span class="dates__label" id="onboarded-range">Onboarded</span>
+
+      <label class="dates__field">
+        <span class="visually-hidden">Onboarded from</span>
+        <input
+          class="dates__input"
+          type="date"
+          aria-labelledby="onboarded-range"
+          [max]="criteria().to || today()"
+          [value]="criteria().from"
+          (change)="setFrom($event)"
+        />
+      </label>
+
+      <span class="dates__to" aria-hidden="true">–</span>
+
+      <label class="dates__field">
+        <span class="visually-hidden">Onboarded until</span>
+        <input
+          class="dates__input"
+          type="date"
+          aria-labelledby="onboarded-range"
+          [min]="criteria().from"
+          [max]="today()"
+          [value]="criteria().to"
+          (change)="setTo($event)"
+        />
+      </label>
+    </div>
+  </div>
+
+  <!--
+    UNDER THE FIELD IT BELONGS TO, and only while that field is empty and focused.
+    It teaches on the way in and is gone the moment there is anything to read
+    instead.
+  -->
+  @if (showsGuide()) {
+    <div class="search__guide">
+      <p class="search__hint" id="practice-search-hint">
+        Part of a name is enough — “care” finds “Nile Care”.
+      </p>
+
+      @if (recent().length > 0) {
+        <div class="search__recent">
+          <span class="search__recent-label" id="practice-search-recent">Recent</span>
+
+          <ul class="search__recent-list" aria-labelledby="practice-search-recent">
+            @for (term of recent(); track term) {
+              <li>
+                <button
+                  class="search__recent-item"
+                  type="button"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="applyRecent(term)"
+                >
+                  {{ term }}
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+
+  @if (isBackwards()) {
+    <!--
+      SAID RATHER THAN CORRECTED. Swapping the two silently answers a question the
+      reader did not ask; leaving it to produce an empty list makes them hunt for a
+      mistake the screen could already see.
+    -->
+    <p class="band__fault" role="alert">The first date is after the second, so nothing matches.</p>
+  }
+
+  <!--
+    THE SECOND ROW: the questions somebody arrives already holding, one press each,
+    and what the whole band currently leaves. They share a row because they are the
+    two things read together - "which of these am I looking at, and how many is it".
+  -->
+  <div class="band__end">
+    @if ((facets()?.views ?? []).length > 0) {
+      <div class="views">
+        <span class="views__label" id="search-views">Views</span>
+
+        <div class="views__set" aria-labelledby="search-views">
+          @for (view of facets()?.views ?? []; track view.value) {
+            <button
+              class="view"
+              type="button"
+              [class.view--on]="view.isOn"
+              [attr.aria-pressed]="view.isOn"
+              (click)="setView(view)"
+            >
+              {{ view.label }}
+              <span class="view__count figure">{{ view.count }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!--
+      ONE STRING RATHER THAN FIGURES IN SPANS. The rule in this console is that a
+      figure is mono and prose never is, and this is both - so the digits get the
+      tabular treatment in the stylesheet, the words stay in the body face, and the
+      sentence has the spaces a sentence has.
+    -->
+    @if (summary()) {
+      <p class="band__matched">{{ summary() }}</p>
+    }
+  </div>
+
+  @if (readSoFar() !== undefined) {
+    <!--
+      THE ONE THING THIS BAND MUST SAY WHEN IT IS TRUE. The console answers these
+      criteria by reading the list itself, and it reads a bounded number of
+      practices; past that, every count above is a count of what was read.
+    -->
+    <p class="band__note">
+      Counted over the first
+      <span class="figure">{{ readSoFar() }}</span>
+      practices. Search by name to narrow the rest.
+    </p>
+  }
+</section>

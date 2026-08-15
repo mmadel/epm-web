@@ -145,7 +145,9 @@ describe('ConsoleLayout', () => {
     // A route home rather than a label, so it has to be an `<a>` and not a
     // `<span>`. Somebody builds it as a `<span>` otherwise.
     expect(brand).not.toBeNull();
-    expect(brand!.getAttribute('href')).toBe('/onboard');
+    // The practice list, which is the console's home. It pointed at `/onboard`
+    // while that was the only screen there was.
+    expect(brand!.getAttribute('href')).toBe('/practices');
     expect(brand!.textContent?.replace(/\s+/g, ' ').trim()).toBe('EPM Platform');
   });
 
@@ -229,6 +231,28 @@ describe('ConsoleLayout', () => {
 
     expect(heading?.textContent).toBe('Page not found');
     expect(document.activeElement).toBe(heading);
+  });
+
+  it('leaves focus alone when only the query changed', async () => {
+    const fixture = await render();
+
+    const box = document.createElement('input');
+
+    element(fixture).querySelector('main')?.append(box);
+    box.focus();
+
+    // What the practice list does on every keystroke, 300ms after the last one: the
+    // search and the page number live in the address (design §6), so a search is a
+    // completed navigation to the screen the reader is already on.
+    await TestBed.inject(Router).navigate([], { queryParams: { name: 'care' } });
+    await fixture.whenStable();
+
+    // Moving focus here takes the caret out of the box being typed into, and
+    // announcing the heading reads the page title over the reader mid-word.
+    expect(document.activeElement).toBe(box);
+    expect(element(fixture).querySelector('[aria-live="polite"]')?.textContent?.trim()).toBe('');
+
+    box.remove();
   });
 
   it('announces the heading politely', async () => {

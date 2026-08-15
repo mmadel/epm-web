@@ -1,0 +1,480 @@
+// The form that edits one practice.
+
+// It is built out of `styles.scss`'s form language - `.field`, `.field__label`,
+// `.field__control` - because it is the same console filling in the same kind of
+// thing as the onboarding screen. What is here is the notice, the choice chips and
+// the actions.
+
+.back:focus-visible,
+.field__retry:focus-visible,
+.failed__retry:focus-visible,
+.form__submit:focus-visible,
+.form__revert:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// ---------------------------------------------------------------------------
+// The band
+// ---------------------------------------------------------------------------
+
+// THE SAME BAND THE PRACTICE'S OWN SCREEN OPENS WITH. A reader arrives here from
+// there and the two screens are the same subject, so they start the same way - a
+// glyph, a name, a line under it. It was a bare heading on the canvas, which made
+// this screen look like a different application to the one it is reached from.
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  margin-block-end: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+// The pencil rather than the building: this screen is an act on a practice rather
+// than a practice.
+.hero__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 0.875rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.hero__mark svg {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+}
+
+.hero__identity {
+  flex: 1 1 20rem;
+  min-inline-size: 0;
+}
+
+.hero__name {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.015em;
+  line-height: var(--line-height-tight);
+}
+
+.hero__name:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.hero__body {
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+// The id, because the screen it was opened from shows it and a support thread is
+// as likely to start here as there.
+.hero__idline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  margin-inline-start: auto;
+}
+
+.hero__idlabel {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hero__id {
+  overflow-wrap: anywhere;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+}
+
+// ---------------------------------------------------------------------------
+// What this screen cannot do
+// ---------------------------------------------------------------------------
+
+// The info tone, not the danger one. Nothing is broken and nobody did anything
+// wrong - a route has not been built yet - and dressing that as an error would put
+// a red panel on a screen every time it is opened.
+.notice {
+  display: flex;
+  gap: var(--space-3);
+  margin-block-end: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-info-mark);
+  border-radius: 0.75rem;
+  background-color: var(--color-info-surface);
+}
+
+.notice__mark {
+  flex: none;
+  color: var(--color-info-mark);
+}
+
+.notice__mark svg {
+  display: block;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+.notice__title {
+  margin: 0;
+  color: var(--color-info-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.notice__text {
+  margin: var(--space-2) 0 0;
+  color: var(--color-info-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+// The route that is missing, named. Mono, because it is a thing to be copied into a
+// ticket rather than read as prose - the same rule the console follows for an error
+// code and a practice id.
+.notice__route {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 0.375rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-info-text);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+// ---------------------------------------------------------------------------
+// The form
+// ---------------------------------------------------------------------------
+
+// The form and the change it would make, side by side. A form alone on a wide
+// screen leaves half of it empty and makes the reader remember the values they are
+// replacing; the comparison beside it turns that into something they can see.
+// STRETCHED RATHER THAN TOP-ALIGNED. Two bands of different heights beside each
+// other read as one band and one leftover; the same height reads as a screen. The
+// panel's own content still sits at the top of it - see `align-content` there.
+.layout {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(24rem, 3fr) minmax(18rem, 1fr);
+  align-items: stretch;
+}
+
+// THE FORM IS A BAND LIKE EVERYTHING ELSE. It sat on the canvas beside a white
+// panel, which made the fields read as something that had not finished loading and
+// the panel beside them read as the subject of the screen.
+.form {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+.form__heading,
+.current__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.form__mark,
+.current__mark {
+  display: inline-flex;
+  color: var(--color-subtle-text);
+}
+
+.form__mark svg,
+.current__mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+// TWO COLUMNS, NOT ONE COLUMN AND A GULF. The fields were capped at 28rem inside a
+// column twice that wide, so the form ran down the left edge with a third of the
+// screen of nothing beside it. The name takes a row of its own because a practice's
+// name is the longest thing on the form; the plan and the status share the next.
+.form__fields {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  align-items: start;
+}
+
+.form .field--wide {
+  grid-column: 1 / -1;
+  max-inline-size: 32rem;
+}
+
+// What the plan in the select entitles the practice to, under the select rather
+// than in the panel beside it: it is a fact about the OPTION, and it belongs where
+// the option is being chosen.
+.field__note {
+  margin: var(--space-2) 0 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+}
+
+.current {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+.current__facts,
+.current__usage {
+  margin: 0;
+}
+
+// What is in use today, which is the figure that decides whether a plan change is
+// safe. Kept apart from the comparison above it, because it does not follow the
+// form - it is what the practice is actually doing.
+.current__usage {
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border-soft);
+}
+
+.current__fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.current__fact:last-child {
+  border-block-end: 0;
+}
+
+.current__fact dt {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+.current__fact dd {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: end;
+}
+
+// A CHANGED FIELD IS THE ONLY THING ON THIS PANEL THAT SHOULD CATCH THE EYE, and
+// the row it is in carries the tint so the whole line reads as changed rather than
+// just the new value.
+.current__fact--changed {
+  margin-inline: calc(var(--space-2) * -1);
+  padding-inline: var(--space-2);
+  border-radius: 0.375rem;
+  background-color: var(--color-primary-soft);
+}
+
+.change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+// The old value stays legible: it is what the reader is comparing against, and a
+// struck-through word is still a word you can read.
+.change__from--struck {
+  color: var(--color-muted-text);
+  font-weight: var(--font-weight-regular);
+  text-decoration: line-through;
+}
+
+.change__arrow {
+  color: var(--color-primary);
+}
+
+.change__to {
+  color: var(--color-primary-deep);
+}
+
+// THE LIMITS ARE PART OF THE PLAN CHANGE, so they are said as one: the two figures
+// before and after. It appears only when the plan is actually different, because a
+// consequence of a change nobody made is a line that never changes.
+.current__consequence {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 0.5rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+@media (width <= 64rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.choice {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choice__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+// The same chips the rest of the console uses: every option visible without
+// opening anything, and what is not chosen as legible as what is.
+
+// SQUARED, NOT A PILL. They were 1.25rem, which is the pill radius - and the pill in
+// this console means a status being REPORTED or the one primary action on a screen.
+// These are neither: they are three options being chosen between, and the search
+// panel's chips and the staff form's chips are the shape for that.
+.choice__option {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.choice__option:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.choice__option--on {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+// The ring is drawn on the label, because the input inside it is `visually-hidden`
+// and a ring on a clipped element is a focus indicator nobody can see.
+.choice__option:has(:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.field__fault {
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+}
+
+.field__retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-danger-text);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.form__faults {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+}
+
+.form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border-soft);
+}
+
+.form__submit {
+  padding: var(--space-2) var(--space-5);
+  border: 0;
+  border-radius: 0.5rem;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+// Muted rather than faded. A control at 50% opacity is a control somebody tries
+// again harder; the muted pair is what this console uses to say "not now", and the
+// notice at the top of the form says why.
+.form__submit:disabled {
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+  cursor: not-allowed;
+}
+
+.form__revert {
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--color-muted-text);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.form__revert:hover:not(:disabled) {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.form__revert:disabled {
+  color: var(--color-border-strong);
+  cursor: not-allowed;
+}
+
+.form__state {
+  margin: 0;
+  margin-inline-start: auto;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+}
+
+// A form that WOULD be ready to save says so in the accent rather than in the same
+// grey as "nothing changed yet" - it is the one moment on this screen where the
+// reader has finished something, even though there is nowhere to send it.
+.form__state--ready {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+// ---------------------------------------------------------------------------
+// The rest
+// ---------------------------------------------------------------------------

@@ -58,6 +58,88 @@
   padding-block-end: var(--space-5);
 }
 
+// EDGE TO EDGE, because the frame around it is. 60rem is a measure for a form:
+// past about 75 characters a line of fields is hard to track back to the start of,
+// which is why the onboarding screen keeps it. A list and a record are the
+// opposite - their job is to show as much at once as the screen will hold, and the
+// header band above them already runs the full width, so a capped one reads as a
+// screen that failed to load rather than one that fits.
+
+// The inset matches the frame's own padding, so the first thing on every screen
+// starts directly under the wordmark rather than somewhere inside it.
+.stage--full {
+  max-inline-size: none;
+  padding-inline: var(--space-3);
+}
+
+// ---------------------------------------------------------------------------
+// The pill
+// ---------------------------------------------------------------------------
+
+// THE CONSOLE'S ONE SHAPE FOR A STATE, and the fourth thing in this file for the
+// reason the note above asks for: three screens draw it - the list's rows, the
+// practice, and the form that edits one - and a status that looked different on
+// each would be three vocabularies for one fact.
+
+// The tones are whole triples from the token file rather than pairs assembled here,
+// so a tint, its text and anything drawn on it were chosen against each other.
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: 1.25rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.7;
+  white-space: nowrap;
+}
+
+// A dot, for a pill that is carrying a state rather than a label. It repeats what
+// the word says, for a reader who separates shapes more easily than hues.
+.pill__dot {
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  border-radius: 50%;
+  background-color: currentcolor;
+}
+
+.pill--active {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
+
+.pill--warning {
+  background-color: var(--color-warning-surface);
+  color: var(--color-warning-text);
+}
+
+.pill--danger {
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger-text);
+}
+
+// Closed, inactive, unrecognised, and a plain label. None of them is a fault, and a
+// tone invented for any of them would be a guess with a colour on it.
+.pill--quiet {
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+}
+
+// ---------------------------------------------------------------------------
+// Figures
+// ---------------------------------------------------------------------------
+
+// EVERY NUMBER IN THIS CONSOLE IS MONO, and no prose is. The rule already existed
+// for codes - a speciality code, a row's position, an error code - and it is the
+// same rule: a figure is something you compare down a column or read back over the
+// phone, and a proportional face makes both harder. Tabular so digits stack.
+.figure {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
 // A labelled control. The label is a block above rather than beside: a two-column
 // form reads faster only when every label is short, and "Speciality code" beside
 // "Email" already is not.
@@ -575,3 +657,771 @@
 // which is the shape `LLD-ORGANIZATION.md` §2.5 establishes for the role editor:
 // every option is visible without opening anything, and what is not chosen is as
 // legible as what is.
+
+// ---------------------------------------------------------------------------
+// Turning pages
+// ---------------------------------------------------------------------------
+
+// THE THIRD SECTION, AND THE ARGUMENT THIS FILE ASKS FOR. A pager is not the
+// practice list's design - it is what any list of more rows than fit on a page
+// needs, and this console now has one such list with a second (staff) waiting on a
+// route. Kept in the screen it happened to be built in, it would be copied into the
+// next one, and the two would drift on the first change to either.
+
+// It stays out of `ui` because it is worded and shaped for this console, and `ui`
+// is shared with two applications that read right to left.
+
+// It also has to live somewhere the practice list's own stylesheet is not: that
+// file was 7.4kB of a budget that FAILS the build at 8kB, so the next rule anybody
+// added to it broke the build for a reason nothing on screen would explain.
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-start: var(--space-3);
+}
+
+// Tabular figures, so a range does not shuffle the words beside it as it counts up.
+.pager__range,
+.pager__position {
+  margin: 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.pager__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+// Outlined and squared: a step between pages is not the screen's primary action,
+// and the filled shape is spoken for.
+.pager__step {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.pager__step:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.pager__step:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// Disabled rather than absent. A control that vanishes at the first and last page
+// moves the one beside it under the pointer that was about to press it.
+.pager__step:disabled {
+  border-color: var(--color-border);
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+  cursor: not-allowed;
+}
+
+// ---------------------------------------------------------------------------
+// The three states every screen that reads something has
+// ---------------------------------------------------------------------------
+
+// WAITING, FAILING, AND THE WAY BACK. Three screens read a practice - the list,
+// the practice, the form that would edit one - and each had its own copy of these,
+// which is three chances for "could not be loaded" to look like a different kind
+// of event depending on which screen you were on.
+
+// It is also what keeps those three component stylesheets under the 8kB at which
+// the build FAILS rather than warns. A screen's own file should hold what is only
+// true of that screen.
+
+.loading {
+  margin: 0;
+  padding: var(--space-6) var(--space-3);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+// The danger tint, and every use of it carries `role="alert"`: this is the one
+// state where what is on screen is not a fact about the platform, and a reader who
+// acts on it as though it were adds a practice that already exists.
+.failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-danger-mark);
+  border-radius: 0.75rem;
+  background-color: var(--color-danger-surface);
+}
+
+.failed__message {
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+}
+
+.failed__retry {
+  flex: none;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-danger-text);
+  border-radius: 0.5rem;
+  background: none;
+  color: var(--color-danger-text);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.failed__retry:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.failed__retry:focus-visible {
+  outline: 2px solid var(--color-danger-text);
+  outline-offset: 2px;
+}
+
+// The way back out of a screen opened from another one. `page-header.ts` records
+// that this console has no back link, and that was written when every screen was
+// reached from the wordmark; a screen reached from a row in a list owes the reader
+// the way back to that row.
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-block: var(--space-4) var(--space-3);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--color-primary);
+}
+
+.back:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.back__mark svg {
+  display: block;
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+// ---------------------------------------------------------------------------
+// Finding things in a list
+// ---------------------------------------------------------------------------
+
+// THE SEARCH FIELD AND THE ROWS-PER-PAGE CONTROL, beside `.pager` above and for the
+// same reason: they are what any list longer than a page needs, not what the
+// practice list needs. Design §6 specifies the field as a pattern - a single input
+// with a glyph, a count and its own clear - rather than as one screen's furniture,
+// and the staff list is the second screen that will want all three.
+
+// The field itself. Its width is the band's decision - see `search-panel.scss` -
+// because how much room a name deserves depends on what is beside it.
+
+// EVERYTHING THE FIELD KNOWS IS INSIDE THE ONE BOX: the glyph that says what it is,
+// the clear or the shortcut, and the line along the bottom edge while a call is in
+// flight. The count moved to the end of the band, because it is no longer a fact
+// about the name - it is what every criterion in the band leaves together.
+
+// `relative` and `overflow: hidden` are what the progress line needs - it is drawn
+// on the field's own bottom edge and clipped to its corners.
+.search__field {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  background-color: var(--color-surface-raised);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.search__field:hover {
+  border-color: var(--color-primary);
+}
+
+// The ring is on the box, not on the input, because the box is what a reader sees
+// as the control. `:focus-within` is what makes that possible without script.
+
+// The tint is the same one behind an icon tile, held at a fraction: the field being
+// typed into should be the lit thing on the toolbar, and a border alone was a 1px
+// difference on a screen the reader is scanning rather than reading.
+.search__field:focus-within {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary-soft) 45%, var(--color-surface-raised));
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.search__glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-subtle-text);
+  transition: color 120ms ease;
+}
+
+.search__field:focus-within .search__glyph {
+  color: var(--color-primary);
+}
+
+.search__glyph svg,
+.search__clear svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+// A CALL IS IN FLIGHT, on the edge of the control that started it. It is 2px of the
+// field's own bottom border rather than a spinner in the box, because the box is
+// where the reader is typing and a glyph that swaps under a cursor mid-word is
+// movement in the one place nothing should move.
+.search__progress {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  overflow: hidden;
+  block-size: 2px;
+  background-color: var(--color-muted-surface);
+}
+
+.search__progress::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 30%;
+  background-color: var(--color-primary);
+  animation: search-sweep 1.05s ease-in-out infinite;
+}
+
+// Indeterminate on purpose: the response carries no progress and a bar that filled
+// steadily would be inventing one.
+@keyframes search-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(380%);
+  }
+}
+
+// §7 removes motion, not meaning: the line stays and stops travelling. A state a
+// reader is told about by movement alone is a state they are not told about.
+@media (prefers-reduced-motion: reduce) {
+  .search__field {
+    transition: none;
+  }
+
+  .search__progress::after {
+    inline-size: 100%;
+    animation: none;
+  }
+}
+
+// The input carries no border, no padding and no ring of its own: the box around it
+// has all three, and a control with two edges reads as a field inside a field.
+.search__input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--font-size-md);
+}
+
+.search__input:focus {
+  outline: none;
+}
+
+.search__input::placeholder {
+  color: var(--color-subtle-text);
+  opacity: 1;
+}
+
+// The browser's own clear affordance for `type="search"`, hidden because this field
+// has one of its own and two in one box is one too many.
+.search__input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.search__clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-subtle-text);
+  cursor: pointer;
+}
+
+.search__clear:hover {
+  color: var(--color-text);
+}
+
+// THE KEY THAT GETS YOU HERE, drawn as a key. It is the one piece of chrome on this
+// screen that teaches rather than reports, and it costs a reader nothing: it is
+// gone the moment the field has focus or anything in it.
+.search__key {
+  flex: none;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  background-color: var(--color-surface);
+  color: var(--color-subtle-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+// ---------------------------------------------------------------------------
+// What the field offers before anything is typed
+// ---------------------------------------------------------------------------
+
+// Only while the box is empty and focused, so it teaches on the way in and is gone
+// the moment there is anything to read instead.
+
+// IT IS IN THE FLOW AND NOT A POPOVER, which is a decision rather than a shortcut: a
+// panel floating over the first rows hides the very list the reader is about to
+// search, and this one is two short lines that push the board down and lift it back.
+.search__guide {
+  margin-block-start: var(--space-2);
+}
+
+.search__hint {
+  margin: 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+}
+
+.search__recent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.search__recent-label {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.search__recent-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// SQUARED, NOT A PILL. The pill shape in this console means a status or the one
+// primary action per screen (§3.4), and a rounded chip here would be a third
+// meaning for a shape that currently has exactly two. What this is is a word to put
+// back in the box, so it is drawn as a tag.
+.search__recent-item {
+  max-inline-size: 14rem;
+  padding: 0 var(--space-2);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-muted-text);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  line-height: 1.8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.search__recent-item:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.search__recent-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// ---------------------------------------------------------------------------
+// Narrowing a list by more than its name
+// ---------------------------------------------------------------------------
+
+// `.refine` WAS HERE, and it is deleted rather than kept for later. It was the
+// control that opened the criteria panel, and the panel is always on screen now: a
+// button whose only job is to reveal what is already visible is not a control with a
+// smaller job, it is a control with none.
+
+// WHAT IS CURRENTLY APPLIED, SPELT OUT, under the band that applied it. Every menu
+// in the band says what it is set to on its own face, so this is not the only place
+// a filter is legible - it is the place all of them are legible at once, and the
+// only place each one can be taken off without opening the control that set it.
+.applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+
+.applied__label {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// Squared, like every other tag in this console: the pill is a status or the one
+// primary action, and a criterion is neither. The group is the quiet half - "Plan"
+// is what makes `Basic` legible as a plan rather than as a word somebody typed.
+.applied__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-1) 0 var(--space-2);
+  border: 1px solid var(--color-primary);
+  border-radius: 0.375rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  line-height: 1.9;
+  cursor: pointer;
+}
+
+.applied__tag:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.applied__tag:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.applied__group {
+  color: var(--color-muted-text);
+  font-weight: var(--font-weight-regular);
+}
+
+.applied__off {
+  display: inline-flex;
+}
+
+.applied__off svg {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+}
+
+.applied__clear {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.applied__clear:hover {
+  text-decoration: underline;
+}
+
+.applied__clear:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// ---------------------------------------------------------------------------
+// What somebody may have to act on
+// ---------------------------------------------------------------------------
+
+// EVERY ONE OF THESE FACTS WAS ALREADY ON THE SCREEN, and every one of them was a
+// twelve-pixel word inside a panel: a subscription past due, a suspended practice,
+// a trial that ran out, a meter over its limit. A platform administrator opens a
+// practice BECAUSE one of them is true, and the thing that is wrong should not be
+// the smallest thing on the page.
+
+// It is a tinted band and not a red card: the fact is worth interrupting for, and
+// the practice is still the subject of the screen.
+.notes {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 0.5rem;
+  font-size: var(--font-size-sm);
+}
+
+.note__mark {
+  display: inline-flex;
+  flex: none;
+}
+
+.note__mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.note--danger {
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger-text);
+}
+
+.note--warning {
+  background-color: var(--color-warning-surface);
+  color: var(--color-warning-text);
+}
+
+// ---------------------------------------------------------------------------
+// The tiles
+// ---------------------------------------------------------------------------
+
+// FOUR FIGURES ACROSS THE SCREEN: the two the subscription meters, what the
+// practice is paying for, and where its billing stands. It was two thin bars in the
+// corner of the hero and two rows in a panel that took a third of the width and
+// left the rest of it white.
+
+// `auto-fit` rather than four fixed columns, so a practice whose response carried
+// no usage figures does not leave two empty slots on the row.
+.tiles {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  margin-block-start: var(--space-3);
+}
+
+.tile {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+.tile--absent {
+  grid-column: 1 / -1;
+}
+
+.tile__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+// The glyph is the tile's subject in one shape - seats are people, branches are
+// buildings, a plan is a card, billing is a receipt - which is what lets the eye
+// find the right tile before it has read a word of any of them.
+.tile__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.tile__mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.tile__label {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tile__value {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.tile__note {
+  margin: 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+// ---------------------------------------------------------------------------
+// The chip
+// ---------------------------------------------------------------------------
+
+// A CHIP, NOT A PILL. The pill shape in this console means the one primary action
+// or a status; a choice is neither, so it is the same rounded rectangle a card is,
+// one size down. The whole chip is the label, so the target is the words and not a
+// 13px box beside them.
+
+// It was `staff-form.scss` until the practice list's refine panel became the third
+// screen to draw one. Moved rather than copied, for the reason this file exists.
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.choice:hover {
+  border-color: var(--color-primary);
+}
+
+// Chosen is an edge, a tint and a filled mark - three signals, the same three the
+// plan cards use, because the one a reader notices depends on the reader. Never
+// colour alone.
+.choice--chosen {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-weight: var(--font-weight-medium);
+}
+
+// `:has`, so the ring lands on the chip rather than on a control nobody can see.
+.choice:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// AN OPTION THAT WOULD LEAVE NOTHING. It is shown and not hidden: a reader who
+// cannot see `Closed` cannot tell whether there are none or whether this build
+// forgot it, and a set of options that changes shape as you use it is a set nobody
+// can learn. Its input is disabled, so it is not a dead end anybody can reach.
+.choice--empty {
+  border-color: var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-subtle-text);
+  cursor: not-allowed;
+}
+
+.choice--empty:hover {
+  border-color: var(--color-border);
+}
+
+.choice--empty .choice__mark {
+  border-color: var(--color-border);
+}
+
+// The tick is always in the DOM and only visible when it is true. `currentColor`
+// against a transparent colour is what hides it, so nothing moves or resizes when
+// a chip is chosen - the row does not reflow under the pointer.
+.choice__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  color: transparent;
+}
+
+.choice--chosen .choice__mark {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.choice__mark svg {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+}
+
+// HOW MANY THIS OPTION WOULD LEAVE. Mono and tabular like every figure in this
+// console, and quiet: it is the second thing read on the chip, after the word.
+.choice__count {
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-1);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+}
+
+.choice--chosen .choice__count {
+  color: var(--color-primary-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice,
+  .refine,
+  .refine__mark {
+    transition: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Rows per page
+// ---------------------------------------------------------------------------
+
+// `.rows` WAS HERE: a 25 / 50 / 100 segmented control at the end of the toolbar. It
+// is deleted, not moved. It asked the reader to answer a question about the screen
+// before they could ask one about a practice, and the console pages what MATCHED
+// now rather than what the server sent - so the page length is a reading decision
+// with one right answer (`PAGE_SIZE`) rather than a preference worth a control.

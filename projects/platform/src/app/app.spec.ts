@@ -84,14 +84,16 @@ async function complete(fixture: ComponentFixture<App>): Promise<void> {
 }
 
 describe('the platform console', () => {
-  it('opens straight onto the one screen it has', async () => {
+  it('opens onto the practice list', async () => {
     const fixture = await open('/');
 
-    // THE CONSOLE HAS NO LANDING SCREEN. `/` redirects rather than being the
-    // screen itself, so the URL a platform administrator sees and shares is the
-    // one the wordmark links to.
-    expect(TestBed.inject(Router).url).toBe('/onboard');
-    expect(element(fixture).querySelector('main h1')?.textContent).toBe('New practice');
+    // `/` redirects rather than being the landing screen itself, so the URL a
+    // platform administrator sees and shares is the one the wordmark links to.
+    // It was `/onboard` until the list route existed, which meant the console's
+    // first screen was a form for making something rather than a view of what
+    // was already there.
+    expect(TestBed.inject(Router).url).toBe('/practices');
+    expect(element(fixture).querySelector('main h1')?.textContent).toBe('Practices');
   });
 
   it('shows all four steps at once, with the first one open', async () => {
@@ -202,7 +204,7 @@ describe('the platform console', () => {
 
     expect(
       element(fixture).querySelector<HTMLAnchorElement>('.not-found__link')?.getAttribute('href'),
-    ).toBe('/onboard');
+    ).toBe('/practices');
   });
 
   it('keeps the frame around Page not found', async () => {

@@ -1,0 +1,508 @@
+// One practice's own screen.
+
+// CAPACITY IS THE HERO. What a practice is from the platform's side is how much of
+// what it bought it is using - that is the one question this console can answer and
+// the org slice cannot - so the meters sit beside the name at the top of the screen
+// at full width, and everything else is a panel under them.
+
+.back:focus-visible,
+.failed__retry:focus-visible,
+.panel__action:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// ---------------------------------------------------------------------------
+// The hero
+// ---------------------------------------------------------------------------
+
+// A BAND RATHER THAN A BOX WITH A HOLE IN IT. It held the name on one side and the
+// meters on the other, which put the two usage figures - the reason this screen
+// exists - in the corner of a card, and left the practice's own identity looking
+// like a caption. The meters are tiles of their own now; this is who the practice
+// is, and it is one line of it.
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+// THE ONE PIECE OF ICONOGRAPHY THAT IS NOT ALSO A CONTROL. A record screen opens on
+// a wall of small type otherwise, and the tile is what makes the top of it read as
+// a subject rather than as the first row of a table. Same tile the empty states
+// use, at the same radius: this console has one shape for "a thing".
+.hero__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 0.875rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.hero__mark svg {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+}
+
+.hero__identity {
+  flex: 1 1 18rem;
+  min-inline-size: 0;
+}
+
+// THE ONE HEADING ON THIS SCREEN THAT SHOUTS, which is what `--font-size-2xl` is
+// documented as being for. The practice's name is the whole subject of the page and
+// every other heading on it is a label in small caps, so the distance between the
+// two steps is the hierarchy.
+.hero__name {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.025em;
+  line-height: var(--line-height-tight);
+}
+
+.hero__name:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// The states and the arrival date on one line under the name: what it is, what it
+// is on, and how long it has been here - which is the sentence somebody opening a
+// record reads before anything else.
+.hero__states {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+
+.hero__since {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+// The gap is a margin rather than a space in the template: the compiler removes a
+// whitespace-only text node between two elements, so "1 Mar 2026" and "· 6 months
+// ago" would run together as one word.
+.hero__ago {
+  margin-inline-start: var(--space-1);
+  color: var(--color-subtle-text);
+}
+
+.hero__end {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+// The id, its label and the control that copies it, on one line at the end of the
+// band - out of the way of the name, and never below the fold.
+.hero__idline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.hero__idlabel {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// It wraps rather than being truncated: half a UUID pasted into a support thread is
+// worse than a line that takes two lines.
+.hero__id {
+  overflow-wrap: anywhere;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+}
+
+.hero__copy {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-muted-text);
+  cursor: pointer;
+}
+
+.hero__copy:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.hero__copy:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.hero__copy svg {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+}
+
+// A CONTROL THAT DOES SOMETHING INVISIBLE HAS TO SAY SO. It is a live region rather
+// than a tooltip, so a screen reader hears it too - and it is a fixed width, so the
+// line does not jump sideways as the word appears.
+.hero__copied {
+  min-inline-size: 3rem;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+}
+
+// The attention notes and the stat tiles are `styles.scss`. They are console
+// patterns rather than this screen's: a note is "here is the thing about this
+// record you may have to act on", and a tile is "one figure, its label and its
+// glyph" - and the list screen has a use for both the moment anything on it needs
+// to say why a row matters. They also do not fit here: this file is against an 8kB
+// budget that FAILS the build, and it was 99 bytes over with them in it.
+
+// The over-limit tile takes the danger tint on its glyph as well as its figure:
+// this is the one tile the eye should land on when it is true.
+.meter--over .tile__mark {
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger-mark);
+}
+
+// ---------------------------------------------------------------------------
+// The meters
+// ---------------------------------------------------------------------------
+
+// A meter IS a tile: the same padding, the same glyph, the same label - with a
+// reading and a bar where the other two have a value and a note.
+.meter {
+  align-content: start;
+}
+
+.meter__label {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.meter__reading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+// The used figure carries the weight, and the limit beside it is the scale it is
+// read against rather than a second number of equal standing.
+.meter__used {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+}
+
+.meter__limit {
+  margin-inline-start: var(--space-1);
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-sm);
+}
+
+.meter__track {
+  overflow: hidden;
+  block-size: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: var(--color-muted-surface);
+}
+
+.meter__fill {
+  display: block;
+  block-size: 100%;
+  border-radius: 0.25rem;
+  background-color: var(--color-primary);
+  transition: inline-size 240ms ease;
+}
+
+// THE HEADROOM, WHICH IS THE NUMBER SOMEBODY IS ACTUALLY DECIDING ON. "6 of 20" is
+// what is used; "14 seats left" is what a person weighing a plan change reads, and
+// doing that subtraction in your head is the job this screen exists to save.
+.meter__note {
+  margin: 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+}
+
+// Over what the plan allows. The tint carries it, the note says it in words, and
+// the fill is full rather than overflowing its own track.
+.meter--over .meter__fill {
+  background-color: var(--color-danger-mark);
+}
+
+.meter--over .meter__used,
+.meter--over .meter__note {
+  color: var(--color-danger-text);
+}
+
+// ---------------------------------------------------------------------------
+// The panels
+// ---------------------------------------------------------------------------
+
+// The branch list takes the larger share: it is the only variable-length thing on
+// the screen, and the record beside it is six lines whatever happens.
+.panels {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(20rem, 3fr) minmax(16rem, 2fr);
+  align-items: start;
+  margin-block-start: var(--space-3);
+}
+
+.panel {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+// The glyph makes a section findable by shape on a screen where every heading is
+// the same six words of small caps.
+.panel__mark {
+  display: inline-flex;
+  color: var(--color-subtle-text);
+}
+
+.panel__mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.panel__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.panel__count {
+  padding: 0 var(--space-2);
+  border-radius: 1.25rem;
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  letter-spacing: normal;
+}
+
+.panel__note {
+  margin: var(--space-3) 0 0;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border-soft);
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+// Outlined, not filled: the console's filled action is "Add a practice" on the
+// list, and a second filled control would be a second answer to "what do I press".
+// Outlined, not filled: the console's filled action is "Add a practice" on the
+// list, and a second filled control would be a second answer to "what do I press".
+.hero__action {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.hero__action:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+// An `svg` with no size of its own fills whatever box it is in, which on a flex
+// item with no width is most of the screen. Every glyph in this console is sized
+// where it is used, and this one was the exception that proved it.
+.hero__action-mark {
+  display: inline-flex;
+}
+
+.hero__action-mark svg {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+}
+
+// A figure the response did not carry. Not an error - it is a gap in what was
+// answered - so it is the quiet step of text rather than the danger tone.
+.absent {
+  margin: 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
+// ---------------------------------------------------------------------------
+// Facts and branches
+// ---------------------------------------------------------------------------
+
+.facts {
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.fact:last-child {
+  border-block-end: 0;
+}
+
+.fact dt {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: end;
+}
+
+// The reading beside the fact: "5 months ago" next to the date, "4 active" next to
+// the count. Quieter and lighter, because it is the same fact said the other way
+// round rather than a second one.
+.fact__aside {
+  margin-inline-start: var(--space-2);
+  color: var(--color-subtle-text);
+  font-weight: var(--font-weight-regular);
+}
+
+.branches {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.branch {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.branch:last-child {
+  border-block-end: 0;
+}
+
+// THE POSITION IS A FACT, not decoration: a staff member's branches are positions
+// in this list on the way in, so the order is something the API acts on.
+.branch__position {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-size: var(--font-size-xs);
+}
+
+.branch__name {
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branch__name--unnamed {
+  color: var(--color-subtle-text);
+  font-style: italic;
+}
+
+// An inactive branch recedes, the same way a closed practice does in the list. It
+// is a branch that is not open, not a branch that is wrong.
+.branch--inactive .branch__name {
+  color: var(--color-muted-text);
+}
+
+.branch--inactive .branch__position {
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+}
+
+// ---------------------------------------------------------------------------
+// The rest
+// ---------------------------------------------------------------------------
+
+.boundary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+.boundary__mark {
+  flex: none;
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  border-radius: 50%;
+  background-color: var(--color-border-strong);
+}
+
+// ---------------------------------------------------------------------------
+// Narrow
+// ---------------------------------------------------------------------------
+
+// One column below the width at which two stop being two. The order is the same
+// either way: identity, then capacity, then the panels.
+@media (width <= 64rem) {
+  .hero,
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter__fill {
+    transition: none;
+  }
+}

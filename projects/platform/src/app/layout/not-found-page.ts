@@ -19,5 +19,5 @@ import { PageHeader } from './page-header';
   styleUrl: './not-found-page.scss',
 })
 export class NotFoundPage {
-  protected readonly homeLink = ROUTE_PATHS.onboard;
+  protected readonly homeLink = ROUTE_PATHS.practices;
 }

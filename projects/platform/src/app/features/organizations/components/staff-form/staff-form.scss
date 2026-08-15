@@ -21,80 +21,8 @@
   font-weight: var(--font-weight-medium);
 }
 
-.choices {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-block-start: var(--space-2);
-}
-
-// A CHIP, NOT A PILL. The pill shape in this console means the one primary action
-// or a status; a choice is neither, so it is the same rounded rectangle a card is,
-// one size down. The whole chip is the label, so the target is the words and not a
-// 13px box beside them.
-.choice {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--color-border-strong);
-  border-radius: 0.5rem;
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition:
-    border-color 120ms ease,
-    background-color 120ms ease;
-}
-
-.choice:hover {
-  border-color: var(--color-primary);
-}
-
-// Chosen is an edge, a tint and a filled mark - three signals, the same three the
-// plan cards use, because the one a reader notices depends on the reader. Never
-// colour alone.
-.choice--chosen {
-  border-color: var(--color-primary);
-  background-color: var(--color-primary-soft);
-  color: var(--color-primary-deep);
-  font-weight: var(--font-weight-medium);
-}
-
-// `:has`, so the ring lands on the chip rather than on a control nobody can see.
-.choice:has(input:focus-visible) {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-// The tick is always in the DOM and only visible when it is true. `currentColor`
-// against a transparent colour is what hides it, so nothing moves or resizes when
-// a chip is chosen - the row does not reflow under the pointer.
-.choice__mark {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 50%;
-  color: transparent;
-}
-
-.choice--chosen .choice__mark {
-  border-color: var(--color-primary);
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
-}
-
-.choice__mark svg {
-  inline-size: 0.75rem;
-  block-size: 0.75rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .choice {
-    transition: none;
-  }
-}
+// THE CHIP AND ITS SET ARE `styles.scss` NOW, not here. A third screen draws one -
+// the practice list's refine panel, where every status, plan, size step and window
+// is a chip - and a choice that looked different there would be a second vocabulary
+// for one idea. The rules moved unchanged; the count and the exhausted state the
+// panel needs were added beside them.

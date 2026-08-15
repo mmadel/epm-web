@@ -52,11 +52,151 @@ this console's chrome projected into it, and not a second shell.
 **One route file per feature**, lazy-loaded from `app.routes.ts`, with the guard on
 the boundary rather than inside the feature.
 
-## The console is one screen: a progress flow
+## Three screens, and the one route that is missing
 
-**There is no landing screen and no navigation.** `/` redirects to `/onboard`,
-which creates a whole organization — a practice, its branches, its staff — in four
-steps down one page, ending in a review and the one call that makes all three.
+**`/practices` is the landing screen** and `/` redirects to it. It is every
+practice on the platform — name, plan, status, branch and staff counts, and when it
+was onboarded — with a search by name and a pager, and one control leading to
+onboarding. **It shows a practice's size and never its contents**: no patient
+count, no named staff member, nothing clinical. That boundary is the reason
+`GET /api/v1/platform/organizations` is a purpose-built route rather than anything
+reused from the org slice, and the screen renders exactly what it answers. A
+footnote on the page says so in words, because a new administrator has not read
+`PRODUCT.md`.
+
+**The row keeps what the design review was buying and pays off the cost it
+recorded.** §5 chose two-line rows over an aligned table and wrote down what that
+costs: the counts sit at a different horizontal position in every row, so "which of
+these is the big one" means reading each row rather than looking down a column. The
+rows here are single-line and aligned, and they keep the review's own devices — the
+status on a **3px leading edge** rather than in a column, the plan on a **pill**
+beside the name, and a closed practice that **recedes** rather than shouting,
+because it is the row nobody has to act on and `PRODUCT.md` is explicit that it is
+not an error state.
+
+**The second line went with the columns**, and that is the reason: it read
+`2 branches · 6 staff · onboarded 1 Mar 2026` beside columns saying `2`, `6` and
+`1 Mar 2026` — the same sentence twice, costing a line of every row on the screen.
+
+**Every figure is mono and every count carries a bar.** The mono rule already
+existed for codes; a figure is the same kind of thing — something compared down a
+column or read back over the phone. The bars are drawn against the **biggest
+practice on the page**, never against a limit: the list response carries no
+allowance of any kind, so a capacity meter here would be measuring a number nobody
+sent. The real one is on the practice screen.
+
+**The URL is the state** (§6). `?name=`, `?page=` and `?size=` are query
+parameters, so a search is shareable into a support thread and the back button
+undoes it. Every control on the screen changes the address and nothing else; one
+effect turns the address into the one call. A control that reached the service
+directly would be a second source of truth, and the one the back button does not
+reach. A `?size=` the screen does not offer is ignored rather than forwarded — the
+route caps at 100 and would refuse it, and a screen that passes on whatever is in
+the address turns a typo into a failure nothing explains.
+
+**The toolbar is what narrows the board and what the board holds.** The field takes
+one thing, the name, because that is all `listOrganizations` filters by. Beside it:
+the count, and **rows per page** — which is a real control, not a preference, since
+`size` is a parameter of the route. Somebody checking one practice wants a short
+page and somebody auditing the platform wants the long one.
+
+**`/` puts the cursor in the search box** from anywhere on the screen, and the field
+wears the key so it is discoverable rather than folklore. It is ignored while the
+reader is typing into something — otherwise `/` would be the one character the
+search box could not hold — and while a modifier is down, so it never competes with
+a browser shortcut. Escape clears a search that has one and blurs otherwise.
+
+**The list, the practice and the edit form get `.stage--full`, not the form
+gutter.** 60rem is a measure for reading a form, which is why onboarding keeps it. A
+list and a record are the opposite — their job is to show as much at once as the
+screen holds — and the header band above them already runs edge to edge, so a capped
+one reads as a screen that failed to load rather than one that fits. Inside it the
+columns are proportional rather than fixed, because a name column given `1fr`
+against fixed ones takes every spare pixel and strands the figures against the right
+edge.
+
+**One part of the agreed design is still not built**: §6.1's **filter pills**, which
+are the bulk of the search design — it parses `trial`, `basic` and `read-only` out
+of the field into removable pills, and the route takes `name` alone while the status
+enum has neither TRIAL nor READ-ONLY. The **seat meter** and the **disclosure
+chevron** were also missing and are not any more; both needed the practice screen
+below.
+
+## `/practices/:id` — one practice
+
+A row in the list opens it. It carries what the list could not: the **seat and
+branch meters** design §5 wanted on the row, which need `seatLimit`/`seatsUsed` from
+a subscription and are in `getOrganizationById` rather than in the list response;
+both statuses, the practice's own and its **billing** one, which
+`LLD-ORGANIZATION.md` §1 keeps deliberately apart and which are allowed to disagree;
+and every branch, active and inactive.
+
+**It is the one screen that does not use `app-page-header`.** That component takes
+the `h1` from the route's title so the tab and the heading cannot disagree, and a
+route cannot know a practice's name before the call that fetches it. The route title
+is the constant `Practice`, which the tab reads; the `h1` is the practice, and it
+carries its own `tabindex="-1"` because the frame focuses `main h1` after every
+navigation.
+
+**The branch count is smaller than the branch list, and the screen says why.** §2.8:
+the usage figures count active rows only, while the list carries every branch. So a
+practice with three branches of which one is closed reads `2 of 5` above a list of
+three — which reads exactly like a defect, and gets reported as one unless the screen
+says otherwise.
+
+## `/practices/:id/edit` — the form that cannot save
+
+**Read `PracticeEdit`'s class note before touching this.** The published
+specification (`@mmadel/openapi-spec`, pinned) has four operations and every one is
+a read except the one that creates a practice:
+
+```
+GET  /api/v1/platform/organizations        listOrganizations
+POST /api/v1/platform/organizations        onboardOrganization
+GET  /api/v1/platform/organizations/{id}   getOrganizationById
+GET  /api/v1/platform/plans                listPlans
+```
+
+No `PUT`, no `PATCH`, no `DELETE`. **Nothing in the platform API changes a practice
+after it is created.**
+
+So the screen does everything except send. It reads the practice, fills the form in,
+validates it, tracks what changed, and shows the record as it is now beside what it
+would become. What it will not do is accept a press on a control that cannot do
+anything: **the submit is disabled and a notice above the form says why, naming the
+route that is missing.**
+
+**A button that looked like it saved would be the worst thing on this screen.** A
+platform administrator who believes they have suspended a practice — on a product
+where suspension is a billing and access decision — has been told something untrue
+about a real customer. An optimistic update, a toast, a local-only edit: each is
+that same lie with a different amount of work behind it. The spec asserts the button
+stays disabled after a valid change, so it cannot be enabled without a route.
+
+**When the route lands**: bump the pin, run `npm run generate:api`, and this screen
+needs one thing — a `save()` in `data/`, called from `submit()`. The form, its rules,
+its dirty tracking and its states are already here. F1 §7 item 1e owns the route.
+
+It was blocked for the whole of F1 — the milestone's §5 is the argument for the
+route — and unblocked itself the day `listOrganizations` appeared in the generated
+client (`LLD-ORGANIZATION.md` §2.8). Until then the console could not answer "does
+this practice already exist", and the way to find out was to create a second one.
+
+**There is still no navigation band.** Two screens are a place and the task opened
+from it: the list carries the control that opens onboarding, and the wordmark is the
+way back from anywhere. A band of two entries, one of which is always where you
+already are, is chrome that says nothing — see `console-layout.ts` for the two tab
+strips that were tried and removed.
+
+**Two filters in P-04's design are deliberately not built**: status and plan. The
+route filters by name only, and a filter this console applied to the twenty-five
+rows it happens to be holding would answer about the page rather than about the
+platform. They are columns to read down until the route offers them.
+
+## Onboarding is a progress flow
+
+`/onboard` creates a whole organization — a practice, its branches, its staff — in
+four steps down one page, ending in a review and the one call that makes all three.
 
 **All four steps are on screen at once.** The current one is open; finished ones
 collapse to a ticked line saying what is in them (`Cairo Physio · Standard`) with
@@ -66,8 +206,10 @@ the staff step is complete with nobody in it, so counting completeness alone wou
 credit the reader for a step they had not seen.
 
 **Three shapes were tried before this one, and the reasons are worth keeping.**
-A list with an "Add a practice" button was wrong for a console whose list screen
-(P-04) is blocked on a route nobody has agreed. A tabbed builder replaced it and
+A list with an "Add a practice" button was wrong for a console that had no list
+screen at the time, P-04 being blocked on a route nobody had agreed — the list
+exists now, and it is a screen of its own rather than the top of this form. A
+tabbed builder replaced it and
 gave random access with no sense of progress — it never said where you were or
 what was left, and **tabs hide fields from the errors that name them** (P-05.7 maps
 each server error code to its field). One flat form fixed the hiding and lost the
@@ -79,8 +221,11 @@ that cannot be opened in place.
 browser's history, where Back would mean "undo one step of a form I have not
 submitted" — which it does not.
 
-**When P-04 unblocks**, `/practices` becomes the home and `/onboard` becomes a task
-opened from it — a change to `route-paths.ts` and one redirect.
+**After a practice is created**, the screen is replaced by what was created, with
+every id the server issued and one control to start another. P-05.8 says to go to
+the practice list instead, and that is worth doing now the list exists — but the
+receipt carries ids that are on no other screen, so it is a change with a decision
+in it rather than a redirect.
 
 **`OrganizationDraft` is the thing being built**, and all four steps are views of
 it. Staff hold their branches **by key**, and array positions are computed once, in

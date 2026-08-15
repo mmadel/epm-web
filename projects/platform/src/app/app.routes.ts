@@ -13,17 +13,22 @@ import { platformAdminGuard } from './session/platform-admin-guard';
  */
 export const routes: Routes = [
   {
-    // THE CONSOLE OPENS ONTO ITS ONE SCREEN. There is no landing page: the one
-    // thing this console does is create a practice with its branches, and a home
-    // page whose only content was a button to start doing that was a screen to get
-    // past rather than a screen to use. The practice list takes this redirect back
-    // when P-04 has a route to stand on.
+    // THE CONSOLE OPENS ONTO THE PRACTICE LIST. It is the first question a platform
+    // administrator has - what is already here - and until the list route existed
+    // the console could not answer it, so `/` opened the form that creates a
+    // practice and the way to find out whether one existed was to make a second one.
     path: '',
     pathMatch: 'full',
-    redirectTo: 'onboard',
+    redirectTo: 'practices',
   },
   {
-    path: 'onboard',
+    // ONE GUARDED BOUNDARY FOR THE WHOLE FEATURE, rather than the guard being
+    // repeated on each of its screens. The feature's own route file declares the
+    // two paths; this declares who may reach either of them, and a third screen
+    // added inside it cannot arrive unguarded. `canActivate` and not
+    // `canActivateChild`: the empty-path parent is activated itself, and
+    // `app.routes.spec.ts` reports a route that guards only its children.
+    path: '',
     canActivate: [platformAdminGuard],
     // Lazy, and the only kind of reference this file carries to a feature. The
     // guard sits on the boundary rather than inside the feature's own route
@@ -36,6 +41,10 @@ export const routes: Routes = [
     // NOT a redirect to the list. A silent redirect turns a broken link into a
     // working one, so the bookmark nobody can open gets reported as "it works
     // for me". The frame renders with a title that says what happened.
+    //
+    // It is reached by the router backtracking out of the empty-path boundary
+    // above when no screen inside it matches, which `app.routes.spec.ts` asserts
+    // by navigating rather than by assuming.
     path: '**',
     canActivate: [platformAdminGuard],
     title: 'Page not found',

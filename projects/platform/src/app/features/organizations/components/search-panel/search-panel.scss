@@ -1,0 +1,236 @@
+// The search panel: one band, every criterion.
+
+// A WHITE BAND ON THE CANVAS, which is the only kind of depth this console has (F1
+// §1): no shadow, no second border, no tinted strip. It sits between the page
+// heading and the board, and the three read as one surface.
+.band {
+  margin-block-end: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-raised);
+}
+
+// ONE ROW THAT FILLS THE WIDTH. The name takes the room that is left, and each of
+// the other controls takes what it needs - which is what removes the third of a
+// screen of nothing that sat between the old toolbar's two ends. It wraps rather
+// than scrolling: a criterion off the edge of a band is a criterion nobody uses.
+.band__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+// The name field is the one control that grows. 16rem before it is allowed to wrap,
+// which is about the longest practice name anybody types in full.
+.search {
+  position: relative;
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+}
+
+.band__menu {
+  flex: 0 1 auto;
+}
+
+// ---------------------------------------------------------------------------
+// The dates
+// ---------------------------------------------------------------------------
+
+// A LABELLED PAIR RATHER THAN TWO LOOSE FIELDS. Two date inputs side by side with
+// nothing over them are two dates about nothing; the word is what makes them a
+// range, and the dash between them is what makes it read as one.
+.dates {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  background-color: var(--color-surface-raised);
+}
+
+.dates:focus-within {
+  border-color: var(--color-primary);
+}
+
+.dates__label {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.dates__field {
+  display: inline-flex;
+}
+
+// The control carries no border of its own: the pair around it has one, and a field
+// inside a field is two edges saying one thing.
+.dates__input {
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.dates__input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.dates__to {
+  color: var(--color-subtle-text);
+}
+
+// ---------------------------------------------------------------------------
+// The second row
+// ---------------------------------------------------------------------------
+
+// The views on one side, what the band currently leaves on the other: the two things
+// read together - "which of these am I looking at, and how many is it".
+.band__end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  margin-block-start: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border-soft);
+}
+
+.views {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.views__label {
+  color: var(--color-subtle-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.views__set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+// THE QUESTIONS SOMEBODY ARRIVES HOLDING. Squared, like every control in this
+// console that is not a status or the one primary action - and filled when on,
+// because a view is the loudest thing the reader can have done to this list.
+.view {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.view:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.view:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.view--on {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.view--on:hover {
+  background-color: var(--color-primary-hover);
+  color: var(--color-text-inverse);
+}
+
+.view__count {
+  padding-inline: var(--space-1);
+  border-radius: 0.25rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-size: var(--font-size-xs);
+}
+
+.view--on .view__count {
+  background-color: var(--color-primary-deep);
+  color: var(--color-text-inverse);
+}
+
+// WHAT THE WHOLE BAND LEAVES, at the end of the row that set it. `4 of 12` when
+// something is narrowing the list and `12 practices` when nothing is, because a
+// denominator equal to the numerator is a figure that says nothing twice.
+.band__matched {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.band__fault {
+  margin: var(--space-2) 0 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-xs);
+}
+
+// SAID, NOT HIDDEN. The console answers these criteria by reading the list itself
+// and it reads a bounded number of practices; when the platform is bigger than that,
+// every count in this band is a count of what was read.
+.band__note {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 0.5rem;
+  background-color: var(--color-muted-surface);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+// ---------------------------------------------------------------------------
+// Narrow
+// ---------------------------------------------------------------------------
+
+// Below about a laptop the row becomes a column: three menus at 12rem each plus two
+// dates cannot share a line with a name field without every one of them becoming a
+// box too small to read what is in it.
+@media (width <= 60rem) {
+  .band__menu,
+  .dates {
+    flex: 1 1 12rem;
+  }
+
+  .dates {
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view {
+    transition: none;
+  }
+}

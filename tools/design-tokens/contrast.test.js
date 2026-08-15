@@ -164,6 +164,29 @@ const PAIRS = [
   [PLATFORM, 'the staging edge', '--color-warning-mark', '--color-chrome-surface', MARK],
   [PLATFORM, 'the production edge', '--color-danger-mark', '--color-chrome-surface', MARK],
 
+  // The practice list's status pills (F1 P-04). Suspended and closed reuse the
+  // staging and local chip treatments above, which are already checked; active is
+  // the accent pair, and it is only checked here because this is the first screen
+  // that sets text on `--color-primary-soft` rather than a glyph. The dot is
+  // `currentcolor`, so the text pair covers it at the stricter floor.
+  //
+  // The same pair marks the run of a practice's name that the search matched, which
+  // is body-sized text inside a name and so is held to the text floor either way.
+  [
+    PLATFORM,
+    'an active practice pill, and a searched-for run of a name',
+    '--color-primary-deep',
+    '--color-primary-soft',
+    TEXT,
+  ],
+
+  // The practice screen's seat and branch meters (F1 P-04). A bar on a track is a
+  // non-text mark carrying a figure that is also written above it in words, so the
+  // 3:1 floor is the right one - but a fill that does not separate from its own
+  // track is a meter with no reading at all.
+  [PLATFORM, 'a meter fill on its track', '--color-primary', '--color-muted-surface', MARK],
+  [PLATFORM, 'a meter over its limit', '--color-danger-mark', '--color-muted-surface', MARK],
+
   // Non-text marks.
   [PLATFORM, 'the focus ring on a band', '--color-primary', '--color-surface-raised', MARK],
   [PLATFORM, 'the focus ring on the canvas', '--color-primary', '--color-surface', MARK],
