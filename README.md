@@ -141,6 +141,12 @@ place in the workspace allowed to hold a raw colour or a `px` spacing value; Sty
 rejects both everywhere else and its message names the token to use instead. See
 `docs/design-tokens.md` for the scales, the Arabic font stack and the reasoning.
 
+The tokens say what the values are. What one screen does with them is a separate
+question, and the platform console's onboarding screen - the densest thing built out of
+them so far - has its own record in `docs/PLATFORM/onboarding-screen.md`: the button and
+icon vocabularies, the three list shapes, why forms open in a native `<dialog>`, and what
+was tried there and taken out again.
+
 An application picks the tokens up with one line in its `styles.scss`:
 
 ```scss

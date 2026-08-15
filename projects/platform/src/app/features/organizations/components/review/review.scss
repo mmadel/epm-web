@@ -98,16 +98,20 @@
   color: var(--color-danger-text);
 }
 
-// It is a warning and not a fault: nothing is wrong yet, and the button below stays
-// live. `--warning` rather than `--danger` for exactly that reason - the red tones on
-// this screen mean "this was refused", and this has not been sent.
+// THE SAME TONE THE TILE ABOVE IT USES, and the same one the counters in steps 2 and
+// 3 have always used for a count past its limit. This was briefly amber, on the
+// argument that a warning is not a refusal - which is true, and which the SENTENCE
+// says. But one condition drawn in two tones on one screen is a reader asking whether
+// they are two conditions, and the console had already settled that being over the
+// plan is tinted like this. The words carry "it can still be created"; the tint
+// carries "look at this".
 .warning {
   margin: 0 0 var(--space-4);
   padding: var(--space-2) var(--space-3);
-  border-inline-start: 3px solid var(--color-warning-mark);
+  border-inline-start: 3px solid var(--color-danger-mark);
   border-radius: 0.25rem;
-  background-color: var(--color-warning-surface);
-  color: var(--color-warning-text);
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger-text);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
 }
