@@ -54,7 +54,33 @@ token and logical-property rules are described in `docs/design-tokens.md`.
 
 ### 3. `npm run format:check`
 
-Prettier, in check mode. `npm run format` fixes it.
+Prettier, in check mode. It fails like this, and the fix is in the message:
+
+```
+Checking formatting...
+[warn] projects/platform/src/app/features/organizations/pages/practice/practice-page.spec.ts
+[warn] Code style issues found in the above file. Run Prettier with --write to fix.
+```
+
+**Fix the files it named, not the tree**, then check again:
+
+```bash
+npx prettier --write projects/platform/.../practice-page.spec.ts   # the files it listed
+npm run format:check                                               # confirm, then carry on to step 4
+```
+
+`npm run format` also works and is what to reach for when the list is long — but it
+writes to **every file in the repository**, so anything else left unformatted gets
+reformatted into your commit. Run `git status` after it and read the count.
+
+Nothing about the fix is risky: Prettier only moves whitespace and line breaks. Carry on
+to `npm test` and `npm run build` anyway — you were going to run them, and a reformat is
+not a reason to skip them.
+
+**Where it comes from.** Every file in the repository is formatted, so a failure is
+almost always a file that was written or edited by something that does not format on
+save — a script, a patch, a paste from elsewhere — while the files around it were. The
+message names the file, which is the whole diagnosis: open it, format it, move on.
 
 ### 4. `npm test`
 
