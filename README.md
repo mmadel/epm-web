@@ -291,6 +291,16 @@ To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use th
 ng test
 ```
 
+## Before you commit and push
+
+Five steps, and they are mandatory: `git add -A`, `npm run lint`, `npm run format:check`,
+`npm test`, `npm run build`.
+
+The pre-commit hook runs only the first two of those checks, and CI runs all of them - so
+a commit the hook accepts can still turn a pull request red. `docs/committing.md` has the
+full table of what is enforced where, what each step catches that the others do not, and
+the branch and commit message conventions.
+
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:
