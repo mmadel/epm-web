@@ -10,4 +10,6 @@ export * from './platform-clinic';
 export * from './platform-organization';
 export * from './platform-subscription';
 export * from './problem';
+export * from './purged-organizations';
 export * from './staff-request';
+export * from './update-organization-request';

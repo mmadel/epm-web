@@ -16,7 +16,7 @@ epm-service controllers
    openapi.json
         │  published as a versioned npm package (T-90)
         ▼
-@mmadel/openapi-spec@0.1.0          ← pinned in package.json, exactly
+@mmadel/openapi-spec@0.2.0          ← pinned in package.json, exactly
         │  openapi-generator, typescript-angular (T-85)
         ▼
 projects/api-client/src/generated/  ← committed

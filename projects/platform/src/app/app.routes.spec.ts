@@ -112,9 +112,9 @@ describe('platform routes', () => {
   });
 
   it('reaches the form that would edit a practice', async () => {
-    // It cannot save - the platform API has no route that changes a practice - and
-    // the screen says so. The route exists so that the form, its rules and its
-    // states are built and tested before the day the route lands.
+    // It does not save yet - the API routes exist as of the 0.2.0 specification,
+    // but this screen is not wired to them - and the screen says so. The form, its
+    // rules and its states were built and tested ahead of the wiring.
     expect(await landsOn('/practices/org-1/edit')).toEqual({
       url: '/practices/org-1/edit',
       title: 'Edit practice',

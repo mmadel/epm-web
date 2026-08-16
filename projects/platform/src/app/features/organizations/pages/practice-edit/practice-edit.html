@@ -55,9 +55,9 @@
     </header>
 
     <!--
-      THE ONE THING THIS SCREEN CANNOT DO, said before the form rather than after a
-      press. The platform API has four operations and every one of them is a read
-      except the one that creates a practice - see the class note. A submit that
+      THE ONE THING THIS SCREEN DOES NOT DO YET, said before the form rather than
+      after a press. The routes that change a practice exist as of the 0.2.0
+      specification, but nothing here calls them - see the class note. A submit that
       looked like it worked would tell a platform administrator they had suspended a
       real customer when they had not, which is the worst thing this screen could do.
     -->
@@ -79,11 +79,11 @@
       <div class="notice__body">
         <p class="notice__title">Saving is not available yet</p>
         <p class="notice__text">
-          The platform API has no route that changes a practice — it can list them, read one,
-          onboard one, and list plans. The form below is complete and the fields are yours to try;
-          the only thing missing is somewhere to send them.
+          The platform API can change a practice now, but this screen has not been wired to it yet.
+          The form below is complete and the fields are yours to try; what is missing is the call
+          behind the button.
         </p>
-        <p class="notice__route figure">PUT /api/v1/platform/organizations/{{ id() }}</p>
+        <p class="notice__route figure">PATCH /api/v1/platform/organizations/{{ id() }}</p>
       </div>
     </div>
 
