@@ -144,38 +144,50 @@ practice with three branches of which one is closed reads `2 of 5` above a list 
 three — which reads exactly like a defect, and gets reported as one unless the screen
 says otherwise.
 
-## `/practices/:id/edit` — the form that cannot save
+## `/practices/:id/edit` — the form that does not save yet
 
-**Read `PracticeEdit`'s class note before touching this.** The published
-specification (`@mmadel/openapi-spec`, pinned) has four operations and every one is
-a read except the one that creates a practice:
+**Read `PracticeEdit`'s class note before touching this.** The routes this screen
+was waiting for exist as of `@mmadel/openapi-spec@0.2.0`:
 
 ```
-GET  /api/v1/platform/organizations        listOrganizations
-POST /api/v1/platform/organizations        onboardOrganization
-GET  /api/v1/platform/organizations/{id}   getOrganizationById
-GET  /api/v1/platform/plans                listPlans
+PATCH /api/v1/platform/organizations/{id}           updateOrganizationFromPlatform
+POST  /api/v1/platform/organizations/{id}/suspend   suspendOrganization
+POST  /api/v1/platform/organizations/{id}/reopen    reopenOrganization
+POST  /api/v1/platform/organizations/{id}/close     closeOrganization
 ```
 
-No `PUT`, no `PATCH`, no `DELETE`. **Nothing in the platform API changes a practice
-after it is created.**
-
-So the screen does everything except send. It reads the practice, fills the form in,
-validates it, tracks what changed, and shows the record as it is now beside what it
-would become. What it will not do is accept a press on a control that cannot do
-anything: **the submit is disabled and a notice above the form says why, naming the
-route that is missing.**
+**The screen does not call any of them yet.** It reads the practice, fills the form
+in, validates it, tracks what changed, and shows the record as it is now beside what
+it would become — and then stops. The submit is still disabled and the notice above
+the form still says so; what changed is the reason. It is no longer "the API cannot
+do this", it is "this screen has not been wired to the routes that can".
 
 **A button that looked like it saved would be the worst thing on this screen.** A
 platform administrator who believes they have suspended a practice — on a product
 where suspension is a billing and access decision — has been told something untrue
 about a real customer. An optimistic update, a toast, a local-only edit: each is
-that same lie with a different amount of work behind it. The spec asserts the button
-stays disabled after a valid change, so it cannot be enabled without a route.
+that same lie with a different amount of work behind it. That the routes now exist
+changes none of that; only calling them does. The spec asserts the button stays
+disabled after a valid change, so it cannot be enabled without the wiring.
 
-**When the route lands**: bump the pin, run `npm run generate:api`, and this screen
-needs one thing — a `save()` in `data/`, called from `submit()`. The form, its rules,
-its dirty tracking and its states are already here. F1 §7 item 1e owns the route.
+**Wiring it is not one call.** The form edits a name and a status together, and
+those are different operations with different rules:
+
+- `name` goes through the `PATCH`, which accepts `name` and nothing else. Sending
+  `status` in that body is 422 `EPM-ORG-007` whatever its value.
+- `status` moves through the three `POST` routes, one per transition, each with its
+  own precondition. A transition that is not allowed from the current status is 422
+  `EPM-ORG-013`, which carries `from` and `to` so the message can be written without
+  re-reading the practice. Repeating one — suspending a practice that is already
+  suspended — is that error rather than a quiet success, and `CLOSED` is terminal.
+
+All four return the same body as `getOrganizationById`, so nothing needs a second
+read after a write.
+
+So the `save()` in `data/` this screen has been waiting for is a decision about what
+"save" means on a form that edits two things at once, not a single method to fill
+in. The form, its rules, its dirty tracking and its states are already here. F1 §7
+item 1e owns it.
 
 It was blocked for the whole of F1 — the milestone's §5 is the argument for the
 route — and unblocked itself the day `listOrganizations` appeared in the generated

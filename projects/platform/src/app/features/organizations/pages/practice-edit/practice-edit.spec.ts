@@ -158,12 +158,12 @@ describe('PracticeEdit', () => {
   // The thing it must never do
   // ---------------------------------------------------------------------------
 
-  it('cannot be submitted, because no route would receive it', async () => {
+  it('cannot be submitted, because nothing is wired to receive it', async () => {
     const harness = await openEdit();
 
     // A control that looked like it saved would tell a platform administrator they
-    // had changed a real customer's record when they had not. There is no PUT, no
-    // PATCH and no DELETE in the published specification.
+    // had changed a real customer's record when they had not. The routes exist as
+    // of the 0.2.0 specification; this screen does not call them.
     expect(harness.submit.disabled).toBe(true);
   });
 
@@ -186,9 +186,9 @@ describe('PracticeEdit', () => {
 
     expect(notice).not.toBeNull();
     expect(notice?.textContent).toContain('Saving is not available yet');
-    // The route that is missing, named, so the reader can put it in a ticket.
+    // The route the button will call, named, so the reader can put it in a ticket.
     expect(harness.query('.notice__route')?.textContent).toContain(
-      `PUT /api/v1/platform/organizations/${PRACTICE_ID}`,
+      `PATCH /api/v1/platform/organizations/${PRACTICE_ID}`,
     );
   });
 

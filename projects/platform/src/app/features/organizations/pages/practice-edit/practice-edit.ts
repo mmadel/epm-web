@@ -17,33 +17,42 @@ const STATUSES = [
 /**
  * Changing a practice: its name, its plan, its status.
  *
- * READ THIS BEFORE CHANGING ANYTHING HERE. The published specification
- * (`@mmadel/openapi-spec`, pinned) has FOUR operations, and every one of them is a
- * read except the one that creates a practice:
+ * READ THIS BEFORE CHANGING ANYTHING HERE. The routes this screen was waiting on
+ * exist as of `@mmadel/openapi-spec@0.2.0`:
  *
- *     GET  /api/v1/platform/organizations        listOrganizations
- *     POST /api/v1/platform/organizations        onboardOrganization
- *     GET  /api/v1/platform/organizations/{id}   getOrganizationById
- *     GET  /api/v1/platform/plans                listPlans
+ *     PATCH /api/v1/platform/organizations/{id}           updateOrganizationFromPlatform
+ *     POST  /api/v1/platform/organizations/{id}/suspend   suspendOrganization
+ *     POST  /api/v1/platform/organizations/{id}/reopen    reopenOrganization
+ *     POST  /api/v1/platform/organizations/{id}/close     closeOrganization
  *
- * There is no `PUT`, no `PATCH`, no `DELETE`. Nothing in the platform API changes a
- * practice after it is created.
- *
- * SO THIS SCREEN DOES NOT PRETEND TO SAVE. It reads the practice, fills the form
- * in, validates what is typed, and tracks what has changed - all of which is real
- * and all of which the route it is waiting on will not alter. What it will not do
- * is accept a press on a control that cannot do anything: the submit is disabled
- * and a notice above the form says why, naming the route that is missing.
+ * THIS SCREEN DOES NOT CALL THEM YET, SO IT STILL DOES NOT PRETEND TO SAVE. It
+ * reads the practice, fills the form in, validates what is typed, and tracks what
+ * has changed - all of which is real. What it will not do is accept a press on a
+ * control that is wired to nothing: the submit is disabled and a notice above the
+ * form says so.
  *
  * A BUTTON THAT LOOKED LIKE IT SAVED WOULD BE THE WORST THING ON THIS SCREEN. A
  * platform administrator who believes they have suspended a practice, on a product
  * where suspension is a billing and access decision, has been told something untrue
  * about a real customer. An optimistic update, a toast, a local-only edit - each of
- * them is that same lie with a different amount of work behind it.
+ * them is that same lie with a different amount of work behind it. That the routes
+ * now exist changes none of that; only calling them does.
  *
- * WHEN THE ROUTE LANDS: bump the specification pin, run `npm run generate:api`, and
- * this screen needs one thing - a `save()` in `data/`, called from `submit()`. The
- * form, its rules, its dirty tracking and its states are already here.
+ * WIRING IT IS NOT ONE CALL. This form edits a name and a status together, and they
+ * are different operations with different rules:
+ *
+ *   - `name` goes through the PATCH, which accepts `name` and nothing else. The
+ *     generated `UpdateOrganizationRequest` carries `status` as an optional member
+ *     too, so sending it COMPILES - and is 422 EPM-ORG-007 at runtime whatever its
+ *     value.
+ *   - `status` moves through the three POST routes, one per transition, each with
+ *     its own precondition. A transition not allowed from the current status is 422
+ *     EPM-ORG-013, carrying `from` and `to`. Repeating one is that error rather
+ *     than a quiet success, and CLOSED is terminal. Their body is empty, generated
+ *     as `body?: any` - so a body compiles too, and is 400 EPM-REQ-002.
+ *
+ * All four return the same body as getOrganizationById, so nothing here needs a
+ * second read after a write.
  */
 @Component({
   selector: 'app-practice-edit',
