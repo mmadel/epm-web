@@ -1,6 +1,7 @@
 api.base.service.ts
 api.module.ts
 api/api.ts
+api/development-only.service.ts
 api/platform-onboarding.service.ts
 api/platform-practices.service.ts
 api/platform-reference-data.service.ts
@@ -20,7 +21,9 @@ model/platform-clinic.ts
 model/platform-organization.ts
 model/platform-subscription.ts
 model/problem.ts
+model/purged-organizations.ts
 model/staff-request.ts
+model/update-organization-request.ts
 param.ts
 provide-api.ts
 query.params.ts
