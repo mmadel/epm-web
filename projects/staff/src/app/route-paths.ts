@@ -23,11 +23,11 @@ export const ROUTE_PATHS = {
    * Where a signed-in staff member lands, and where `/` sends them.
    *
    * IT IS NOT `/practice`, which is what T-97 §4 and criterion 1 specify. The
-   * dashboard was decided after seeing the console running: administering the
+   * control panel was decided after seeing the console running: administering the
    * practice is one thing this console does rather than the thing it is, and a
    * front door that opens straight onto a settings screen says otherwise.
    */
-  dashboard: '/dashboard',
+  controlPanel: '/control-panel',
 
   /**
    * The practice's own details.

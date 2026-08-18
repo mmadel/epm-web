@@ -51,7 +51,7 @@ describe('staff routes', () => {
     document.documentElement.removeAttribute('dir');
   });
 
-  it('opens onto the dashboard', async () => {
+  it('opens onto the control panel', async () => {
     // `/` renders nothing of its own. NOT `/practice`, which is what T-97 §4 and
     // criterion 1 specify: administering the practice is one thing this console does
     // rather than the thing it is, and the landing page was decided after seeing it
@@ -59,11 +59,13 @@ describe('staff routes', () => {
     // rather than a drift somebody finds later.
     const { router, element } = await open('/');
 
-    expect(router.url).toBe(ROUTE_PATHS.dashboard);
-    expect(element.querySelector('.dashboard__title')?.textContent?.trim()).toBe('Dashboard');
+    expect(router.url).toBe(ROUTE_PATHS.controlPanel);
+    expect(element.querySelector('.control-panel__title')?.textContent?.trim()).toBe(
+      'Control panel',
+    );
   });
 
-  it('offers a way into every area from the dashboard', async () => {
+  it('offers a way into every area from the control panel', async () => {
     // THE LANDING PAGE IS A WAY IN, and this is the whole of what it promises: one
     // card per area, each a link, each reaching a route that exists. The order is
     // asserted with them, because it is the rail's order and a landing page that
@@ -124,7 +126,7 @@ describe('staff routes', () => {
     // The active state is derived from the router - T-97 §5 - so this navigates and
     // reads what the frame drew, rather than asking a component what it thinks it is.
     const expected = {
-      [ROUTE_PATHS.dashboard]: ['Dashboard'],
+      [ROUTE_PATHS.controlPanel]: ['Control panel'],
       [ROUTE_PATHS.practice]: ['Practice details'],
       [ROUTE_PATHS.clinics]: ['Clinics'],
       [ROUTE_PATHS.staff]: ['Staff'],
@@ -177,7 +179,7 @@ describe('staff routes', () => {
         link.getAttribute('href'),
       ),
     ).toEqual([
-      ROUTE_PATHS.dashboard,
+      ROUTE_PATHS.controlPanel,
       ROUTE_PATHS.practice,
       ROUTE_PATHS.clinics,
       ROUTE_PATHS.staff,

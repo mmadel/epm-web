@@ -14,7 +14,7 @@ import { ROUTE_PATHS } from './route-paths';
 /**
  * What this console's navigation offers, as keys. Resolved in {@link App.navigation}.
  *
- * THE ORDER IS WHERE YOU LAND, THEN CONTAINMENT: the dashboard is the front door,
+ * THE ORDER IS WHERE YOU LAND, THEN CONTAINMENT: the control panel is the front door,
  * and after it a practice has clinics, clinics have staff, and all of it sits under
  * one subscription. Not alphabetical, and not by how often each is opened.
  *
@@ -32,7 +32,7 @@ import { ROUTE_PATHS } from './route-paths';
  * else in the meantime would be a second source of truth for who may do what.
  */
 const NAVIGATION = [
-  { labelKey: 'shell.section.dashboard', link: ROUTE_PATHS.dashboard },
+  { labelKey: 'shell.section.control-panel', link: ROUTE_PATHS.controlPanel },
   { labelKey: 'shell.section.practice', link: ROUTE_PATHS.practice },
   { labelKey: 'shell.section.clinics', link: ROUTE_PATHS.clinics },
   { labelKey: 'shell.section.staff', link: ROUTE_PATHS.staff },

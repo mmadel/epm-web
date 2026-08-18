@@ -38,7 +38,7 @@ describe('App', () => {
     expect(compiled.querySelector('lib-shell')).not.toBeNull();
     expect(
       [...compiled.querySelectorAll('.shell-nav__link')].map((link) => link.textContent?.trim()),
-    ).toEqual(['Dashboard', 'Practice details', 'Clinics', 'Staff', 'Subscription']);
+    ).toEqual(['Control panel', 'Practice details', 'Clinics', 'Staff', 'Subscription']);
   });
 
   it('says which console this is, in the wordmark, and links it home', async () => {

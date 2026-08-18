@@ -2,7 +2,7 @@
 // projects/ui/styles/_tokens.scss, and Stylelint rejects anything else. Nothing
 // here names a physical side, so Arabic mirrors with no second rule.
 
-.dashboard__title {
+.control-panel__title {
   margin: 0 0 var(--space-2);
   color: var(--color-text);
   font-size: var(--font-size-xl);
@@ -10,10 +10,9 @@
   line-height: var(--line-height-tight);
 }
 
-// A measure, not a column width: about 70 characters at this size, which is where
-// a sentence stays readable. The screen is wider and the sentence deliberately is
-// not.
-.dashboard__lead {
+// A measure, not a column width: about 70 characters at this size, which is where a
+// sentence stays readable. The screen is wider and the sentence deliberately is not.
+.control-panel__lead {
   max-inline-size: 38rem;
   margin: 0 0 var(--space-5);
   color: var(--color-muted-text);
@@ -28,7 +27,7 @@
 // abreast on a wide monitor instead of spreading into a thin strip of four. A hub's
 // cards are the largest thing on the page it opens; four columns of them read as a
 // toolbar, and a toolbar is not what a person landing here is looking at.
-.dashboard__areas {
+.control-panel__areas {
   display: grid;
   max-inline-size: 54rem;
   gap: var(--space-4);
@@ -44,13 +43,18 @@
 // surface. A reader who has learnt what the mark means in the rail has already
 // learnt what it means here.
 
-// The corners are rounded away from that edge, so the card reads as a plate
-// attached to the mark rather than a box with a stripe down one side.
+// The corners are rounded away from that edge, so the card reads as a plate attached
+// to the mark rather than a box with a stripe down one side.
+
+// A grid rather than a stack, because the glyph sits BESIDE the name and ABOVE the
+// sentence: two rows, two columns, and the sentence spans both so it runs the full
+// width of the card instead of being indented under the name.
 .area {
-  display: flex;
+  display: grid;
   block-size: 100%;
-  flex-direction: column;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  grid-template-columns: auto 1fr;
   padding: var(--space-5);
   border: 1px solid var(--color-border);
   border-inline-start: 0.1875rem solid var(--color-border-strong);
@@ -73,6 +77,37 @@
   outline-offset: 2px;
 }
 
+// A TINTED TILE THAT FILLS UNDER THE POINTER. It is the wordmark's tile at a lower
+// volume - the same rounded square, the same drawn glyph - so the console has one
+// mark language rather than a logo in one dialect and icons in another.
+
+// The fill is what this card does instead of an arrow. An arrow means "forward",
+// which is a direction, and a direction has to be mirrored in Arabic; a tile that
+// lights up means the same thing in both and needs no rule to say so.
+.area__mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.area:hover .area__mark {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.area__mark svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
 .area__name {
   color: var(--color-text);
   font-size: var(--font-size-lg);
@@ -80,12 +115,23 @@
   line-height: var(--line-height-tight);
 }
 
-// The sentence is the reason this screen exists rather than being the rail again,
-// so it is a full step of text and not a caption.
+// Spanning both columns, so the sentence starts at the card's own edge rather than
+// under the name. It is the reason this screen is not the rail again, so it gets a
+// full step of text and not a caption.
 .area__summary {
+  grid-column: 1 / -1;
   color: var(--color-muted-text);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
+}
+
+// Motion is one fade on a hover, and it stops for anyone who has asked their system
+// for less of it.
+@media (prefers-reduced-motion: reduce) {
+  .area,
+  .area__mark {
+    transition: none;
+  }
 }
 
 @media (width <= 60rem) {

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { NotFoundPage } from './layout/not-found-page';
-import { DashboardSection } from './sections/dashboard-section';
+import { ControlPanel } from './sections/control-panel';
 import { ROUTE_PATHS } from './route-paths';
 import { SectionPlaceholder } from './sections/section-placeholder';
 
@@ -31,21 +31,21 @@ import { SectionPlaceholder } from './sections/section-placeholder';
  */
 export const routes: Routes = [
   {
-    // THE CONSOLE OPENS ONTO THE DASHBOARD, not onto the practice's details, which
+    // THE CONSOLE OPENS ONTO THE CONTROL PANEL, not onto the practice's details, which
     // is what T-97 §4 and criterion 1 say. Administering the practice is one thing
     // this console does rather than the thing it is, and a front door that opens
     // straight onto a settings screen says otherwise. The ticket records what was
     // asked for; this records what was decided after seeing it running.
     path: '',
     pathMatch: 'full',
-    redirectTo: ROUTE_PATHS.dashboard,
+    redirectTo: ROUTE_PATHS.controlPanel,
   },
   {
     // Its own component from the start, rather than the placeholder the four
-    // practice areas share: the dashboard is the console's front door and not a
+    // practice areas share: the control panel is the console's front door and not a
     // face of the practice's record, so T-97c's split does not include it.
-    path: 'dashboard',
-    component: DashboardSection,
+    path: 'control-panel',
+    component: ControlPanel,
   },
   {
     // The literals, without their leading slash, are what the router matches; the
