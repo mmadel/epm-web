@@ -21,7 +21,6 @@ export const shellAr: Record<ShellKey, string> = {
 
   'shell.nav.label': 'Main navigation',
 
-  'shell.section.home': 'Home',
   'shell.section.practice': 'Practice details',
   'shell.section.clinics': 'Clinics',
   'shell.section.staff': 'Staff',
@@ -35,7 +34,8 @@ export const shellAr: Record<ShellKey, string> = {
   'shell.summary.subscription':
     'The plan this practice is on, what it includes, and when it renews.',
 
-  'shell.home.lead': 'Everything you run for this practice, in one place.',
+  'shell.home.title': 'Your practice',
+  'shell.home.lead': 'Everything you look after, in one place.',
 
   'shell.not-found.title': 'Page not found',
   'shell.not-found.body':

@@ -51,7 +51,7 @@ describe('staff routes', () => {
     document.documentElement.removeAttribute('dir');
   });
 
-  it('opens onto the home screen', async () => {
+  it('opens onto the practice’s own screen', async () => {
     // `/` renders nothing of its own. NOT `/practice`, which is what T-97 §4 and
     // criterion 1 specify: administering the practice is one thing this console does
     // rather than the thing it is, and the landing page was decided after seeing it
@@ -60,10 +60,12 @@ describe('staff routes', () => {
     const { router, element } = await open('/');
 
     expect(router.url).toBe(ROUTE_PATHS.home);
-    expect(element.querySelector('.home__title')?.textContent?.trim()).toBe('Home');
+    expect(element.querySelector('.practice-home__title')?.textContent?.trim()).toBe(
+      'Your practice',
+    );
   });
 
-  it('offers a way into every area from the home screen', async () => {
+  it('offers a way into every area from the practice’s own screen', async () => {
     // THE LANDING PAGE IS A WAY IN, and this is the whole of what it promises: one
     // card per area, each a link, each reaching a route that exists. The order is
     // asserted with them, because it is the rail's order and a landing page that

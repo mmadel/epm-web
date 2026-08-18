@@ -23,7 +23,6 @@ export const shellEn = {
   // THE ORDER IS WHERE YOU LAND, THEN CONTAINMENT: the home screen is the front door,
   // and after it a practice has clinics, clinics have staff, and all of it sits
   // under one subscription. Not alphabetical, and not by how often each is opened.
-  'shell.section.home': 'Home',
   'shell.section.practice': 'Practice details',
   'shell.section.clinics': 'Clinics',
   'shell.section.staff': 'Staff',
@@ -42,7 +41,8 @@ export const shellEn = {
     'The plan this practice is on, what it includes, and when it renews.',
 
   // The landing page's own words.
-  'shell.home.lead': 'Everything you run for this practice, in one place.',
+  'shell.home.title': 'Your practice',
+  'shell.home.lead': 'Everything you look after, in one place.',
 
   // What an address that matches no screen renders.
   'shell.not-found.title': 'Page not found',

@@ -1,8 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { NotFoundPage } from './layout/not-found-page';
-import { Home } from './sections/home';
-import { ROUTE_PATHS } from './route-paths';
+import { PracticeHome } from './sections/practice-home';
 import { SectionPlaceholder } from './sections/section-placeholder';
 
 /**
@@ -31,27 +30,24 @@ import { SectionPlaceholder } from './sections/section-placeholder';
  */
 export const routes: Routes = [
   {
-    // THE CONSOLE OPENS ONTO THE HOME SCREEN, not onto the practice's details, which
-    // is what T-97 §4 and criterion 1 say. Administering the practice is one thing
-    // this console does rather than the thing it is, and a front door that opens
-    // straight onto a settings screen says otherwise. The ticket records what was
-    // asked for; this records what was decided after seeing it running.
+    // THE CONSOLE'S ROOT IS ITS HOME SCREEN, rather than an address that redirects
+    // to one. A redirect would give this screen a second name - `/` and `/home` for
+    // the same thing - and there is nothing for the second one to be: `/practice` is
+    // an area of it, and every other name would be a word invented to fill a slot.
+
+    // It is not `/practice`, which is what T-97 §4 and criterion 1 specify. That was
+    // written before the console had a screen of its own to land on; administering
+    // the practice is one thing this console does rather than the thing it is.
     path: '',
     pathMatch: 'full',
-    redirectTo: ROUTE_PATHS.home,
-  },
-  {
-    // Its own component from the start, rather than the placeholder the four
-    // practice areas share: the home screen is the console's front door and not a
-    // face of the practice's record, so T-97c's split does not include it.
-    path: 'home',
-    component: Home,
+    component: PracticeHome,
   },
   {
     // The literals, without their leading slash, are what the router matches; the
-    // constants in `route-paths.ts` are what everything that LINKS here uses. The
-    // spec beside this file navigates to each constant and asserts it resolves,
-    // which is what ties the two together.
+    // constants in `route-paths.ts` are what everything that LINKS here uses. This
+    // file names none of them - it declares addresses rather than following them -
+    // and what ties the two together is the spec beside it, which navigates to every
+    // constant and asserts it resolves.
     path: 'practice',
     component: SectionPlaceholder,
     data: { section: 'shell.section.practice' },

@@ -5,7 +5,7 @@ import { TranslatePipe } from 'ui';
 import { ROUTE_PATHS } from '../route-paths';
 
 /**
- * One area of the console, as it appears on the home screen.
+ * One area of the console, as it appears on the practice's own screen.
  *
  * The `mark` is which glyph the card carries. It is a key rather than a path
  * because the paths live in the template - an SVG in a TypeScript string is an
@@ -19,7 +19,8 @@ interface Area {
 }
 
 /**
- * Where a signed-in staff member lands: one card per area of the console.
+ * The practice's own screen, and where a signed-in staff member lands: one card per
+ * area of the console.
  *
  * IT IS A WAY IN, NOT A REPORT. Every card is a link and nothing on this screen is
  * fetched - T-97 §4, the shell calls nothing - so the landing page ships with the
@@ -42,12 +43,12 @@ interface Area {
  * routes would silently grow a card for the unknown-route screen.
  */
 @Component({
-  selector: 'app-home',
+  selector: 'app-practice-home',
   imports: [RouterLink, TranslatePipe],
-  templateUrl: './home.html',
-  styleUrl: './home.scss',
+  templateUrl: './practice-home.html',
+  styleUrl: './practice-home.scss',
 })
-export class Home {
+export class PracticeHome {
   /**
    * The areas this console offers, in the rail's order.
    *

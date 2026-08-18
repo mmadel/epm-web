@@ -6,7 +6,7 @@
 // takes the loudest step on the scale rather than the one a section heading uses:
 // this is the only screen in the console with nothing above it and nothing beside
 // it, and at a section's size it read as a page waiting for its content.
-.home__title {
+.practice-home__title {
   margin: 0 0 var(--space-2);
   color: var(--color-text);
   font-size: var(--font-size-2xl);
@@ -16,7 +16,7 @@
 
 // A measure, not a column width: about 70 characters at this size, which is where a
 // sentence stays readable. The screen is wider and the sentence deliberately is not.
-.home__lead {
+.practice-home__lead {
   max-inline-size: 40rem;
   margin: 0 0 var(--space-6);
   color: var(--color-muted-text);
@@ -31,7 +31,7 @@
 // TWO ABREAST AND NOT FOUR. These cards are the whole of this screen, so they are
 // the largest thing on it; four columns of them read as a toolbar, and a toolbar is
 // not what a person landing here is looking at.
-.home__areas {
+.practice-home__areas {
   display: grid;
   gap: var(--space-4);
   grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));

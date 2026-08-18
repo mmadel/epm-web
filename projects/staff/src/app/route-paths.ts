@@ -20,14 +20,15 @@
  */
 export const ROUTE_PATHS = {
   /**
-   * Where a signed-in staff member lands, and where `/` sends them.
+   * Where a signed-in staff member lands, and the console's root.
    *
-   * IT IS NOT `/practice`, which is what T-97 §4 and criterion 1 specify. The
-   * home screen was decided after seeing the console running: administering the
-   * practice is one thing this console does rather than the thing it is, and a
-   * front door that opens straight onto a settings screen says otherwise.
+   * IT IS `/` ITSELF rather than an address `/` redirects to. A redirect would give
+   * one screen two names, and there is nothing for the second to be: `/practice` is
+   * an area of this screen, and anything else would be a word invented to fill a
+   * slot. T-97 §4 and criterion 1 send `/` to `/practice`, which was written before
+   * this console had a screen of its own to land on.
    */
-  home: '/home',
+  home: '/',
 
   /**
    * The practice's own details.

@@ -2,15 +2,15 @@
   `h1` because this is the screen's own title, and the frame around it declares
   none - the wordmark is a link and the rail is a landmark.
 -->
-<h1 class="home__title">{{ 'shell.section.home' | translate }}</h1>
-<p class="home__lead">{{ 'shell.home.lead' | translate }}</p>
+<h1 class="practice-home__title">{{ 'shell.home.title' | translate }}</h1>
+<p class="practice-home__lead">{{ 'shell.home.lead' | translate }}</p>
 
 <!--
   A list, and not a `div` of cards. These are links of the same kind, so a screen
   reader gets to announce how many there are and move between them; a pile of
   anchors in a grid container is the same thing with that fact removed.
 -->
-<ul class="home__areas">
+<ul class="practice-home__areas">
   @for (area of areas; track area.link) {
     <li>
       <!--
