@@ -1,5 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+  TestRequest,
+} from '@angular/common/http/testing';
 import { Component, inject as injectFn } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
@@ -15,17 +19,20 @@ import { API_BASE_URL, provideApiBaseUrl } from 'core';
 import { PracticeEdit } from './practice-edit';
 
 /**
- * The form that would edit a practice.
+ * The form that edits a practice.
  *
- * THE FIRST TEST IS THE ONE THAT MATTERS. The platform API has four operations and
- * every one of them is a read except the one that creates a practice, so this
- * screen cannot save - and the defect it must never ship is a control that looks
- * like it did. A platform administrator who believes they have suspended a practice
- * has been told something untrue about a real customer.
+ * THE FIRST GROUP IS THE ONE THAT MATTERS, and it did not stop mattering when the
+ * route arrived. This form shows three fields and the platform API covers one of
+ * them: the PATCH takes `name`, a status moves through three routes this screen does
+ * not call, and nothing anywhere changes a plan. So the tests that guard the save
+ * guard two things - that the name really is sent, and that a change this screen
+ * cannot make never travels as though it could. A platform administrator who
+ * believes they have suspended a practice has been told something untrue about a
+ * real customer, and a save that dropped the status half of the form would tell them
+ * exactly that while the button worked.
  *
- * Everything else here is the form itself, which is real: it reads the practice,
- * fills itself in, validates, and knows what has changed. When the route lands,
- * those tests keep passing and one more gets written.
+ * Everything after it is the form itself: it reads the practice, fills itself in,
+ * validates, and knows what has changed.
  */
 const PRACTICE_ID = '0195e2a1-0000-0000-0000-000000000001';
 const PRACTICE_URL = `https://api.test.invalid/api/v1/platform/organizations/${PRACTICE_ID}`;
@@ -109,6 +116,26 @@ class Harness {
     option?.querySelector<HTMLInputElement>('input')?.click();
     await this.settle();
   }
+
+  /**
+   * Submits the form itself rather than clicking the button.
+   *
+   * Deliberately the harder path: a disabled button cannot be clicked, so clicking
+   * it would make every "it refuses to send" test pass for the wrong reason. The
+   * form's submit event reaches the handler whatever the button looks like, which
+   * is also how a reader pressing Enter in the name field gets there.
+   */
+  async press(): Promise<void> {
+    this.query<HTMLFormElement>('.form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await this.settle();
+  }
+
+  /** The one PATCH the save makes, and a failure naming the method if there is none. */
+  patch(): TestRequest {
+    return this.http.expectOne(
+      (request) => request.method === 'PATCH' && request.url === PRACTICE_URL,
+    );
+  }
 }
 
 async function openEdit(practice: PlatformOrganization | 'failed' = NILE): Promise<Harness> {
@@ -155,54 +182,148 @@ async function openEdit(practice: PlatformOrganization | 'failed' = NILE): Promi
 
 describe('PracticeEdit', () => {
   // ---------------------------------------------------------------------------
-  // The thing it must never do
+  // The save, and the things it must never do
   // ---------------------------------------------------------------------------
 
-  it('cannot be submitted, because nothing is wired to receive it', async () => {
+  it('saves the name, and sends the name alone', async () => {
     const harness = await openEdit();
 
-    // A control that looked like it saved would tell a platform administrator they
-    // had changed a real customer's record when they had not. The routes exist as
-    // of the 0.2.0 specification; this screen does not call them.
-    expect(harness.submit.disabled).toBe(true);
+    await harness.type('Nile Care Group');
+    expect(harness.submit.disabled).toBe(false);
+
+    await harness.press();
+
+    const saved = harness.patch();
+
+    // THE WHOLE BODY, not a property of it. `status` on this route is 422
+    // EPM-ORG-007 whatever its value and the generated request type carries the
+    // member anyway, so the assertion is that nothing else is there at all.
+    expect(saved.request.body).toEqual({ name: 'Nile Care Group' });
+
+    saved.flush({ ...NILE, name: 'Nile Care Group' });
+    await harness.settle();
+
+    expect(harness.text).toContain('Saved. This practice is now called Nile Care Group');
   });
 
-  it('stays unsubmittable after a valid change', async () => {
+  it('will not save while a field it has no route for has changed', async () => {
     const harness = await openEdit();
 
     await harness.type('Nile Care Group');
     await harness.choose('Suspended');
 
-    // Valid, changed, and still not saveable. This is the test that fails the day
-    // somebody enables the button without wiring a route behind it.
-    expect(harness.text).toContain('This would be ready to save');
+    // Valid, changed, and refused - because sending this would change the name and
+    // leave the status alone while reporting success. The status has three routes
+    // of its own and this screen calls none of them.
     expect(harness.submit.disabled).toBe(true);
+    expect(harness.text).toContain('not everything here can be saved');
+
+    await harness.press();
+    harness.http.expectNone(() => true);
   });
 
-  it('says why before the form rather than after a press', async () => {
+  it('offers the way out of that block without undoing the name', async () => {
+    const harness = await openEdit();
+
+    await harness.type('Nile Care Group');
+    await harness.choose('Suspended');
+
+    harness.all('.note button').at(0)?.click();
+    await harness.settle();
+
+    // The status is back, the name the reader came here to change is not.
+    expect(harness.query<HTMLInputElement>('#practice-name')?.value).toBe('Nile Care Group');
+    expect(
+      harness.all('.choice__option--on').map((chip) => (chip.textContent ?? '').trim()),
+    ).toEqual(['Active']);
+    expect(harness.submit.disabled).toBe(false);
+  });
+
+  it('sends one request however many times the button is pressed', async () => {
+    const harness = await openEdit();
+
+    await harness.type('Nile Care Group');
+    await harness.press();
+    await harness.press();
+
+    // One in flight, one press swallowed. A disabled button is a rendering; the
+    // guard in PracticeUpdate is what makes this true.
+    harness.patch().flush({ ...NILE, name: 'Nile Care Group' });
+    await harness.settle();
+
+    harness.http.expectNone(() => true);
+  });
+
+  it('never says saved when the server refused', async () => {
+    const harness = await openEdit();
+
+    await harness.type('Nile Care Group');
+    await harness.press();
+
+    harness
+      .patch()
+      .flush({ code: 'EPM-ORG-007', status: 422 }, { status: 422, statusText: 'Unprocessable' });
+    await harness.settle();
+
+    expect(harness.text).not.toContain('Saved.');
+    expect(harness.text).toContain('this console asked for something the server does not allow');
+    // Still on the form, with the edit still in it, so the reader can try again.
+    expect(harness.query<HTMLInputElement>('#practice-name')?.value).toBe('Nile Care Group');
+  });
+
+  it('says nothing is known when the save never arrived', async () => {
+    const harness = await openEdit();
+
+    await harness.type('Nile Care Group');
+    await harness.press();
+
+    harness.patch().error(new ProgressEvent('failed'));
+    await harness.settle();
+
+    // Not a refusal - no answer. The one thing that can be said is that trying
+    // again is safe, because this is a PATCH and there is no key to reuse.
+    expect(harness.text).toContain('did not reach the server');
+    expect(harness.text).toContain('sending it twice is safe');
+  });
+
+  it('says a practice that is gone is gone, rather than offering a retry', async () => {
+    const harness = await openEdit();
+
+    await harness.type('Nile Care Group');
+    await harness.press();
+
+    harness.patch().flush(null, { status: 404, statusText: 'Not Found' });
+    await harness.settle();
+
+    expect(harness.text).toContain('could not be found');
+  });
+
+  it('drops a finished save the moment the reader types again', async () => {
+    const harness = await openEdit();
+
+    await harness.type('Nile Care Group');
+    await harness.press();
+    harness.patch().flush({ ...NILE, name: 'Nile Care Group' });
+    await harness.settle();
+
+    await harness.type('Nile Care Group Ltd');
+
+    // A message about the save that finished a moment ago, sitting above a field
+    // that has changed since, describes a practice that is no longer on screen.
+    expect(harness.text).not.toContain('Saved.');
+  });
+
+  it('says what it saves before the form rather than after a press', async () => {
     const harness = await openEdit();
 
     const notice = harness.query('.notice');
 
     expect(notice).not.toBeNull();
-    expect(notice?.textContent).toContain('Saving is not available yet');
-    // The route the button will call, named, so the reader can put it in a ticket.
+    expect(notice?.textContent).toContain('This screen saves the name');
+    // The route it calls, named, so the reader can put it in a ticket.
     expect(harness.query('.notice__route')?.textContent).toContain(
       `PATCH /api/v1/platform/organizations/${PRACTICE_ID}`,
     );
-  });
-
-  it('sends nothing at all', async () => {
-    const harness = await openEdit();
-
-    await harness.type('Nile Care Group');
-    harness
-      .query<HTMLFormElement>('.form')!
-      .dispatchEvent(new Event('submit', { cancelable: true }));
-    await harness.settle();
-
-    // Not a failed request - no request. Submitting is prevented outright.
-    harness.http.expectNone(() => true);
   });
 
   // ---------------------------------------------------------------------------

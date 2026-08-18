@@ -87,6 +87,19 @@ export class Practice {
     this.id.update((current) => (current === id ? current : id));
   }
 
+  /**
+   * Puts a practice the server has just answered with in place of the one held.
+   *
+   * The write routes reply with the same body this one reads (`LLD-ORGANIZATION.md`
+   * §2.2), so a screen that has just saved already has the practice and does not
+   * need to ask for it again. Re-reading would not only cost a round trip: it is a
+   * second chance to show something other than what was just saved, which is the
+   * one thing a reader would not expect to see after pressing Save.
+   */
+  accept(practice: PlatformOrganization): void {
+    this.asked.set(practice);
+  }
+
   retry(): void {
     this.asked.reload();
   }

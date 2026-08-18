@@ -144,49 +144,48 @@ practice with three branches of which one is closed reads `2 of 5` above a list 
 three — which reads exactly like a defect, and gets reported as one unless the screen
 says otherwise.
 
-## `/practices/:id/edit` — the form that does not save yet
+## `/practices/:id/edit` — the form that saves the name
 
-**Read `PracticeEdit`'s class note before touching this.** The routes this screen
-was waiting for exist as of `@mmadel/openapi-spec@0.2.0`:
+**Read `PracticeEdit`'s class note before touching this.** The form shows three
+fields and the platform API covers one of them:
 
 ```
-PATCH /api/v1/platform/organizations/{id}           updateOrganizationFromPlatform
-POST  /api/v1/platform/organizations/{id}/suspend   suspendOrganization
-POST  /api/v1/platform/organizations/{id}/reopen    reopenOrganization
-POST  /api/v1/platform/organizations/{id}/close     closeOrganization
+name     PATCH /api/v1/platform/organizations/{id}   updateOrganizationFromPlatform
+status   three transition routes, which this screen does not call
+plan     no route at all — nothing changes a practice's plan
 ```
 
-**The screen does not call any of them yet.** It reads the practice, fills the form
-in, validates it, tracks what changed, and shows the record as it is now beside what
-it would become — and then stops. The submit is still disabled and the notice above
-the form still says so; what changed is the reason. It is no longer "the API cannot
-do this", it is "this screen has not been wired to the routes that can".
+**So the submit is enabled by a change to the name.** A change to the plan or the
+status disables it instead, with a note naming the field and a control that puts it
+back without undoing the name. `PracticeUpdate` in `data/` owns the call, and it
+builds the request one member at a time: the generated `UpdateOrganizationRequest`
+carries `status` as an optional member, so `{ name, status }` compiles and is 422
+`EPM-ORG-007` at runtime.
 
-**A button that looked like it saved would be the worst thing on this screen.** A
-platform administrator who believes they have suspended a practice — on a product
+**A button that looked like it saved would be the worst thing on this screen**, and
+that was true when nothing could be saved and is still true now that something can.
+A platform administrator who believes they have suspended a practice — on a product
 where suspension is a billing and access decision — has been told something untrue
-about a real customer. An optimistic update, a toast, a local-only edit: each is
-that same lie with a different amount of work behind it. That the routes now exist
-changes none of that; only calling them does. The spec asserts the button stays
-disabled after a valid change, so it cannot be enabled without the wiring.
+about a real customer. A save that sent the name and quietly dropped the status
+would be exactly that, with the button working. It is why a half-saveable form
+refuses rather than doing its half.
 
-**Wiring it is not one call.** The form edits a name and a status together, and
-those are different operations with different rules:
+**The response is the practice.** The PATCH replies with the same body
+`getOrganizationById` does, so `Practice.accept` puts it straight into what the
+screen is holding — no second read, and the fields, the comparison panel and the
+dirty tracking all come back into step in one move. It also means the name read back
+after a save is the server's record rather than the field the reader typed into.
 
-- `name` goes through the `PATCH`, which accepts `name` and nothing else. Sending
-  `status` in that body is 422 `EPM-ORG-007` whatever its value.
-- `status` moves through the three `POST` routes, one per transition, each with its
-  own precondition. A transition that is not allowed from the current status is 422
-  `EPM-ORG-013`, which carries `from` and `to` so the message can be written without
-  re-reading the practice. Repeating one — suspending a practice that is already
-  suspended — is that error rather than a quiet success, and `CLOSED` is terminal.
+**There is no idempotency key,** unlike onboarding, and that is not an oversight: a
+repeated `POST` there creates a second practice, while this sets a name to a value,
+so the retry after a timeout that the unreachable message suggests really is safe.
 
-All four return the same body as `getOrganizationById`, so nothing needs a second
-read after a write.
-
-So the `save()` in `data/` this screen has been waiting for is a decision about what
-"save" means on a form that edits two things at once, not a single method to fill
-in. The form, its rules, its dirty tracking and its states are already here. F1 §7
+**Wiring the status is a separate decision, not a fourth call.** It is three routes,
+one per transition, each with its own precondition — a transition that is not
+allowed from the current status is 422 `EPM-ORG-013`, carrying `from` and `to`;
+repeating one is that error rather than a quiet success, and `CLOSED` is terminal.
+The question that has to be answered first is what a form editing a name and a
+status _together_ does when the first call succeeds and the second is refused. F1 §7
 item 1e owns it.
 
 It was blocked for the whole of F1 — the milestone's §5 is the argument for the

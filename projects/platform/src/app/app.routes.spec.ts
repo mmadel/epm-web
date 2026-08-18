@@ -112,9 +112,9 @@ describe('platform routes', () => {
   });
 
   it('reaches the form that would edit a practice', async () => {
-    // It does not save yet - the API routes exist as of the 0.2.0 specification,
-    // but this screen is not wired to them - and the screen says so. The form, its
-    // rules and its states were built and tested ahead of the wiring.
+    // It saves the name, through the PATCH that arrived in the 0.2.0 specification.
+    // The plan and the status it shows have no route it calls, and the screen says
+    // so rather than sending half of what the reader changed.
     expect(await landsOn('/practices/org-1/edit')).toEqual({
       url: '/practices/org-1/edit',
       title: 'Edit practice',

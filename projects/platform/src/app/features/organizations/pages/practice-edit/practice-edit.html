@@ -55,11 +55,11 @@
     </header>
 
     <!--
-      THE ONE THING THIS SCREEN DOES NOT DO YET, said before the form rather than
-      after a press. The routes that change a practice exist as of the 0.2.0
-      specification, but nothing here calls them - see the class note. A submit that
-      looked like it worked would tell a platform administrator they had suspended a
-      real customer when they had not, which is the worst thing this screen could do.
+      WHAT THIS SCREEN SAVES AND WHAT IT DOES NOT, said before the form rather than
+      after a press. The API covers one of the three fields below - see the class
+      note. A submit that sent the name and quietly left a status change behind
+      would report success for half of what the reader did, and the half it dropped
+      is the one that decides whether a real customer can use the product.
     -->
     <div class="notice" role="note">
       <span class="notice__mark" aria-hidden="true">
@@ -77,11 +77,11 @@
       </span>
 
       <div class="notice__body">
-        <p class="notice__title">Saving is not available yet</p>
+        <p class="notice__title">This screen saves the name</p>
         <p class="notice__text">
-          The platform API can change a practice now, but this screen has not been wired to it yet.
-          The form below is complete and the fields are yours to try; what is missing is the call
-          behind the button.
+          The plan and the status are not changed here. No route in the platform API changes a
+          practice's plan, and a status moves through routes of its own that this screen does not
+          call yet — so a change to either has to be put back before the name can be saved.
         </p>
         <p class="notice__route figure">PATCH /api/v1/platform/organizations/{{ id() }}</p>
       </div>
@@ -248,30 +248,92 @@
           </ul>
         }
 
-        <div class="form__actions">
-          <!--
-            DISABLED, AND THE NOTICE ABOVE SAYS WHY. A disabled control with no reason
-            beside it is the most frustrating object in a form (design §4); the reason
-            is at the top of this one, where it is read before the fields rather than
-            after them.
-          -->
-          <button class="form__submit" type="submit" disabled>Save changes</button>
+        <!--
+          THE BLOCK, NAMED AND WITH THE WAY OUT BESIDE IT. A disabled control with no
+          reason next to it is the most frustrating object in a form (design §4), and
+          this is the one reason a reader can hit while doing something perfectly
+          sensible: changing the name and the status in one go.
+        -->
+        @if (unsaveable().length > 0) {
+          <ul class="notes">
+            <li class="note note--warning">
+              <span class="note__mark" aria-hidden="true">
+                <svg viewBox="0 0 16 16" focusable="false">
+                  <path
+                    d="M8 2.8 14.5 13.5h-13z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M8 6.5v3.2"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="8" cy="11.6" r="0.75" fill="currentColor" />
+                </svg>
+              </span>
 
-          <button class="form__revert" type="button" [disabled]="!isChanged()" (click)="revert()">
+              @if (unsaveable().length === 1) {
+                The {{ unsaveable()[0] }} cannot be saved from this screen, so the name cannot be
+                saved while it differs.
+              } @else {
+                The plan and the status cannot be saved from this screen, so the name cannot be
+                saved while they differ.
+              }
+
+              <button class="field__retry" type="button" (click)="revertUnsaveable()">
+                Put them back
+              </button>
+            </li>
+          </ul>
+        }
+
+        @if (failure(); as message) {
+          <ul class="form__faults" role="alert">
+            <li>{{ message }}</li>
+          </ul>
+        }
+
+        <div class="form__actions">
+          <button class="form__submit" type="submit" [disabled]="!canSave()">
+            @if (isSaving()) {
+              Saving…
+            } @else {
+              Save changes
+            }
+          </button>
+
+          <button
+            class="form__revert"
+            type="button"
+            [disabled]="!isChanged() || isSaving()"
+            (click)="revert()"
+          >
             Undo changes
           </button>
 
-          <p
-            class="form__state"
-            [class.form__state--ready]="isChanged() && isValid()"
-            role="status"
-          >
-            @if (!isChanged()) {
+          <!--
+            ONE LINE, AND IT NEVER SAYS SAVED UNLESS THE SERVER SAID SO. `savedAs`
+            comes from the response body, so the name it reads back is the server's
+            record of the practice rather than the field the reader typed into.
+          -->
+          <p class="form__state" [class.form__state--ready]="canSave()" role="status">
+            @if (savedAs(); as saved) {
+              Saved. This practice is now called {{ saved }}.
+            } @else if (isSaving()) {
+              Saving…
+            } @else if (!isChanged()) {
               Nothing changed yet.
             } @else if (!isValid()) {
               Changed, but not valid yet.
+            } @else if (unsaveable().length > 0) {
+              Changed, but not everything here can be saved.
             } @else {
-              Changed. This would be ready to save.
+              Changed. Ready to save.
             }
           </p>
         </div>
