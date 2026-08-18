@@ -10,6 +10,7 @@ export * from './lib/i18n/translate-pipe';
 export * from './lib/i18n/translation-service';
 export * from './lib/i18n/translations';
 export * from './lib/layout/placeholder/placeholder';
+export * from './lib/page-header/page-header';
 export * from './lib/shell/shell';
 export * from './lib/shell/wordmark/wordmark';
 export * from './lib/ui';
