@@ -1,32 +1,70 @@
-// The language switch. Moved here verbatim from the shell's stylesheet when the
-// control was extracted; no raw colour and no `px` spacing, same as everywhere
+// The language switch. No raw colour and no `px` spacing, same as everywhere
 // outside projects/ui/styles/_tokens.scss.
+
+// THE CHROME ROLES, NOT THE PAGE ONES. This control sits in the frame's header, and
+// it was drawn with `--color-surface`, `--color-text` and `--color-border` - the
+// roles a card on a page uses. On a pale frame that made it read as a form field
+// somebody had dropped into the header, and on an ink frame it would have been a
+// white box. A control in the chrome is chrome.
 
 :host {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  color: var(--color-chrome-muted-text);
 }
 
 .language-switch__label {
-  color: var(--color-muted-text);
   font-size: var(--font-size-sm);
 }
 
+// The positioning context for the chevron, and nothing else.
+.language-switch__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+// `appearance: none` removes the platform's own arrow, so the inline padding on the
+// end side is what leaves room for the one drawn in its place.
 .language-switch__select {
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--color-border);
+  appearance: none;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2) var(--space-5);
+  border: 1px solid var(--color-chrome-border);
   border-radius: 0.25rem;
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color: transparent;
+  color: var(--color-chrome-text);
 
   // `inherit`, so the switch follows the per-language family swap like everything
   // else rather than falling back to the browser's form-control font.
   font-family: inherit;
   font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
+
+.language-switch__select:hover {
+  background-color: var(--color-chrome-hover-surface);
 }
 
 .language-switch__select:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-chrome-focus);
   outline-offset: 2px;
+}
+
+// `inset-inline-end`, so the mark sits at the trailing edge of the control in both
+// directions. `pointer-events: none` so the whole control stays clickable through
+// it - a chevron that swallows the click is a select that opens everywhere except
+// on its own arrow.
+.language-switch__chevron {
+  position: absolute;
+  display: flex;
+  inset-inline-end: var(--space-2);
+  pointer-events: none;
+}
+
+.language-switch__chevron svg {
+  inline-size: 0.625rem;
+  block-size: 0.375rem;
 }

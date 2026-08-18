@@ -1,0 +1,141 @@
+// No raw colour and no `px` spacing: every value is a token from
+// projects/ui/styles/_tokens.scss, and Stylelint rejects anything else. Nothing
+// here names a physical side, so Arabic mirrors with no second rule.
+
+// THE SCREEN IS THE CONSOLE'S FRONT DOOR, so it is set at the size of one. The title
+// takes the loudest step on the scale rather than the one a section heading uses:
+// this is the only screen in the console with nothing above it and nothing beside
+// it, and at a section's size it read as a page waiting for its content.
+.practice-home__title {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// A measure, not a column width: about 70 characters at this size, which is where a
+// sentence stays readable. The screen is wider and the sentence deliberately is not.
+.practice-home__lead {
+  max-inline-size: 40rem;
+  margin: 0 0 var(--space-6);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-normal);
+}
+
+// `auto-fit` with a minimum rather than a fixed column count, so the grid answers
+// the window instead of the breakpoint: two cards abreast on a laptop, one on a
+// narrow screen, with no media query to keep in step with the frame's own.
+
+// TWO ABREAST AND NOT FOUR. These cards are the whole of this screen, so they are
+// the largest thing on it; four columns of them read as a toolbar, and a toolbar is
+// not what a person landing here is looking at.
+.practice-home__areas {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// A SURFACE WITH AN ACCENT EDGE MEANS "SOMEWHERE YOU CAN GO". At rest the edge is a
+// quiet rule and the card is the page's own white; under the pointer the edge takes
+// the accent, the card lifts to the tinted surface and its mark fills.
+
+// The corners are rounded away from that edge, so the card reads as a plate attached
+// to the mark rather than a box with a stripe down one side.
+
+// A grid rather than a stack, because the mark sits BESIDE the name and ABOVE the
+// sentence: two rows, two columns, and the sentence spans both so it runs the card's
+// full width instead of being indented under the name.
+.area {
+  display: grid;
+  block-size: 100%;
+  align-items: center;
+  gap: var(--space-3);
+  grid-template-columns: auto 1fr;
+  padding: var(--space-6) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-inline-start: 0.1875rem solid var(--color-border-strong);
+  border-start-end-radius: 0.25rem;
+  border-end-end-radius: 0.25rem;
+  background-color: var(--color-surface);
+  text-decoration: none;
+  transition:
+    border-color 120ms ease-out,
+    background-color 120ms ease-out;
+}
+
+.area:hover {
+  border-inline-start-color: var(--color-primary);
+  background-color: var(--color-surface-raised);
+}
+
+.area:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// A TINTED TILE THAT FILLS UNDER THE POINTER. It is the wordmark's tile at a lower
+// volume - the same rounded square, the same drawn glyph - so the console has one
+// mark language rather than a logo in one dialect and icons in another.
+
+// The fill is what this card does instead of an arrow. An arrow means "forward",
+// which is a direction, and a direction has to be mirrored in Arabic; a tile that
+// lights up means the same thing in both and needs no rule to say so.
+.area__mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 0.625rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.area:hover .area__mark {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.area__mark svg {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+}
+
+.area__name {
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// Spanning both columns, so the sentence starts at the card's own edge rather than
+// under the name. It is the reason a card is not just a bigger link, so it gets a
+// full step of text and not a caption.
+.area__summary {
+  grid-column: 1 / -1;
+  color: var(--color-muted-text);
+  line-height: var(--line-height-normal);
+}
+
+// Motion here is one fade on a hover, and it stops for anyone who has asked their
+// system for less of it.
+@media (prefers-reduced-motion: reduce) {
+  .area,
+  .area__mark {
+    transition: none;
+  }
+}
+
+@media (width <= 60rem) {
+  .area {
+    padding: var(--space-4);
+  }
+}

@@ -1,0 +1,35 @@
+// No raw colour and no `px` spacing: every value is a token from
+// projects/ui/styles/_tokens.scss, and Stylelint rejects anything else.
+
+// `max-inline-size`, not `max-width`: the measure is on the inline axis, so it
+// follows the document direction and Arabic needs no second rule. Nothing in this
+// file names a physical side.
+
+// A MEASURE, NOT A COLUMN WIDTH. 38rem is around 70 characters at this body size,
+// which is the width a sentence stays readable at; the screen is wider than that
+// and the text deliberately is not.
+.placeholder {
+  max-inline-size: 38rem;
+}
+
+// The name of the screen, and the largest thing on it. A screen in this console is
+// one record with one name, so the name gets to be unmistakably the name rather
+// than a slightly larger paragraph.
+.placeholder__heading {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// The quieter step, because the sentence explains an absence rather than being the
+// content of the screen. `--color-muted-text` and not the third step below it: this
+// is the only sentence here, and the only sentence on a screen is not secondary to
+// anything.
+.placeholder__body {
+  margin: 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-loose);
+}

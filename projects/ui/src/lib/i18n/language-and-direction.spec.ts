@@ -93,7 +93,7 @@ describe('language and direction', () => {
   });
 
   it('starts in English, left to right', () => {
-    expect(heading()).toBe('Elite Physical Medicine (en)');
+    expect(heading()).toBe('EPM (en)');
     expectLabelledFor('en');
   });
 
@@ -103,7 +103,7 @@ describe('language and direction', () => {
     language.setLanguage('ar');
     await fixture.whenStable();
 
-    expect(heading()).toBe('Elite Physical Medicine (ar)');
+    expect(heading()).toBe('EPM (ar)');
     expectLabelledFor('ar');
     // Same component: the text changed, the application was not rebuilt.
     expect(fixture.componentInstance).toBe(instance);
@@ -115,7 +115,7 @@ describe('language and direction', () => {
     language.setLanguage('en');
     await fixture.whenStable();
 
-    expect(heading()).toBe('Elite Physical Medicine (en)');
+    expect(heading()).toBe('EPM (en)');
     expectLabelledFor('en');
   });
 
@@ -162,21 +162,21 @@ describe('language and direction', () => {
     expect(storage.getItem(LANGUAGE_STORAGE_KEY)).toBe('ar');
     await startWith(storage);
 
-    expect(heading()).toBe('Elite Physical Medicine (ar)');
+    expect(heading()).toBe('EPM (ar)');
     expectLabelledFor('ar');
   });
 
   it('starts in English after a reload with nothing stored', async () => {
     await startWith(fakeStorage());
 
-    expect(heading()).toBe('Elite Physical Medicine (en)');
+    expect(heading()).toBe('EPM (en)');
     expectLabelledFor('en');
   });
 
   it('starts in English after a reload with a nonsense stored value', async () => {
     await startWith(fakeStorage({ [LANGUAGE_STORAGE_KEY]: 'not-a-language' }));
 
-    expect(heading()).toBe('Elite Physical Medicine (en)');
+    expect(heading()).toBe('EPM (en)');
     expectLabelledFor('en');
   });
 });

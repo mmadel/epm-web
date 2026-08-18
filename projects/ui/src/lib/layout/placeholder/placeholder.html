@@ -1,0 +1,13 @@
+<!--
+  `h1` because this is the screen's own title, and the frame around it declares
+  no heading of its own - the wordmark is a link, and the navigation is a
+  landmark. A placeholder that used `h2` would leave every unbuilt screen in the
+  console with no first-level heading for a screen reader to jump to.
+-->
+<section class="placeholder">
+  <h1 class="placeholder__heading">{{ heading() }}</h1>
+  <p class="placeholder__body">{{ body() }}</p>
+
+  <!-- Whatever the host wants after the sentence: a way out, a link, nothing. -->
+  <ng-content />
+</section>

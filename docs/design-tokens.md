@@ -178,6 +178,31 @@ spacing scale. The block lives in `_tokens.scss` rather than in the application,
 `projects/platform/src/styles.scss` contains no palette at all and no application
 stylesheet ever needs a raw colour value.
 
+The staff console does it too, in the opposite direction. It is the practice's own back
+office and the people in it spend the rest of their day in clinical software, so it is
+**white content in a cool blue-grey frame, with a deep teal accent**: the page and chrome
+surfaces are the reverse of the platform console's, and the hue is the one healthcare
+already uses. Teal rather than blue, because blue is the whole of clinical software and
+says nothing about which application this is. Its type scale is the workspace's with the
+top two steps opened up; the body sizes are untouched, because a console used by people
+who have turned their browser text size up is not a place to save space.
+
+Its one shared-component change is the navigation, which is **a row of tabs on one
+record rather than a rail beside it**. A practice's details, its clinics, its people and
+its subscription are four faces of a single thing, and a rail says the opposite - it says
+these are four places you can go. The active tab is painted in the page's own surface
+with its lower edge removed, so the tab and the screen below it are one continuous sheet.
+That is four carriers of the active state - the surface, the joined edge, an accent line
+on top, and the label's weight - because colour alone fails for a colour-blind reader. It
+also gives the console the full width of the window, which is what a form and a table of
+staff both want.
+
+**`--epm-accent` is the identity role**, separate from `--color-primary`. The action
+colour answers "what colour is a button here" and is free to move for a contrast reason;
+the identity colour answers "which console am I in" and moves only when the console does.
+Its default is `var(--color-primary)`, so an application that has claimed no identity
+still renders a wordmark. A console that has claimed one writes a plain value.
+
 **Only roles are reassigned - never new names.** A `--platform-…` token would be a
 name only one application understands, and the first step towards a `ui` component
 branching on which console it is rendering in. The contrast test asserts this too.

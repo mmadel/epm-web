@@ -16,6 +16,7 @@
     "build:libs": "ng build api-client && ng build core && ng build ui",
     "prebuild": "npm run generate:env",
     "build": "npm run build:libs && ng build staff && ng build patient && ng build platform",
+    "postbuild": "node tools/sections/check-lazy-chunks.mjs",
     "watch": "ng build --watch --configuration development",
     "pretest": "npm run generate:env",
     "test": "ng test",

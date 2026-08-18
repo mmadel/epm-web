@@ -124,32 +124,64 @@ async function capture() {
 
       // Reported so the caller can see the geometry that the picture is evidence
       // of, and so a broken layout is loud even before anyone opens the file.
+
+      // WHAT MIRRORS IS THE HEADER'S TWO ENDS. The console has no navigation rail to
+      // check the side of any more, so the frame's direction is read where it is
+      // still visible: the wordmark sits at the inline START of the header and the
+      // language switch at the inline END, which is left-then-right in English and
+      // right-then-left in Arabic.
+
+      // Both are measured as an inset from the inline start - the one measurement
+      // that means the same thing in both directions - so a correct layout reports a
+      // small number for the wordmark and a large one for the switch, in either
+      // language, and a frame that had stopped mirroring reports them the same way
+      // round in only one of them.
       const geometry = await page.evaluate(() => {
-        const box = (selector) => {
+        const viewport = document.documentElement.clientWidth;
+        const rtl = document.documentElement.getAttribute('dir') === 'rtl';
+
+        const startInset = (selector) => {
           const rect = document.querySelector(selector)?.getBoundingClientRect();
-          return rect && { start: Math.round(rect.x), width: Math.round(rect.width) };
+
+          if (!rect) {
+            return undefined;
+          }
+
+          return Math.round(rtl ? viewport - (rect.x + rect.width) : rect.x);
         };
 
         return {
-          viewport: document.documentElement.clientWidth,
-          nav: box('.shell-nav'),
-          main: box('.shell-main'),
+          viewport,
+          wordmark: startInset('.wordmark'),
+          languageSwitch: startInset('lib-language-switch'),
+          content: startInset('.staff-content'),
         };
       });
 
-      const side = geometry.nav.start === 0 ? 'left' : 'right';
       console.log(
-        `${file}: lang=${language} dir=${direction} nav on the ${side} ` +
-          `(x=${geometry.nav.start}, w=${geometry.nav.width}), ` +
-          `content x=${geometry.main.start}, w=${geometry.main.width}, ` +
-          `viewport w=${geometry.viewport}`,
+        `${file}: lang=${language} dir=${direction} wordmark ${geometry.wordmark}px from the ` +
+          `inline start, language switch ${geometry.languageSwitch}px, content ` +
+          `${geometry.content}px, viewport w=${geometry.viewport}`,
       );
 
-      const expected = direction === 'rtl' ? 'right' : 'left';
-      if (side !== expected) {
+      if (geometry.wordmark === undefined || geometry.languageSwitch === undefined) {
+        throw new Error('The header rendered no wordmark or no language switch.');
+      }
+
+      // A quarter of the way across is a gutter; further is the other end of the band.
+      if (geometry.wordmark > geometry.viewport / 4) {
         throw new Error(
-          `Navigation is on the ${side} in ${direction}, expected the ${expected}. ` +
-            'The frame is no longer mirroring; do not trust the screenshots.',
+          `In ${direction} the wordmark starts ${geometry.wordmark}px from the inline start, ` +
+            'which is not the leading corner. The frame is no longer mirroring; do not trust ' +
+            'the screenshots.',
+        );
+      }
+
+      if (geometry.languageSwitch < geometry.viewport / 2) {
+        throw new Error(
+          `In ${direction} the language switch starts ${geometry.languageSwitch}px from the ` +
+            'inline start, which puts it on the same side as the wordmark. The frame is no ' +
+            'longer mirroring; do not trust the screenshots.',
         );
       }
     }

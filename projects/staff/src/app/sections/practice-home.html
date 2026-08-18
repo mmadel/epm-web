@@ -1,0 +1,88 @@
+<!--
+  `h1` because this is the screen's own title, and the frame around it declares
+  none - the wordmark is a link and the rail is a landmark.
+-->
+<h1 class="practice-home__title">{{ 'shell.home.title' | translate }}</h1>
+<p class="practice-home__lead">{{ 'shell.home.lead' | translate }}</p>
+
+<!--
+  A list, and not a `div` of cards. These are links of the same kind, so a screen
+  reader gets to announce how many there are and move between them; a pile of
+  anchors in a grid container is the same thing with that fact removed.
+-->
+<ul class="practice-home__areas">
+  @for (area of areas; track area.link) {
+    <li>
+      <!--
+        THE WHOLE CARD IS THE LINK, rather than a link inside it. A card clickable
+        only on its title is a target the size of a word inside a target the size
+        of a hand.
+      -->
+      <a class="area" [routerLink]="area.link">
+        <!--
+          The glyphs share the wordmark's drawing: one 16-unit box, stroked in
+          `currentcolor` at the same weight, with round caps and joins. They are
+          drawn rather than lettered because a mark is what the eye finds before it
+          reads, and they are `aria-hidden` because the name beside each one already
+          says what it is - announcing both would say it twice.
+
+          Nothing here is mirrored in Arabic and nothing needs to be: a building, a
+          location pin, two people and a payment card are objects, not directions.
+        -->
+        <span class="area__mark" aria-hidden="true">
+          <svg viewBox="0 0 16 16" focusable="false">
+            @switch (area.mark) {
+              @case ('practice') {
+                <!-- The practice itself: a building, with its door. -->
+                <path
+                  d="M2.5 13.5h11M4 13.5V5.2L8 2.5l4 2.7v8.3M6.6 13.5v-3.2h2.8v3.2M6.6 7.6h2.8"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              }
+              @case ('clinics') {
+                <!-- Places: a pin, with the cross that makes it a clinic. -->
+                <path
+                  d="M8 14c2.6-3 4-5.2 4-7a4 4 0 1 0-8 0c0 1.8 1.4 4 4 7ZM8 4.9v4.2M5.9 7h4.2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              }
+              @case ('staff') {
+                <!-- People: one in front, one behind. -->
+                <path
+                  d="M6.2 7.6a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6ZM1.7 13.4c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4M10.8 3.5a2.1 2.1 0 0 1 0 4M12.4 9.9c1.3.6 1.9 1.8 1.9 3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              }
+              @case ('subscription') {
+                <!-- What is paid for: a card, with its band and its number. -->
+                <path
+                  d="M2 4.3h12v7.4H2zM2 7h12M4.4 9.6h3.2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              }
+            }
+          </svg>
+        </span>
+
+        <span class="area__name">{{ area.nameKey | translate }}</span>
+        <span class="area__summary">{{ area.summaryKey | translate }}</span>
+      </a>
+    </li>
+  }
+</ul>

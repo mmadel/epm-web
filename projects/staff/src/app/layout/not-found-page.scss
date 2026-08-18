@@ -1,0 +1,24 @@
+// No raw colour and no `px` spacing: every value is a token from
+// projects/ui/styles/_tokens.scss, and Stylelint rejects anything else. Nothing
+// here names a physical side, so Arabic needs no second rule.
+
+// The way out. It is a link and it is drawn as one - underlined, in the accent -
+// rather than as a button: nothing is being submitted, and a button here would
+// promise an action where there is only an address.
+.not-found__link {
+  display: inline-block;
+  margin-block-start: var(--space-4);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25rem;
+}
+
+.not-found__link:hover {
+  color: var(--color-primary-hover);
+}
+
+.not-found__link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

@@ -116,6 +116,28 @@
   --color-chrome-focus: #1b5e9c;
 
   // ---------------------------------------------------------------------------
+  // Console identity
+  // ---------------------------------------------------------------------------
+
+  // WHICH CONSOLE AM I LOOKING AT. One person can hold an account in the staff
+  // console and in the platform console, and the two run under opposite tenancy
+  // rules - one of them with the tenant filter off. Telling them apart must not
+  // depend on reading the address bar, so the wordmark carries a colour that
+  // belongs to the console rather than to the page, and this is that colour.
+
+  // IT IS A SEPARATE NAME FROM --color-primary BECAUSE IT ANSWERS A DIFFERENT
+  // QUESTION. --color-primary is "what colour is an action here"; this is "what
+  // product is this". They are the same value in the staff console today and they
+  // are free to stop being: a contrast fix to the action colour is not a rebrand,
+  // and a rebrand is not a contrast fix.
+
+  // The default is the application's own action colour, so a product that has not
+  // claimed an identity yet - the patient app - still renders a wordmark rather
+  // than an uncoloured shape. A console that has claimed one reassigns it in its
+  // own [data-app] block below.
+  --epm-accent: var(--color-primary);
+
+  // ---------------------------------------------------------------------------
   // Status
   // ---------------------------------------------------------------------------
 
@@ -164,7 +186,7 @@
   // mockup asked for. That is the cheaper mistake.
 
   // The steps are roughly 1.5x apart, in `rem` so they scale with the user's
-  // browser font size - a physiotherapy console gets used by people who have
+  // browser font size - a clinical console gets used by people who have
   // turned their default text size up, and a `px` scale silently ignores them.
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -296,6 +318,101 @@
   --line-height-tight: 1.5; // Latin 1.2
   --line-height-normal: 1.85; // Latin 1.5
   --line-height-loose: 2.05; // Latin 1.7
+}
+
+// ---------------------------------------------------------------------------
+// The staff console's theme
+// ---------------------------------------------------------------------------
+
+// Keyed off `data-app` on the document element, which projects/staff/src/index.html
+// sets once. Same mechanism as the platform block below, and here for the same
+// reason: an application must be able to state its own identity without a raw
+// colour appearing in an application stylesheet, and this is the one file allowed
+// to hold one.
+
+// IT IS A CLINICAL APPLICATION AND IT LOOKS LIKE ONE. EPM is patient medicine, and
+// this console is the administrative side of it - the practice's own record, kept
+// by people who spend the rest of their day in clinical software. So the palette is
+// the one that world already uses: cool near-white surfaces, a blue-grey frame, and
+// a deep teal accent, rather than a warmer or more editorial reading of the brief.
+// An earlier version of this block was warm paper and pine; it was handsome and it
+// did not read as healthcare, which is the only thing this palette has to do.
+
+// TEAL AND NOT BLUE. Blue is the whole of clinical software - every patient record
+// system on the market is drawn in it - so it identifies nothing. Teal is still
+// unmistakably clinical, is nowhere near the platform console's indigo, and is not
+// #0e7c66, which T-97 §4 reserves.
+
+:root[data-app='staff'] {
+  // -------------------------------------------------------------------------
+  // The frame
+  // -------------------------------------------------------------------------
+
+  // A cool blue-grey band holding a white sheet. The step between them is small on
+  // purpose: the frame's job is to carry the wordmark and the record's tabs, and a
+  // heavy frame around a screen of forms is a border competing with the fields.
+  --color-chrome-surface: #e9eff5;
+  --color-chrome-text: #0f2430;
+  --color-chrome-muted-text: #4b6070;
+  --color-chrome-border: #cfdce6;
+  --color-chrome-hover-surface: #e2ebf2;
+
+  // The accent as it appears on the frame. This frame is light, so unlike the
+  // platform console it takes the same value the page does - the two exist as
+  // separate roles for a console whose frame is a different lightness, and this
+  // one's is not.
+  --color-chrome-accent: #0b6b7c;
+  --color-chrome-focus: #0b6b7c;
+
+  // -------------------------------------------------------------------------
+  // The content
+  // -------------------------------------------------------------------------
+
+  // THE PAGE IS WHITE and a block sitting on it is a cool tint. That is the inverse
+  // of the platform console, and it is the right way round here: the work is forms,
+  // names and lists, which are read against white, and the tint marks the things
+  // that are not the work.
+  --color-surface: #fff;
+  --color-surface-raised: #f5f9fc;
+
+  // Ink with the same blue in it as the frame, so the two read as one palette
+  // rather than a neutral grey that happens to sit next to a coloured one.
+  --color-text: #0f2430;
+  --color-muted-text: #4b6070;
+  --color-subtle-text: #5b7181;
+  --color-border: #d9e4ec;
+  --color-border-soft: #eaf1f6;
+  --color-border-strong: #b9cbd8;
+
+  // DEEP TEAL, and it is the console's whole identity. Dark enough to carry
+  // body-sized link text on white at better than 6:1, which is what lets one value
+  // serve as the action colour, the focus ring, the wordmark's tile and the mark on
+  // the active tab - one accent used everywhere rather than a family of near-misses.
+  --color-primary: #0b6b7c;
+  --color-primary-hover: #08525f;
+  --color-primary-soft: #e2f0f3;
+  --color-primary-deep: #074a56;
+
+  // Cooled towards the frame, so a disabled control belongs to the same screen.
+  --color-muted-surface: #e4ecf2;
+
+  // WHICH CONSOLE THIS IS. The same teal, stated separately - see the default above
+  // for why the two names are not one.
+  --epm-accent: #0b6b7c;
+
+  // -------------------------------------------------------------------------
+  // Type
+  // -------------------------------------------------------------------------
+
+  // THE SAME SIX STEPS, WITH THE TOP TWO OPENED UP. The workspace scale is tuned for
+  // a clinical screen read at arm's length and the body sizes stay exactly where it
+  // put them - this console is used by people who have turned their browser text
+  // size up, and nothing here is allowed to get smaller.
+
+  // What changes is the distance at the top. A screen here is one record with one
+  // name on it, and at 1.5rem that name barely outranked the sentence under it.
+  --font-size-xl: 1.75rem; // 28px - the name of the screen
+  --font-size-2xl: 2.5rem; // 40px - the one thing on a screen that shouts
 }
 
 // ---------------------------------------------------------------------------

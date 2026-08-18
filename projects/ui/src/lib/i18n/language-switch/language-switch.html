@@ -1,15 +1,47 @@
 <label class="language-switch__label" for="language-switch-select">
   {{ 'shell.language.label' | translate }}
 </label>
-<select
-  id="language-switch-select"
-  class="language-switch__select"
-  [value]="language()"
-  (change)="onLanguageChange($event)"
->
-  @for (option of languageOptions; track option.value) {
-    <option [value]="option.value" [selected]="option.value === language()">
-      {{ option.labelKey | translate }}
-    </option>
-  }
-</select>
+
+<!--
+  The control and its own chevron, wrapped together so the mark can be positioned
+  against the select rather than against the whole switch - the label beside it is
+  a different width in every language.
+-->
+<span class="language-switch__control">
+  <select
+    id="language-switch-select"
+    class="language-switch__select"
+    [value]="language()"
+    (change)="onLanguageChange($event)"
+  >
+    @for (option of languageOptions; track option.value) {
+      <option [value]="option.value" [selected]="option.value === language()">
+        {{ option.labelKey | translate }}
+      </option>
+    }
+  </select>
+
+  <!--
+    Drawn rather than left to the browser, because the native arrow is a different
+    shape, size and colour on every platform and it is the one mark in this frame
+    that would not match the others. It is an SVG for the same reason the wordmark's
+    glyph is: a chevron built from two rotated borders would use logical sides, and
+    logical sides flip in Arabic - a chevron that points down has to point down in
+    both directions.
+
+    `aria-hidden`, and the select behind it keeps its own semantics: this is
+    decoration over a native control, not a replacement for one.
+  -->
+  <span class="language-switch__chevron" aria-hidden="true">
+    <svg viewBox="0 0 10 6" focusable="false">
+      <path
+        d="M1 1l4 4 4-4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </span>
+</span>

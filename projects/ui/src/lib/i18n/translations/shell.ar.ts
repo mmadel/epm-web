@@ -15,14 +15,32 @@ import { ShellKey } from './shell.en';
  * build if a key here is missing or misspelt relative to `shell.en.ts`.
  */
 export const shellAr: Record<ShellKey, string> = {
-  'shell.header.title': 'Elite Physical Medicine',
+  'shell.header.title': 'EPM',
+  'shell.header.console': 'Staff',
   'shell.header.skip-to-content': 'Skip to main content',
 
   'shell.nav.label': 'Main navigation',
-  'shell.nav.dashboard': 'Dashboard',
-  'shell.nav.patients': 'Patients',
-  'shell.nav.appointments': 'Appointments',
-  'shell.nav.billing': 'Billing',
+
+  'shell.section.practice': 'Practice details',
+  'shell.section.clinics': 'Clinics',
+  'shell.section.staff': 'Staff',
+  'shell.section.subscription': 'Subscription',
+
+  'shell.summary.practice':
+    'The name, contact details and registration this practice trades under.',
+  'shell.summary.clinics': 'The places this practice works from, and how to reach each one.',
+  'shell.summary.staff':
+    'Who works here, what they may do, and who has yet to accept an invitation.',
+  'shell.summary.subscription':
+    'The plan this practice is on, what it includes, and when it renews.',
+
+  'shell.home.title': 'Your practice',
+  'shell.home.lead': 'Everything you look after, in one place.',
+
+  'shell.not-found.title': 'Page not found',
+  'shell.not-found.body':
+    'That address does not match a screen in this console. It may have been mistyped, or it may point at something that has not been built yet.',
+  'shell.not-found.link': 'Go to practice details',
 
   'shell.language.label': 'Language',
   'shell.language.english': 'English',

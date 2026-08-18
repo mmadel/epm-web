@@ -1,0 +1,12 @@
+<!--
+  Projected into the placeholder rather than laid out again here: what an
+  unmatched address renders is a named screen with a sentence on it, which is the
+  same shape a section that has not been built yet has. The only difference is
+  that this one has somewhere to send the reader.
+-->
+<lib-placeholder
+  [heading]="'shell.not-found.title' | translate"
+  [body]="'shell.not-found.body' | translate"
+>
+  <a class="not-found__link" [routerLink]="homeLink">{{ 'shell.not-found.link' | translate }}</a>
+</lib-placeholder>
