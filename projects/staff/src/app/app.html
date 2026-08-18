@@ -1,5 +1,16 @@
 <lib-shell [skipLinkLabel]="'shell.header.skip-to-content' | translate" [navigation]="navigation()">
-  <span shell-brand class="staff-brand">{{ 'shell.header.title' | translate }}</span>
+  <!--
+    THE WORDMARK SAYS WHICH CONSOLE THIS IS, and it is the link home. A person can
+    hold an account in this console and in the platform one, and the two run under
+    opposite tenancy rules, so "which application am I in" has to be answerable
+    without reading the address bar.
+  -->
+  <lib-wordmark
+    shell-brand
+    [product]="'shell.header.title' | translate"
+    [consoleName]="'shell.header.console' | translate"
+    [link]="home"
+  />
 
   <lib-language-switch shell-header-end />
 
@@ -10,15 +21,5 @@
   -->
   <div class="staff-content">
     <router-outlet />
-
-    <!--
-      There are no screens yet: this console's route table is empty until the first
-      feature ticket adds one, so the content area would otherwise be blank with no
-      explanation. The condition is read from the route table itself, so this
-      disappears on its own rather than becoming something to remember to delete.
-    -->
-    @if (!hasScreens) {
-      <p>{{ 'common.state.empty' | translate }}</p>
-    }
   </div>
 </lib-shell>

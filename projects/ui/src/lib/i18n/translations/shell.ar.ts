@@ -15,14 +15,18 @@ import { ShellKey } from './shell.en';
  * build if a key here is missing or misspelt relative to `shell.en.ts`.
  */
 export const shellAr: Record<ShellKey, string> = {
-  'shell.header.title': 'Elite Physical Medicine',
+  'shell.header.title': 'EPM',
+  'shell.header.console': 'Staff',
   'shell.header.skip-to-content': 'Skip to main content',
 
   'shell.nav.label': 'Main navigation',
-  'shell.nav.dashboard': 'Dashboard',
-  'shell.nav.patients': 'Patients',
-  'shell.nav.appointments': 'Appointments',
-  'shell.nav.billing': 'Billing',
+
+  'shell.section.practice': 'Practice details',
+
+  'shell.not-found.title': 'Page not found',
+  'shell.not-found.body':
+    'That address does not match a screen in this console. It may have been mistyped, or it may point at something that has not been built yet.',
+  'shell.not-found.link': 'Go to practice details',
 
   'shell.language.label': 'Language',
   'shell.language.english': 'English',

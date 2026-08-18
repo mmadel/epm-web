@@ -88,6 +88,7 @@ function contrast(foreground, background) {
 }
 
 const PLATFORM = ":root[data-app='platform']";
+const STAFF = ":root[data-app='staff']";
 const DEFAULT = ':root';
 
 /** [theme, description, foreground token, background token, floor] */
@@ -251,6 +252,82 @@ const PAIRS = [
   [DEFAULT, 'a danger tint', '--color-danger-text', '--color-danger-surface', TEXT],
   [DEFAULT, 'a danger mark', '--color-danger-mark', '--color-danger-surface', MARK],
   [DEFAULT, 'the focus ring on the page', '--color-primary', '--color-surface', MARK],
+
+  // ---------------------------------------------------------------------------
+  // The staff console (T-97)
+  // ---------------------------------------------------------------------------
+
+  // A clinical palette: white content, a cool blue-grey frame, deep teal accent. It
+  // reassigns most of the roles, so the DEFAULT pairs above no longer describe what
+  // it renders - they now cover the patient application, which has claimed no
+  // identity of its own yet.
+  [STAFF, 'body text on the page', '--color-text', '--color-surface', TEXT],
+  [STAFF, 'body text on a tinted block', '--color-text', '--color-surface-raised', TEXT],
+  [STAFF, 'supporting text on the page', '--color-muted-text', '--color-surface', TEXT],
+  [
+    STAFF,
+    'supporting text on a tinted block',
+    '--color-muted-text',
+    '--color-surface-raised',
+    TEXT,
+  ],
+  [STAFF, 'the third step of text on the page', '--color-subtle-text', '--color-surface', TEXT],
+  [
+    STAFF,
+    'the third step of text on a tinted block',
+    '--color-subtle-text',
+    '--color-surface-raised',
+    TEXT,
+  ],
+  [STAFF, 'a link on the page', '--color-primary', '--color-surface', TEXT],
+  [STAFF, 'a hovered link on the page', '--color-primary-hover', '--color-surface', TEXT],
+  [STAFF, 'a label on a filled accent area', '--color-text-inverse', '--color-primary', TEXT],
+  [STAFF, 'text on the soft accent', '--color-primary-deep', '--color-primary-soft', TEXT],
+
+  // The header band and the record's tab band. Both are the chrome surface, and
+  // everything drawn on either is read against it.
+  [STAFF, 'the product name in the header', '--color-chrome-text', '--color-chrome-surface', TEXT],
+  [
+    STAFF,
+    "the console's name beside it, in the quiet step",
+    '--color-chrome-muted-text',
+    '--color-chrome-surface',
+    TEXT,
+  ],
+
+  // The wordmark's tile, and the glyph inside it. The tile is a filled shape on the
+  // band and the glyph is a non-text mark on the tile, so both take the 3:1 floor -
+  // the words beside them are what carry the name.
+  [STAFF, 'the wordmark tile on the header band', '--epm-accent', '--color-chrome-surface', MARK],
+  [STAFF, 'the wordmark glyph on its tile', '--color-text-inverse', '--epm-accent', MARK],
+
+  // The tabs. A resting tab is a label on the band; the active one is a label on the
+  // page's own surface, because the tab is painted in it and joined to it.
+  [
+    STAFF,
+    'a resting tab label on the band',
+    '--color-chrome-muted-text',
+    '--color-chrome-surface',
+    TEXT,
+  ],
+  [
+    STAFF,
+    'a hovered tab label on its hover surface',
+    '--color-chrome-text',
+    '--color-chrome-hover-surface',
+    TEXT,
+  ],
+  [STAFF, 'the active tab label on the sheet', '--color-text', '--color-surface', TEXT],
+  [
+    STAFF,
+    "the accent edge along the active tab's top",
+    '--color-chrome-accent',
+    '--color-chrome-surface',
+    MARK,
+  ],
+
+  [STAFF, 'the focus ring on the frame', '--color-chrome-focus', '--color-chrome-surface', MARK],
+  [STAFF, 'the focus ring on the page', '--color-primary', '--color-surface', MARK],
 ];
 
 test('every colour the product stacks on another clears its contrast floor', () => {
@@ -280,5 +357,15 @@ test('the platform theme reassigns roles rather than inventing names', () => {
   // A `--platform-…` token would be a name only one application understands, and
   // the first step towards a `ui` component that has to branch on which console
   // it is rendering in.
+  assert.deepEqual(invented, []);
+});
+
+test('the staff theme reassigns roles rather than inventing names', () => {
+  const themes = readThemes();
+  const invented = Object.keys(themes[STAFF]).filter((token) => !(token in themes[DEFAULT]));
+
+  // Same rule the platform console is held to, and for the same reason: a name
+  // only one application understands is the first step towards a `ui` component
+  // that branches on which console it is rendering in.
   assert.deepEqual(invented, []);
 });

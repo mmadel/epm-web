@@ -1,0 +1,73 @@
+// The product mark. It is drawn on the header band, so it takes the chrome roles
+// rather than the page ones - the frame is not always the lightness of a card.
+
+// No raw colour and no `px` spacing: every value is a token from
+// projects/ui/styles/_tokens.scss, and Stylelint rejects anything else. Nothing
+// here names a physical side.
+
+// THE SAME SHAPE THE PLATFORM CONSOLE'S HEADER HAS: an accent tile carrying the
+// product's glyph, then the product's name, then the console's name in the quiet
+// step. One product, two consoles, and a person who has both should recognise the
+// second from the first - what separates them is the colour of the tile and the
+// lightness of the band it sits on, not a different arrangement of the same parts.
+
+// The inline padding aligns the mark with the record's tabs below it and with the
+// content beside them, which the header's own smaller gutter would not.
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  padding-inline-start: var(--space-3);
+  color: var(--color-chrome-text);
+  text-decoration: none;
+}
+
+// A filled tile rather than a bare glyph. A filled shape carries its own contrast
+// onto a frame of any lightness, so the mark reads on this console's pale band and
+// would read on an ink one without a second value.
+.wordmark__mark {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: 0.5rem;
+  background-color: var(--epm-accent);
+  color: var(--color-text-inverse);
+}
+
+.wordmark__mark svg {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+}
+
+.wordmark__name {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-tight);
+}
+
+.wordmark__product {
+  font-weight: var(--font-weight-bold);
+}
+
+// The quiet step, and the word that says which console this is. It is quiet on
+// purpose: the tile has already said it in colour, and a second shout would leave
+// the header with two things competing to be read first.
+
+// Deliberately not upper-cased and not letter-spaced. Arabic has no case, so the
+// first would do nothing there and would silently make the two languages different
+// designs; the second breaks a connected script apart.
+.wordmark__console {
+  color: var(--color-chrome-muted-text);
+  font-weight: var(--font-weight-regular);
+}
+
+// The ring tuned against the chrome, for the same reason the skip link takes it: a
+// ring in the page accent is invisible on a dark frame, which is a focus indicator
+// that is present in the stylesheet and absent on the screen.
+.wordmark:focus-visible {
+  outline: 2px solid var(--color-chrome-focus);
+  outline-offset: 2px;
+}

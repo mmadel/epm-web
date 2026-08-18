@@ -14,13 +14,13 @@ import { TranslationDictionary } from './translation-service';
  */
 export const TRANSLATIONS_FIXTURE: Readonly<Record<Language, TranslationDictionary>> = {
   en: {
-    'shell.header.title': 'Elite Physical Medicine (en)',
+    'shell.header.title': 'EPM (en)',
     'common.action.save': 'Save (en)',
     'common.upload.limit': 'Up to {limit} files (en)',
     'common.upload.rejected': 'Asked for {requested}, limit is {limit} (en)',
   },
   ar: {
-    'shell.header.title': 'Elite Physical Medicine (ar)',
+    'shell.header.title': 'EPM (ar)',
     'common.action.save': 'Save (ar)',
     'common.upload.limit': 'Up to {limit} files (ar)',
     'common.upload.rejected': 'Asked for {requested}, limit is {limit} (ar)',

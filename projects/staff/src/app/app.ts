@@ -1,25 +1,41 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { LanguageSwitch, Shell, ShellNavigation, TranslatePipe, TranslationService } from 'ui';
+import {
+  LanguageSwitch,
+  Shell,
+  ShellNavigation,
+  TranslatePipe,
+  TranslationService,
+  Wordmark,
+} from 'ui';
 
-import { routes } from './app.routes';
+import { ROUTE_PATHS } from './route-paths';
 
-/** What this console's navigation offers, as keys. Resolved in {@link App.navigation}. */
-const NAVIGATION = [
-  { labelKey: 'shell.nav.dashboard', link: '/dashboard' },
-  { labelKey: 'shell.nav.patients', link: '/patients' },
-  { labelKey: 'shell.nav.appointments', link: '/appointments' },
-  { labelKey: 'shell.nav.billing', link: '/billing' },
-] as const;
+/**
+ * What this console's navigation offers, as keys. Resolved in {@link App.navigation}.
+ *
+ * ONE ENTRY, BECAUSE ONE SECTION EXISTS. The other three arrive with their routes
+ * in T-97b and T-97c rather than being listed here first: an entry that leads to
+ * an address no route matches is a navigation item that renders "Page not found",
+ * which is worse than a navigation that is visibly still being built.
+ *
+ * EVERY ENTRY IS VISIBLE TO EVERY SIGNED-IN CALLER, and that is deliberate. Hiding
+ * one by role needs the session, which is T-81 in M2; reading roles from anywhere
+ * else in the meantime would be a second source of truth for who may do what.
+ */
+const NAVIGATION = [{ labelKey: 'shell.section.practice', link: ROUTE_PATHS.practice }] as const;
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Shell, LanguageSwitch, TranslatePipe],
+  imports: [RouterOutlet, Shell, Wordmark, LanguageSwitch, TranslatePipe],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   private readonly translations = inject(TranslationService);
+
+  /** Where the wordmark goes, which is where `/` goes: this console's home. */
+  protected readonly home = ROUTE_PATHS.practice;
 
   /**
    * This console's navigation, resolved in the active language.
@@ -41,11 +57,4 @@ export class App {
       link: entry.link,
     })),
   }));
-
-  /**
-   * Whether any screen exists yet. Read from the route table rather than hardcoded,
-   * so the empty state in the template disappears by itself the moment the first
-   * feature ticket registers a route.
-   */
-  protected readonly hasScreens = routes.length > 0;
 }

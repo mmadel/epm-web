@@ -102,8 +102,6 @@ describe('TranslationService', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({ providers: [{ provide: LANGUAGE_STORAGE, useValue: null }] });
 
-    expect(TestBed.inject(TranslationService).translate('shell.header.title')).toBe(
-      'Elite Physical Medicine',
-    );
+    expect(TestBed.inject(TranslationService).translate('shell.header.title')).toBe('EPM');
   });
 });

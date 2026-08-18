@@ -1,5 +1,14 @@
 <!doctype html>
-<html lang="en">
+<!--
+  `lang` is a starting value only. `LanguageService` in `core` rewrites `lang` and
+  `dir` on this element at bootstrap and on every language switch; it is the one
+  place in the workspace that writes either attribute.
+
+  `data-app="staff"` selects this console's identity from the token file in `ui` -
+  today, the accent the wordmark wears. It is here rather than in a stylesheet so
+  that no raw colour value ever needs to appear in an application stylesheet.
+-->
+<html lang="en" data-app="staff">
   <head>
     <meta charset="utf-8" />
     <title>Staff</title>

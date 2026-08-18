@@ -124,33 +124,58 @@ async function capture() {
 
       // Reported so the caller can see the geometry that the picture is evidence
       // of, and so a broken layout is loud even before anyone opens the file.
+
+      // WHAT MIRRORS IS NO LONGER A COLUMN. The navigation used to be a rail beside
+      // the content and "which side is it on" was the whole check; it is a full-width
+      // band of tabs now, so what has to flip is where the FIRST TAB sits within it,
+      // and where the content's own gutter starts. Both are measured as an inset from
+      // the inline start - the left edge in English, the right edge in Arabic - which
+      // is the one measurement that means the same thing in both directions.
       const geometry = await page.evaluate(() => {
-        const box = (selector) => {
+        const viewport = document.documentElement.clientWidth;
+        const rtl = document.documentElement.getAttribute('dir') === 'rtl';
+
+        const startInset = (selector) => {
           const rect = document.querySelector(selector)?.getBoundingClientRect();
-          return rect && { start: Math.round(rect.x), width: Math.round(rect.width) };
+
+          if (!rect) {
+            return undefined;
+          }
+
+          return Math.round(rtl ? viewport - (rect.x + rect.width) : rect.x);
         };
 
         return {
-          viewport: document.documentElement.clientWidth,
-          nav: box('.shell-nav'),
-          main: box('.shell-main'),
+          viewport,
+          band: Math.round(
+            document.querySelector('.shell-nav')?.getBoundingClientRect().width ?? 0,
+          ),
+          firstTab: startInset('.shell-nav__link'),
+          content: startInset('.staff-content'),
         };
       });
 
-      const side = geometry.nav.start === 0 ? 'left' : 'right';
       console.log(
-        `${file}: lang=${language} dir=${direction} nav on the ${side} ` +
-          `(x=${geometry.nav.start}, w=${geometry.nav.width}), ` +
-          `content x=${geometry.main.start}, w=${geometry.main.width}, ` +
-          `viewport w=${geometry.viewport}`,
+        `${file}: lang=${language} dir=${direction} band w=${geometry.band}, ` +
+          `first tab ${geometry.firstTab}px from the inline start, ` +
+          `content ${geometry.content}px from it, viewport w=${geometry.viewport}`,
       );
 
-      const expected = direction === 'rtl' ? 'right' : 'left';
-      if (side !== expected) {
-        throw new Error(
-          `Navigation is on the ${side} in ${direction}, expected the ${expected}. ` +
-            'The frame is no longer mirroring; do not trust the screenshots.',
-        );
+      // The band spans the window, so a frame that had stopped mirroring would still
+      // look plausible in these numbers unless they are read as insets. A tab or a
+      // gutter more than a quarter of the way across the window is not a gutter.
+      const limit = geometry.viewport / 4;
+
+      for (const [name, inset] of Object.entries({
+        'the first tab': geometry.firstTab,
+        'the content gutter': geometry.content,
+      })) {
+        if (inset === undefined || inset > limit) {
+          throw new Error(
+            `In ${direction}, ${name} starts ${inset}px from the inline start, which is not ` +
+              'a gutter. The frame is no longer mirroring; do not trust the screenshots.',
+          );
+        }
       }
     }
 

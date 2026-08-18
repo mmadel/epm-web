@@ -1,12 +1,15 @@
 // The application frame.
 
-// THE NAVIGATION IS ON THE START SIDE, NOT THE LEFT SIDE, and there is no
-// direction-specific declaration anywhere below that makes that happen. The frame
-// is a grid, `nav` comes before `main` on the inline axis in the template areas,
-// and a grid's inline axis follows the document direction - so in Arabic the
-// browser mirrors the whole frame with no second stylesheet and no `[dir='rtl']`
-// selector. Everything else here that has a side is a logical property:
-// `border-inline-end` on the navigation, `inset-inline-start` on the skip link.
+// EVERY SIDE HERE IS AN INLINE SIDE, NOT A LEFT OR A RIGHT. Nothing below names a
+// physical direction: the frame is a single-column grid, and everything within a row
+// that has a side uses a logical property - `border-inline-end`, `inset-inline-start`,
+// `border-start-start-radius`. In Arabic the browser mirrors the whole frame with no
+// second stylesheet and no `[dir='rtl']` selector.
+
+// ONE LAYOUT AT EVERY WIDTH. The frame used to be two columns above 60rem and one
+// below it, which meant the navigation had two designs and the breakpoint had to keep
+// them agreeing. It is a band now, so there is one design; what the breakpoint still
+// owns is how much room things get, not what shape they are.
 
 // No raw colour and no `px` spacing: every value is a token from
 // projects/ui/styles/_tokens.scss, and Stylelint rejects anything else.
@@ -14,19 +17,15 @@
 :host {
   display: grid;
 
-  // Rows, areas and columns in one declaration: the navigation sits before the
-  // content on the inline axis, and the browser decides which physical side that
-  // is from the document's direction.
-
-  // The navigation column is `auto` rather than a fixed width, and the width
-  // lives on `.shell-nav` instead. A product with no navigation renders no
-  // element in that area, so the column collapses to nothing rather than
-  // leaving a 16rem gutter beside the content.
+  // The navigation sits between the header and the content, full width. A product
+  // with no navigation renders no element in that row, so the row collapses to
+  // nothing rather than leaving a gap where a band would have been.
   grid-template:
-    'edge edge' auto
-    'header header' auto
-    'nav main' 1fr
-    / auto 1fr;
+    'edge' auto
+    'header' auto
+    'nav' auto
+    'main' 1fr
+    / 1fr;
   min-block-size: 100dvh;
   background-color: var(--color-surface);
   color: var(--color-text);
@@ -95,47 +94,88 @@
 // Navigation
 // ---------------------------------------------------------------------------
 
+// THE ENTRIES ARE TABS ON ONE RECORD, NOT DESTINATIONS IN A MENU. A practice's
+// details, its clinics, its people and its subscription are four faces of a single
+// thing, and a rail down the side says the opposite - it says these are four places
+// you can go, the way a rail in any administrative console does.
+
+// So they are drawn the way every clinical system already draws the faces of a
+// record: index tabs along its top edge. The active tab is PAINTED IN THE PAGE'S
+// OWN SURFACE and its lower edge is removed, so the tab and the screen below it are
+// one continuous sheet rather than a control sitting above a panel. That is the
+// whole idea, and it is also the state: you are not next to this section, you are
+// inside it.
+
+// It costs the console its side rail and gives back the full width of the window,
+// which is what a screen of forms and a table of staff both want.
+
 .shell-nav {
   grid-area: nav;
-  inline-size: 16rem;
-  padding: var(--space-3);
+  padding-block-start: var(--space-2);
+  padding-inline: var(--space-2);
   background-color: var(--color-chrome-surface);
-  border-inline-end: 1px solid var(--color-chrome-border);
+  border-block-end: 1px solid var(--color-chrome-border);
 }
 
+// It scrolls on the inline axis rather than wrapping. A record's tabs are one row
+// by definition; a second row of them is a second record.
 .shell-nav__list {
   display: flex;
-  flex-direction: column;
   gap: var(--space-1);
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow-x: auto;
 }
 
+// Every tab carries its full border and its accent edge from the start, painted
+// transparent, so nothing moves and nothing resizes when one becomes active. The
+// negative block-end margin is what lets the active tab's lower edge cover the
+// band's, which is what joins it to the sheet; it is in `rem` because a `px` margin
+// is a spacing value the token scale would have to explain.
 .shell-nav__link {
   display: block;
-  padding: var(--space-2) var(--space-3);
-  border-radius: 0.25rem;
-  color: var(--color-chrome-text);
+  margin-block-end: -0.0625rem;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-block-start: 0.1875rem solid transparent;
+  border-start-start-radius: 0.25rem;
+  border-start-end-radius: 0.25rem;
+  color: var(--color-chrome-muted-text);
   font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
   text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 120ms ease-out,
+    background-color 120ms ease-out;
 }
 
 .shell-nav__link:hover {
   background-color: var(--color-chrome-hover-surface);
+  color: var(--color-chrome-text);
 }
 
-// The active entry stays on the page accent rather than moving to the chrome
-// one: it is a filled shape with `--color-text-inverse` on it, so it carries its
-// own contrast onto a frame of any lightness.
+// FOUR CARRIERS, NOT ONE: the sheet the tab is painted in, the edge it is joined
+// along, the accent line on its top, and the weight of its label. Colour alone fails
+// for a colour-blind reader, and a console whose only "you are here" is a hue is a
+// console people get lost in.
+
+// `border-color` comes first so the two edges below override it rather than the
+// other way round: the top edge is the accent, and the bottom edge is the page,
+// which is what removes it.
 .shell-nav__link--active {
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
-  font-weight: var(--font-weight-medium);
+  border-color: var(--color-chrome-border);
+  border-block-start-color: var(--color-chrome-accent);
+  border-block-end-color: var(--color-surface);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
 }
 
 .shell-nav__link--active:hover {
-  background-color: var(--color-primary-hover);
+  background-color: var(--color-surface);
 }
 
 // ---------------------------------------------------------------------------
@@ -170,38 +210,32 @@
 }
 
 // ---------------------------------------------------------------------------
-// Tablet
+// Motion
 // ---------------------------------------------------------------------------
 
-// Desktop-first: this is the one breakpoint, and it is where a 16rem navigation
-// column stops leaving a usable content area. Below it the frame becomes a single
-// column and the navigation turns into a horizontal strip under the header, which
-// scrolls on the inline axis if the entries outgrow it. Phone layouts are a
-// separate design problem - the patient app - and are out of scope here.
+// The frame animates one thing - a navigation label coming up to full ink - and it
+// stops doing even that for anyone who has asked their system for less motion.
+@media (prefers-reduced-motion: reduce) {
+  .shell-nav__link {
+    transition: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Narrow
+// ---------------------------------------------------------------------------
+
+// The one breakpoint, and it no longer changes the frame's shape - the band is the
+// band at every width. What it changes is the gutter, so the tabs do not lose the
+// window's edge on a small screen, and they keep scrolling on the inline axis when
+// they outgrow it. Phone layouts are a separate design problem - the patient app -
+// and are out of scope here.
 @media (width <= 60rem) {
-  :host {
-    grid-template:
-      'edge' auto
-      'header' auto
-      'nav' auto
-      'main' 1fr
-      / 1fr;
-  }
-
   .shell-nav {
-    inline-size: auto;
-    padding: var(--space-2) var(--space-3);
-    border-inline-end: 0;
-    border-block-end: 1px solid var(--color-border);
-  }
-
-  .shell-nav__list {
-    flex-direction: row;
-    gap: var(--space-2);
-    overflow-x: auto;
+    padding-inline: 0;
   }
 
   .shell-nav__link {
-    white-space: nowrap;
+    padding-inline: var(--space-3);
   }
 }
