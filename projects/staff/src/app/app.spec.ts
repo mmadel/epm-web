@@ -23,7 +23,7 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('mounts the shared shell and fills its navigation', async () => {
+  it('mounts the shared shell and fills its navigation, in order', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -32,13 +32,13 @@ describe('App', () => {
     // asserts the wiring between the two, not the shell's own behaviour, which is
     // covered where the shell lives.
     //
-    // ONE ENTRY, BECAUSE ONE SECTION EXISTS. The other three arrive with their own
-    // routes; an entry pointing at an address no route matches is a navigation item
-    // that renders "Page not found".
+    // THE ORDER IS THE ASSERTION as much as the membership. It is containment - a
+    // practice has clinics, clinics have staff, all of it under one subscription -
+    // and a set comparison would pass on an alphabetical console.
     expect(compiled.querySelector('lib-shell')).not.toBeNull();
     expect(
       [...compiled.querySelectorAll('.shell-nav__link')].map((link) => link.textContent?.trim()),
-    ).toEqual(['Practice details']);
+    ).toEqual(['Practice details', 'Clinics', 'Staff', 'Subscription']);
   });
 
   it('says which console this is, in the wordmark, and links it home', async () => {

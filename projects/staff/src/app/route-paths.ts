@@ -13,6 +13,10 @@
  * session by the backend; a practice id in a path is an invitation to type a
  * different one, which is the whole shape of the mistake this console must not
  * make. The same goes for any other tenant identifier.
+ *
+ * THE ORDER BELOW IS THE ORDER THE NAVIGATION SHOWS, and it is containment: a
+ * practice has clinics, clinics have staff, and all of it sits under one
+ * subscription. It is not alphabetical and not by how often each is opened.
  */
 export const ROUTE_PATHS = {
   /**
@@ -23,4 +27,19 @@ export const ROUTE_PATHS = {
    * and it is the section every other one is a part of.
    */
   practice: '/practice',
+
+  /**
+   * The practice's branches.
+   *
+   * THE PATH SAYS CLINICS AND THE PRODUCT SAYS CLINICS. `T-66` is filed against
+   * "branches", which is the word the API and the milestone use; a URL is
+   * something a practice manager reads, and what they have is clinics.
+   */
+  clinics: '/clinics',
+
+  /** The people who work in them. */
+  staff: '/staff',
+
+  /** What the practice pays for, and what that entitles it to. */
+  subscription: '/subscription',
 } as const;

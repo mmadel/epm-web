@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { NotFoundPage } from './layout/not-found-page';
 import { ROUTE_PATHS } from './route-paths';
-import { PracticeSection } from './sections/practice-section';
+import { SectionPlaceholder } from './sections/section-placeholder';
 
 /**
  * The console's route table.
@@ -17,9 +17,16 @@ import { PracticeSection } from './sections/practice-section';
  * a switch. It is a strategy that reads the language service, and it belongs with
  * the ticket that needs it rather than half-built here.
  *
- * The three remaining sections and their own components are T-97c; every path
- * other than `/practice` reaches the screen at the bottom of this file until
- * then.
+ * `data.section` NAMES THE SECTION, and it is a translation key rather than a
+ * word: it reaches `SectionPlaceholder`'s input through
+ * `withComponentInputBinding` and is resolved in the active language there. The
+ * navigation reads the same key for the same section, so the tab and the heading
+ * are one name.
+ *
+ * EVERY SECTION IS ITS OWN COMPONENT, LOADED LAZILY, IN T-97c. Today the four
+ * share one placeholder: this sub-task owes a navigation that is reachable by
+ * clicking, and four eagerly imported components would satisfy that while quietly
+ * failing criterion 4, which only the build output can see.
  */
 export const routes: Routes = [
   {
@@ -31,12 +38,28 @@ export const routes: Routes = [
     redirectTo: ROUTE_PATHS.practice,
   },
   {
-    // The literal, without its leading slash, is what the router matches; the
-    // constant in `route-paths.ts` is what everything that LINKS here uses. The
-    // spec beside this file navigates to the constant and asserts it resolves,
+    // The literals, without their leading slash, are what the router matches; the
+    // constants in `route-paths.ts` are what everything that LINKS here uses. The
+    // spec beside this file navigates to each constant and asserts it resolves,
     // which is what ties the two together.
     path: 'practice',
-    component: PracticeSection,
+    component: SectionPlaceholder,
+    data: { section: 'shell.section.practice' },
+  },
+  {
+    path: 'clinics',
+    component: SectionPlaceholder,
+    data: { section: 'shell.section.clinics' },
+  },
+  {
+    path: 'staff',
+    component: SectionPlaceholder,
+    data: { section: 'shell.section.staff' },
+  },
+  {
+    path: 'subscription',
+    component: SectionPlaceholder,
+    data: { section: 'shell.section.subscription' },
   },
   {
     // NOT a redirect to the practice section - see `NotFoundPage`. It is last

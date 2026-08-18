@@ -15,10 +15,18 @@ export const shellEn = {
 
   'shell.nav.label': 'Main navigation',
 
-  // The console's sections. One key each, read twice - by the navigation entry
-  // that reaches a section and by the section's own heading - because they are
-  // one name. Two keys would be two names the moment one of them was reworded.
+  // The console's sections, in the order the navigation shows them. One key each,
+  // read twice - by the tab that reaches a section and by that section's own
+  // heading - because they are one name. Two keys would be two names the moment
+  // one of them was reworded.
+
+  // THE ORDER IS CONTAINMENT: a practice has clinics, clinics have staff, and all
+  // of it is under one subscription. It is not alphabetical and it is not how
+  // often each is opened.
   'shell.section.practice': 'Practice details',
+  'shell.section.clinics': 'Clinics',
+  'shell.section.staff': 'Staff',
+  'shell.section.subscription': 'Subscription',
 
   // What an address that matches no screen renders.
   'shell.not-found.title': 'Page not found',

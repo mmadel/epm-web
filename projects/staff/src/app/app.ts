@@ -14,16 +14,24 @@ import { ROUTE_PATHS } from './route-paths';
 /**
  * What this console's navigation offers, as keys. Resolved in {@link App.navigation}.
  *
- * ONE ENTRY, BECAUSE ONE SECTION EXISTS. The other three arrive with their routes
- * in T-97b and T-97c rather than being listed here first: an entry that leads to
- * an address no route matches is a navigation item that renders "Page not found",
- * which is worse than a navigation that is visibly still being built.
+ * THE ORDER IS CONTAINMENT, not alphabet and not frequency: a practice has clinics,
+ * clinics have staff, and all of it sits under one subscription. It is the order the
+ * ticket specifies and the order the four tabs are read in.
+ *
+ * The label key is the SECTION'S key, the same one the route hands its screen. A tab
+ * and the heading it opens are one name, so they are one string; two keys would be
+ * two names the moment somebody reworded one of them.
  *
  * EVERY ENTRY IS VISIBLE TO EVERY SIGNED-IN CALLER, and that is deliberate. Hiding
  * one by role needs the session, which is T-81 in M2; reading roles from anywhere
  * else in the meantime would be a second source of truth for who may do what.
  */
-const NAVIGATION = [{ labelKey: 'shell.section.practice', link: ROUTE_PATHS.practice }] as const;
+const NAVIGATION = [
+  { labelKey: 'shell.section.practice', link: ROUTE_PATHS.practice },
+  { labelKey: 'shell.section.clinics', link: ROUTE_PATHS.clinics },
+  { labelKey: 'shell.section.staff', link: ROUTE_PATHS.staff },
+  { labelKey: 'shell.section.subscription', link: ROUTE_PATHS.subscription },
+] as const;
 
 @Component({
   selector: 'app-root',
