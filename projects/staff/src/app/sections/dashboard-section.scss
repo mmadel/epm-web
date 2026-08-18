@@ -1,0 +1,95 @@
+// No raw colour and no `px` spacing: every value is a token from
+// projects/ui/styles/_tokens.scss, and Stylelint rejects anything else. Nothing
+// here names a physical side, so Arabic mirrors with no second rule.
+
+.dashboard__title {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// A measure, not a column width: about 70 characters at this size, which is where
+// a sentence stays readable. The screen is wider and the sentence deliberately is
+// not.
+.dashboard__lead {
+  max-inline-size: 38rem;
+  margin: 0 0 var(--space-5);
+  color: var(--color-muted-text);
+  line-height: var(--line-height-normal);
+}
+
+// `auto-fit` with a minimum rather than a fixed column count, so the grid answers
+// the window instead of the breakpoint: two cards abreast on a laptop, one on a
+// narrow screen, with no media query to keep in step with the frame's own.
+
+// THE BLOCK IS CAPPED NARROWER THAN THE SCREEN, which is what keeps the cards two
+// abreast on a wide monitor instead of spreading into a thin strip of four. A hub's
+// cards are the largest thing on the page it opens; four columns of them read as a
+// toolbar, and a toolbar is not what a person landing here is looking at.
+.dashboard__areas {
+  display: grid;
+  max-inline-size: 54rem;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// THE SAME IDIOM THE RAIL USES: a surface with an accent edge means "somewhere you
+// can be". At rest the edge is a quiet rule and the card is the page's own white;
+// under the pointer the edge takes the accent and the card lifts to the tinted
+// surface. A reader who has learnt what the mark means in the rail has already
+// learnt what it means here.
+
+// The corners are rounded away from that edge, so the card reads as a plate
+// attached to the mark rather than a box with a stripe down one side.
+.area {
+  display: flex;
+  block-size: 100%;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-inline-start: 0.1875rem solid var(--color-border-strong);
+  border-start-end-radius: 0.25rem;
+  border-end-end-radius: 0.25rem;
+  background-color: var(--color-surface);
+  text-decoration: none;
+  transition:
+    border-color 120ms ease-out,
+    background-color 120ms ease-out;
+}
+
+.area:hover {
+  border-inline-start-color: var(--color-primary);
+  background-color: var(--color-surface-raised);
+}
+
+.area:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.area__name {
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// The sentence is the reason this screen exists rather than being the rail again,
+// so it is a full step of text and not a caption.
+.area__summary {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+@media (width <= 60rem) {
+  .area {
+    padding: var(--space-4);
+  }
+}

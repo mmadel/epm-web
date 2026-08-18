@@ -27,6 +27,16 @@ export const shellAr: Record<ShellKey, string> = {
   'shell.section.staff': 'Staff',
   'shell.section.subscription': 'Subscription',
 
+  'shell.summary.practice':
+    'The name, contact details and registration this practice trades under.',
+  'shell.summary.clinics': 'The places this practice works from, and how to reach each one.',
+  'shell.summary.staff':
+    'Who works here, what they may do, and who has yet to accept an invitation.',
+  'shell.summary.subscription':
+    'The plan this practice is on, what it includes, and when it renews.',
+
+  'shell.dashboard.lead': 'Everything you run for this practice, in one place.',
+
   'shell.not-found.title': 'Page not found',
   'shell.not-found.body':
     'That address does not match a screen in this console. It may have been mistyped, or it may point at something that has not been built yet.',

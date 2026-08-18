@@ -1,4 +1,27 @@
-<lib-placeholder
-  [heading]="'shell.section.dashboard' | translate"
-  [body]="'common.state.not-built' | translate"
-/>
+<!--
+  `h1` because this is the screen's own title, and the frame around it declares
+  none - the wordmark is a link and the rail is a landmark.
+-->
+<h1 class="dashboard__title">{{ 'shell.section.dashboard' | translate }}</h1>
+<p class="dashboard__lead">{{ 'shell.dashboard.lead' | translate }}</p>
+
+<!--
+  A list, and not a `div` of cards. It is a set of links of the same kind, so a
+  screen reader gets to announce how many there are and move between them; a pile
+  of anchors in a grid container is the same thing with that fact removed.
+-->
+<ul class="dashboard__areas">
+  @for (area of areas; track area.link) {
+    <li>
+      <!--
+        THE WHOLE CARD IS THE LINK, rather than a link inside it. A card that is
+        only clickable on its title is a target the size of a word inside a target
+        the size of a hand.
+      -->
+      <a class="area" [routerLink]="area.link">
+        <span class="area__name">{{ area.nameKey | translate }}</span>
+        <span class="area__summary">{{ area.summaryKey | translate }}</span>
+      </a>
+    </li>
+  }
+</ul>

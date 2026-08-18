@@ -60,7 +60,40 @@ describe('staff routes', () => {
     const { router, element } = await open('/');
 
     expect(router.url).toBe(ROUTE_PATHS.dashboard);
-    expect(element.querySelector('.placeholder__heading')?.textContent?.trim()).toBe('Dashboard');
+    expect(element.querySelector('.dashboard__title')?.textContent?.trim()).toBe('Dashboard');
+  });
+
+  it('offers a way into every area from the dashboard', async () => {
+    // THE LANDING PAGE IS A WAY IN, and this is the whole of what it promises: one
+    // card per area, each a link, each reaching a route that exists. The order is
+    // asserted with them, because it is the rail's order and a landing page that
+    // disagreed with the rail would be teaching two different consoles.
+    const { element } = await open('/');
+
+    expect(
+      [...element.querySelectorAll<HTMLAnchorElement>('.area')].map((card) => ({
+        name: card.querySelector('.area__name')?.textContent?.trim(),
+        href: card.getAttribute('href'),
+      })),
+    ).toEqual([
+      { name: 'Practice details', href: ROUTE_PATHS.practice },
+      { name: 'Clinics', href: ROUTE_PATHS.clinics },
+      { name: 'Staff', href: ROUTE_PATHS.staff },
+      { name: 'Subscription', href: ROUTE_PATHS.subscription },
+    ]);
+  });
+
+  it('says what each area is for, rather than repeating its name', async () => {
+    // The reason this screen is not the rail a second time. A card with only a name
+    // on it is a link the navigation already offers, in a bigger box.
+    const { element } = await open('/');
+
+    for (const card of element.querySelectorAll('.area')) {
+      const summary = card.querySelector('.area__summary')?.textContent?.trim() ?? '';
+      const name = card.querySelector('.area__name')?.textContent?.trim() ?? '';
+
+      expect(summary.length, name).toBeGreaterThan(name.length);
+    }
   });
 
   it('reaches every area by its own address, and each renders its own name', async () => {
@@ -71,7 +104,6 @@ describe('staff routes', () => {
     // component: the name comes from the route's `data`, so a route wired to the
     // wrong key renders the wrong heading here rather than in front of a user.
     const expected = {
-      [ROUTE_PATHS.dashboard]: 'Dashboard',
       [ROUTE_PATHS.practice]: 'Practice details',
       [ROUTE_PATHS.clinics]: 'Clinics',
       [ROUTE_PATHS.staff]: 'Staff',

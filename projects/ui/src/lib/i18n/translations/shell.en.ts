@@ -29,6 +29,21 @@ export const shellEn = {
   'shell.section.staff': 'Staff',
   'shell.section.subscription': 'Subscription',
 
+  // WHAT IS INSIDE EACH AREA, one line each, for the cards on the landing page.
+  // They are the only place in the console that says what a section is FOR rather
+  // than what it is called, which is what a person opening this product for the
+  // first time actually needs.
+  'shell.summary.practice':
+    'The name, contact details and registration this practice trades under.',
+  'shell.summary.clinics': 'The places this practice works from, and how to reach each one.',
+  'shell.summary.staff':
+    'Who works here, what they may do, and who has yet to accept an invitation.',
+  'shell.summary.subscription':
+    'The plan this practice is on, what it includes, and when it renews.',
+
+  // The landing page's own words.
+  'shell.dashboard.lead': 'Everything you run for this practice, in one place.',
+
   // What an address that matches no screen renders.
   'shell.not-found.title': 'Page not found',
   'shell.not-found.body':
