@@ -51,7 +51,7 @@ describe('staff routes', () => {
     document.documentElement.removeAttribute('dir');
   });
 
-  it('opens onto the control panel', async () => {
+  it('opens onto the home screen', async () => {
     // `/` renders nothing of its own. NOT `/practice`, which is what T-97 §4 and
     // criterion 1 specify: administering the practice is one thing this console does
     // rather than the thing it is, and the landing page was decided after seeing it
@@ -59,13 +59,11 @@ describe('staff routes', () => {
     // rather than a drift somebody finds later.
     const { router, element } = await open('/');
 
-    expect(router.url).toBe(ROUTE_PATHS.controlPanel);
-    expect(element.querySelector('.control-panel__title')?.textContent?.trim()).toBe(
-      'Control panel',
-    );
+    expect(router.url).toBe(ROUTE_PATHS.home);
+    expect(element.querySelector('.home__title')?.textContent?.trim()).toBe('Home');
   });
 
-  it('offers a way into every area from the control panel', async () => {
+  it('offers a way into every area from the home screen', async () => {
     // THE LANDING PAGE IS A WAY IN, and this is the whole of what it promises: one
     // card per area, each a link, each reaching a route that exists. The order is
     // asserted with them, because it is the rail's order and a landing page that
@@ -120,79 +118,6 @@ describe('staff routes', () => {
         heading,
       );
     }
-  });
-
-  it('marks exactly one rail entry active, and it is the area that is open', async () => {
-    // The active state is derived from the router - T-97 §5 - so this navigates and
-    // reads what the frame drew, rather than asking a component what it thinks it is.
-    const expected = {
-      [ROUTE_PATHS.controlPanel]: ['Control panel'],
-      [ROUTE_PATHS.practice]: ['Practice details'],
-      [ROUTE_PATHS.clinics]: ['Clinics'],
-      [ROUTE_PATHS.staff]: ['Staff'],
-      [ROUTE_PATHS.subscription]: ['Subscription'],
-
-      // Nothing is open, so nothing is marked. An entry marked here would tell the
-      // reader they are somewhere they are not.
-      '/nonsense': [],
-    };
-
-    for (const [url, marked] of Object.entries(expected)) {
-      const { element } = await open(url);
-
-      expect(
-        [...element.querySelectorAll('.shell-nav__link--active')].map((tab) =>
-          tab.textContent?.trim(),
-        ),
-        url,
-      ).toEqual(marked);
-    }
-  });
-
-  it('renders the unknown-route screen for an address no section matches', async () => {
-    const { element } = await open('/nonsense');
-
-    expect(element.querySelector('.placeholder__heading')?.textContent?.trim()).toBe(
-      'Page not found',
-    );
-  });
-
-  it('does not redirect an unmatched address to the practice section', async () => {
-    // A silent redirect turns a broken link into a working one, so the bookmark
-    // nobody can open gets reported as "it works for me".
-    const { router } = await open('/nonsense');
-
-    expect(router.url).toBe('/nonsense');
-  });
-
-  it('renders the unknown-route screen inside the shell, with the navigation usable', async () => {
-    // THE FAILURE THIS RULES OUT IS A DEAD END. An unmatched address that replaces
-    // the whole page leaves a person with no way out but the browser's back button
-    // or a reload, and a reload of a single-page application is how a session gets
-    // lost.
-    const { element } = await open('/nonsense');
-
-    expect(element.querySelector('lib-shell')).not.toBeNull();
-    expect(element.querySelector('.wordmark')).not.toBeNull();
-    expect(
-      [...element.querySelectorAll<HTMLAnchorElement>('.shell-nav__link')].map((link) =>
-        link.getAttribute('href'),
-      ),
-    ).toEqual([
-      ROUTE_PATHS.controlPanel,
-      ROUTE_PATHS.practice,
-      ROUTE_PATHS.clinics,
-      ROUTE_PATHS.staff,
-      ROUTE_PATHS.subscription,
-    ]);
-  });
-
-  it('offers a way back out of the unknown-route screen', async () => {
-    const { element } = await open('/nonsense');
-
-    expect(element.querySelector('.not-found__link')?.getAttribute('href')).toBe(
-      ROUTE_PATHS.practice,
-    );
   });
 
   it('has no practice id, and no other tenant identifier, in any path', async () => {

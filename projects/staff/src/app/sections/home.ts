@@ -5,7 +5,7 @@ import { TranslatePipe } from 'ui';
 import { ROUTE_PATHS } from '../route-paths';
 
 /**
- * One area of the console, as it appears on the control panel.
+ * One area of the console, as it appears on the home screen.
  *
  * The `mark` is which glyph the card carries. It is a key rather than a path
  * because the paths live in the template - an SVG in a TypeScript string is an
@@ -38,16 +38,16 @@ interface Area {
  * be the same thing it is now.
  *
  * THE AREAS ARE LISTED HERE rather than derived from the route table, so a section
- * that gains a route has to be added deliberately. A control panel built from the
+ * that gains a route has to be added deliberately. A home screen built from the
  * routes would silently grow a card for the unknown-route screen.
  */
 @Component({
-  selector: 'app-control-panel',
+  selector: 'app-home',
   imports: [RouterLink, TranslatePipe],
-  templateUrl: './control-panel.html',
-  styleUrl: './control-panel.scss',
+  templateUrl: './home.html',
+  styleUrl: './home.scss',
 })
-export class ControlPanel {
+export class Home {
   /**
    * The areas this console offers, in the rail's order.
    *

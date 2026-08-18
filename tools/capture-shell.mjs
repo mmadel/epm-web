@@ -125,49 +125,63 @@ async function capture() {
       // Reported so the caller can see the geometry that the picture is evidence
       // of, and so a broken layout is loud even before anyone opens the file.
 
-      // WHAT MIRRORS IS THE ORDER OF TWO COLUMNS. The rail comes before the content
-      // on the inline axis - the left in English, the right in Arabic - and that is
-      // one fact measured as two insets from the inline start: the rail's is zero,
-      // and the content's is at least the rail's width. Reading it that way means
-      // the check says the same thing in both directions instead of naming a side.
+      // WHAT MIRRORS IS THE HEADER'S TWO ENDS. The console has no navigation rail to
+      // check the side of any more, so the frame's direction is read where it is
+      // still visible: the wordmark sits at the inline START of the header and the
+      // language switch at the inline END, which is left-then-right in English and
+      // right-then-left in Arabic.
+
+      // Both are measured as an inset from the inline start - the one measurement
+      // that means the same thing in both directions - so a correct layout reports a
+      // small number for the wordmark and a large one for the switch, in either
+      // language, and a frame that had stopped mirroring reports them the same way
+      // round in only one of them.
       const geometry = await page.evaluate(() => {
         const viewport = document.documentElement.clientWidth;
         const rtl = document.documentElement.getAttribute('dir') === 'rtl';
 
-        const measure = (selector) => {
+        const startInset = (selector) => {
           const rect = document.querySelector(selector)?.getBoundingClientRect();
 
           if (!rect) {
             return undefined;
           }
 
-          return {
-            start: Math.round(rtl ? viewport - (rect.x + rect.width) : rect.x),
-            width: Math.round(rect.width),
-          };
+          return Math.round(rtl ? viewport - (rect.x + rect.width) : rect.x);
         };
 
-        return { viewport, nav: measure('.shell-nav'), main: measure('.shell-main') };
+        return {
+          viewport,
+          wordmark: startInset('.wordmark'),
+          languageSwitch: startInset('lib-language-switch'),
+          content: startInset('.staff-content'),
+        };
       });
 
       console.log(
-        `${file}: lang=${language} dir=${direction} rail starts ${geometry.nav?.start}px ` +
-          `from the inline start and is ${geometry.nav?.width}px wide, content starts ` +
-          `${geometry.main?.start}px from it, viewport w=${geometry.viewport}`,
+        `${file}: lang=${language} dir=${direction} wordmark ${geometry.wordmark}px from the ` +
+          `inline start, language switch ${geometry.languageSwitch}px, content ` +
+          `${geometry.content}px, viewport w=${geometry.viewport}`,
       );
 
-      if (!geometry.nav || !geometry.main) {
-        throw new Error('The frame rendered no rail or no content region.');
+      if (geometry.wordmark === undefined || geometry.languageSwitch === undefined) {
+        throw new Error('The header rendered no wordmark or no language switch.');
       }
 
-      // A frame that had stopped mirroring puts the rail at the far edge, which is a
-      // large inset rather than a zero one - and leaves the content starting at zero,
-      // underneath it.
-      if (geometry.nav.start !== 0 || geometry.main.start < geometry.nav.width) {
+      // A quarter of the way across is a gutter; further is the other end of the band.
+      if (geometry.wordmark > geometry.viewport / 4) {
         throw new Error(
-          `In ${direction} the rail starts ${geometry.nav.start}px from the inline start ` +
-            `and the content ${geometry.main.start}px, which does not put the rail first. ` +
-            'The frame is no longer mirroring; do not trust the screenshots.',
+          `In ${direction} the wordmark starts ${geometry.wordmark}px from the inline start, ` +
+            'which is not the leading corner. The frame is no longer mirroring; do not trust ' +
+            'the screenshots.',
+        );
+      }
+
+      if (geometry.languageSwitch < geometry.viewport / 2) {
+        throw new Error(
+          `In ${direction} the language switch starts ${geometry.languageSwitch}px from the ` +
+            'inline start, which puts it on the same side as the wordmark. The frame is no ' +
+            'longer mirroring; do not trust the screenshots.',
         );
       }
     }

@@ -1,14 +1,14 @@
-// The content gutter. The frame deliberately does not pad its content region, so a
-// screen that wants a full-bleed band at the top of itself can still have one; this
-// is the console's answer for every screen that does not.
+// The content gutter. The frame does not pad its content region, so a screen that
+// wants a full-bleed band at the top of itself can still have one; this is the
+// console's answer for every screen that does not.
 
-// The inline gutter is the one the record's tabs use, so a screen's content starts
-// on the same vertical line as the tab that opened it. THE MEASURE IS CAPPED because
-// the navigation is a band rather than a column: the console gained the whole width
-// of the window, and a form field or a sentence run out to 1400px is the way that
-// gain turns into a loss.
+// CENTRED, NOT LEFT-ALIGNED, because there is no rail any more. A column of content
+// pinned to the leading edge of a wide window with nothing beside it reads as a page
+// that failed to load the rest of itself; the frame gave the width back, and this is
+// what stops it becoming a margin.
 .staff-content {
-  max-inline-size: 78rem;
+  max-inline-size: 72rem;
+  margin-inline: auto;
   padding: var(--space-6) var(--space-5);
 }
 

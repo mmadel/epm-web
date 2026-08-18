@@ -20,10 +20,10 @@ export const shellEn = {
   // because they are one name. Two keys would be two names the moment one of them
   // was reworded.
 
-  // THE ORDER IS WHERE YOU LAND, THEN CONTAINMENT: the control panel is the front door,
+  // THE ORDER IS WHERE YOU LAND, THEN CONTAINMENT: the home screen is the front door,
   // and after it a practice has clinics, clinics have staff, and all of it sits
   // under one subscription. Not alphabetical, and not by how often each is opened.
-  'shell.section.control-panel': 'Control panel',
+  'shell.section.home': 'Home',
   'shell.section.practice': 'Practice details',
   'shell.section.clinics': 'Clinics',
   'shell.section.staff': 'Staff',
@@ -42,7 +42,7 @@ export const shellEn = {
     'The plan this practice is on, what it includes, and when it renews.',
 
   // The landing page's own words.
-  'shell.control-panel.lead': 'Everything you run for this practice, in one place.',
+  'shell.home.lead': 'Everything you run for this practice, in one place.',
 
   // What an address that matches no screen renders.
   'shell.not-found.title': 'Page not found',

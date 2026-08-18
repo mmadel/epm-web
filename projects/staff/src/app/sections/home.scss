@@ -2,20 +2,25 @@
 // projects/ui/styles/_tokens.scss, and Stylelint rejects anything else. Nothing
 // here names a physical side, so Arabic mirrors with no second rule.
 
-.control-panel__title {
+// THE SCREEN IS THE CONSOLE'S FRONT DOOR, so it is set at the size of one. The title
+// takes the loudest step on the scale rather than the one a section heading uses:
+// this is the only screen in the console with nothing above it and nothing beside
+// it, and at a section's size it read as a page waiting for its content.
+.home__title {
   margin: 0 0 var(--space-2);
   color: var(--color-text);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
 }
 
 // A measure, not a column width: about 70 characters at this size, which is where a
 // sentence stays readable. The screen is wider and the sentence deliberately is not.
-.control-panel__lead {
-  max-inline-size: 38rem;
-  margin: 0 0 var(--space-5);
+.home__lead {
+  max-inline-size: 40rem;
+  margin: 0 0 var(--space-6);
   color: var(--color-muted-text);
+  font-size: var(--font-size-lg);
   line-height: var(--line-height-normal);
 }
 
@@ -23,39 +28,35 @@
 // the window instead of the breakpoint: two cards abreast on a laptop, one on a
 // narrow screen, with no media query to keep in step with the frame's own.
 
-// THE BLOCK IS CAPPED NARROWER THAN THE SCREEN, which is what keeps the cards two
-// abreast on a wide monitor instead of spreading into a thin strip of four. A hub's
-// cards are the largest thing on the page it opens; four columns of them read as a
-// toolbar, and a toolbar is not what a person landing here is looking at.
-.control-panel__areas {
+// TWO ABREAST AND NOT FOUR. These cards are the whole of this screen, so they are
+// the largest thing on it; four columns of them read as a toolbar, and a toolbar is
+// not what a person landing here is looking at.
+.home__areas {
   display: grid;
-  max-inline-size: 54rem;
   gap: var(--space-4);
-  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-// THE SAME IDIOM THE RAIL USES: a surface with an accent edge means "somewhere you
-// can be". At rest the edge is a quiet rule and the card is the page's own white;
-// under the pointer the edge takes the accent and the card lifts to the tinted
-// surface. A reader who has learnt what the mark means in the rail has already
-// learnt what it means here.
+// A SURFACE WITH AN ACCENT EDGE MEANS "SOMEWHERE YOU CAN GO". At rest the edge is a
+// quiet rule and the card is the page's own white; under the pointer the edge takes
+// the accent, the card lifts to the tinted surface and its mark fills.
 
 // The corners are rounded away from that edge, so the card reads as a plate attached
 // to the mark rather than a box with a stripe down one side.
 
-// A grid rather than a stack, because the glyph sits BESIDE the name and ABOVE the
-// sentence: two rows, two columns, and the sentence spans both so it runs the full
-// width of the card instead of being indented under the name.
+// A grid rather than a stack, because the mark sits BESIDE the name and ABOVE the
+// sentence: two rows, two columns, and the sentence spans both so it runs the card's
+// full width instead of being indented under the name.
 .area {
   display: grid;
   block-size: 100%;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-3);
   grid-template-columns: auto 1fr;
-  padding: var(--space-5);
+  padding: var(--space-6) var(--space-5);
   border: 1px solid var(--color-border);
   border-inline-start: 0.1875rem solid var(--color-border-strong);
   border-start-end-radius: 0.25rem;
@@ -88,9 +89,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
-  border-radius: 0.5rem;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 0.625rem;
   background-color: var(--color-primary-soft);
   color: var(--color-primary-deep);
   transition:
@@ -104,8 +105,8 @@
 }
 
 .area__mark svg {
-  inline-size: 1.25rem;
-  block-size: 1.25rem;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
 }
 
 .area__name {
@@ -116,17 +117,16 @@
 }
 
 // Spanning both columns, so the sentence starts at the card's own edge rather than
-// under the name. It is the reason this screen is not the rail again, so it gets a
+// under the name. It is the reason a card is not just a bigger link, so it gets a
 // full step of text and not a caption.
 .area__summary {
   grid-column: 1 / -1;
   color: var(--color-muted-text);
-  font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
 }
 
-// Motion is one fade on a hover, and it stops for anyone who has asked their system
-// for less of it.
+// Motion here is one fade on a hover, and it stops for anyone who has asked their
+// system for less of it.
 @media (prefers-reduced-motion: reduce) {
   .area,
   .area__mark {

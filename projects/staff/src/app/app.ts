@@ -1,44 +1,29 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import {
-  LanguageSwitch,
-  Shell,
-  ShellNavigation,
-  TranslatePipe,
-  TranslationService,
-  Wordmark,
-} from 'ui';
+import { LanguageSwitch, Shell, TranslatePipe, Wordmark } from 'ui';
 
 import { ROUTE_PATHS } from './route-paths';
 
 /**
- * What this console's navigation offers, as keys. Resolved in {@link App.navigation}.
+ * The staff console's frame.
  *
- * THE ORDER IS WHERE YOU LAND, THEN CONTAINMENT: the control panel is the front door,
- * and after it a practice has clinics, clinics have staff, and all of it sits under
- * one subscription. Not alphabetical, and not by how often each is opened.
+ * THERE IS NO NAVIGATION BAND, and that is a decision rather than something not
+ * built yet. With five areas and a home screen carrying a card into each one, a
+ * rail beside the content repeated every link on that screen and took a fixed
+ * column of the window on every other one. `Shell` renders no landmark at all when
+ * it is given no navigation - the platform console mounts it the same way - so the
+ * frame is a header and a content region and nothing else.
  *
- * THE RAIL IS SIZED FOR WHAT IS COMING. Patients, appointments and billing are this
- * console's too, which is what settles the shape: five entries fit across the top of
- * a screen and eight do not, and navigation that has scrolled off the edge of a band
- * is navigation that is not there.
+ * WHAT REPLACES IT IS THE WORDMARK. It is the route home from every screen, which
+ * makes it load-bearing in a way it was not while a rail existed: the way to any
+ * area is home, then the card. That is one click more than a rail costs, and what
+ * it buys is the whole width of the window on every screen in the console.
  *
- * The label key is the AREA'S key, the same one the route hands its screen. An entry
- * and the heading it opens are one name, so they are one string; two keys would be
- * two names the moment somebody reworded one of them.
- *
- * EVERY ENTRY IS VISIBLE TO EVERY SIGNED-IN CALLER, and that is deliberate. Hiding
- * one by role needs the session, which is T-81 in M2; reading roles from anywhere
- * else in the meantime would be a second source of truth for who may do what.
+ * If the console outgrows what a home screen can hold - patients, appointments and
+ * billing are its too - this is the decision to revisit. `Shell` still takes a
+ * `navigation` input and `shell-nav.spec.ts` still holds it to its behaviour, so
+ * revisiting it means passing an array rather than rebuilding a frame.
  */
-const NAVIGATION = [
-  { labelKey: 'shell.section.control-panel', link: ROUTE_PATHS.controlPanel },
-  { labelKey: 'shell.section.practice', link: ROUTE_PATHS.practice },
-  { labelKey: 'shell.section.clinics', link: ROUTE_PATHS.clinics },
-  { labelKey: 'shell.section.staff', link: ROUTE_PATHS.staff },
-  { labelKey: 'shell.section.subscription', link: ROUTE_PATHS.subscription },
-] as const;
-
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, Shell, Wordmark, LanguageSwitch, TranslatePipe],
@@ -46,29 +31,12 @@ const NAVIGATION = [
   styleUrl: './app.scss',
 })
 export class App {
-  private readonly translations = inject(TranslationService);
-
-  /** Where the wordmark goes, which is where `/` goes: this console's home. */
-  protected readonly home = ROUTE_PATHS.practice;
-
   /**
-   * This console's navigation, resolved in the active language.
+   * Where the wordmark goes, which is where `/` goes: this console's home screen.
    *
-   * It lives here rather than in the shell because the shell is shared with the
-   * patient app and the platform console, which are different products with
-   * different navigation - and, in the platform console's case, none.
-   *
-   * The labels are resolved here rather than by the shell because the shell
-   * translates nothing: resolving a key inside the frame would make every
-   * application that mounts a frame read the language service. A `computed`
-   * over `TranslationService.translate`, which reads the language signal, so
-   * the entries re-resolve when the language changes.
+   * IT IS THE ONLY WAY BACK from any other screen now that there is no rail. It
+   * pointed at `/practice` while it was one affordance among several, which was
+   * already wrong and would now be a dead end.
    */
-  protected readonly navigation = computed<ShellNavigation>(() => ({
-    label: this.translations.translate('shell.nav.label'),
-    items: NAVIGATION.map((entry) => ({
-      label: this.translations.translate(entry.labelKey),
-      link: entry.link,
-    })),
-  }));
+  protected readonly home = ROUTE_PATHS.home;
 }

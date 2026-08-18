@@ -23,22 +23,17 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('mounts the shared shell and fills its navigation, in order', async () => {
+  it('mounts the shared shell with no navigation landmark at all', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    // The console owns which entries exist; the shell owns how a frame looks. This
-    // asserts the wiring between the two, not the shell's own behaviour, which is
-    // covered where the shell lives.
-    //
-    // THE ORDER IS THE ASSERTION as much as the membership. It is where you land and
-    // then containment - a practice has clinics, clinics have staff, all of it under
-    // one subscription - and a set comparison would pass on an alphabetical console.
+    // NOT AN EMPTY NAVIGATION, which is a different state and different markup: a
+    // landmark that announces itself and then contains nothing is worse for a screen
+    // reader than no landmark. This console has none - the home screen carries a card
+    // into every area - so the frame is given no `navigation` input.
     expect(compiled.querySelector('lib-shell')).not.toBeNull();
-    expect(
-      [...compiled.querySelectorAll('.shell-nav__link')].map((link) => link.textContent?.trim()),
-    ).toEqual(['Control panel', 'Practice details', 'Clinics', 'Staff', 'Subscription']);
+    expect(compiled.querySelector('nav')).toBeNull();
   });
 
   it('says which console this is, in the wordmark, and links it home', async () => {
@@ -53,7 +48,7 @@ describe('App', () => {
 
     expect(wordmark?.querySelector('.wordmark__product')?.textContent?.trim()).toBe('EPM');
     expect(wordmark?.querySelector('.wordmark__console')?.textContent?.trim()).toBe('Staff');
-    expect(wordmark?.querySelector('a')?.getAttribute('href')).toBe(ROUTE_PATHS.practice);
+    expect(wordmark?.querySelector('a')?.getAttribute('href')).toBe(ROUTE_PATHS.home);
   });
 
   it('puts the language switch in the frame it mounts', async () => {
