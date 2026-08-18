@@ -47,11 +47,35 @@ function readThemes() {
   return themes;
 }
 
-/** Resolves a token in a theme, falling back to the workspace default. */
+/**
+ * Resolves a token in a theme, falling back to the workspace default.
+ *
+ * ONE LEVEL OF ALIAS IS FOLLOWED, because a role can reasonably be defined as
+ * another one: `--epm-accent` defaults to `var(--color-primary)` so that an
+ * application which has claimed no identity still draws a wordmark. Without this,
+ * every pair naming that token would be unmeasurable in exactly the theme that
+ * leaves it aliased - which is the theme with no owner watching it.
+ *
+ * Only one level, and deliberately: an alias pointing at an alias is a token nobody
+ * can read the value of, and the assertion below reports it rather than chasing it.
+ */
 function value(themes, theme, token) {
-  const resolved = themes[theme]?.[token] ?? themes[':root'][token];
+  const declared = themes[theme]?.[token] ?? themes[':root'][token];
 
-  assert.ok(resolved, `No value for ${token} in ${theme} or :root`);
+  assert.ok(declared, `No value for ${token} in ${theme} or :root`);
+
+  // Read as a string rather than matched with a pattern: the whole alias syntax is
+  // `var(` and `)` around a name, and a regular expression for that is a line nobody
+  // can check by eye against the one thing it has to accept.
+  const alias =
+    declared.startsWith('var(') && declared.endsWith(')')
+      ? declared.slice(4, -1).trim()
+      : undefined;
+
+  const resolved =
+    alias === undefined ? declared : (themes[theme]?.[alias] ?? themes[':root'][alias]);
+
+  assert.ok(resolved, `${token} in ${theme} aliases ${alias}, which has no value`);
   assert.match(resolved, /^#[0-9a-f]{3,6}$/i, `${token} in ${theme} is not a plain hex colour`);
 
   return resolved;
@@ -123,20 +147,11 @@ const PAIRS = [
     '--color-chrome-surface',
     TEXT,
   ],
-  [
-    PLATFORM,
-    'the wordmark tile on the ink band',
-    '--color-chrome-accent',
-    '--color-chrome-surface',
-    MARK,
-  ],
-  [
-    PLATFORM,
-    'the wordmark glyph on its tile',
-    '--color-text-inverse',
-    '--color-chrome-accent',
-    MARK,
-  ],
+  // T-100. The tile is `lib-wordmark`'s and it draws in `--epm-accent`, which this
+  // console sets to the same ink-tuned value `--color-chrome-accent` carries - so
+  // these measure the token the component actually reads.
+  [PLATFORM, 'the wordmark tile on the ink band', '--epm-accent', '--color-chrome-surface', MARK],
+  [PLATFORM, 'the wordmark glyph on its tile', '--color-text-inverse', '--epm-accent', MARK],
   [
     PLATFORM,
     'the focus ring on the ink band',
@@ -234,6 +249,12 @@ const PAIRS = [
     TEXT,
   ],
   [DEFAULT, 'the focus ring on the chrome', '--color-chrome-focus', '--color-chrome-surface', MARK],
+
+  // T-100. `lib-wordmark` is in `ui`, so an application that has claimed no identity
+  // can mount it - and `--epm-accent` in this theme is the alias every such
+  // application gets.
+  [DEFAULT, 'the wordmark tile on the chrome', '--epm-accent', '--color-chrome-surface', MARK],
+  [DEFAULT, 'the wordmark glyph on its tile', '--color-text-inverse', '--epm-accent', MARK],
 
   [DEFAULT, 'an active navigation entry', '--color-text-inverse', '--color-primary', TEXT],
   [
@@ -348,6 +369,16 @@ const SHARED_COMPONENT_PAIRS = {
   // T-98. The title, the line under it, and the ring drawn on the title when a frame
   // moves focus to it after a navigation. All three sit on the page's own surface -
   // the header is on the canvas, not on a raised band.
+  // T-100. The tile and the glyph on it, the two steps of the name, and the ring.
+  // All of it is drawn on the chrome, which is a different surface from the page in
+  // any console whose frame is a different lightness - the platform console's is ink.
+  'lib-wordmark': [
+    ['--epm-accent', '--color-chrome-surface'],
+    ['--color-text-inverse', '--epm-accent'],
+    ['--color-chrome-text', '--color-chrome-surface'],
+    ['--color-chrome-muted-text', '--color-chrome-surface'],
+    ['--color-chrome-focus', '--color-chrome-surface'],
+  ],
   'lib-page-header': [
     ['--color-text', '--color-surface'],
     ['--color-muted-text', '--color-surface'],
