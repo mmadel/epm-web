@@ -78,12 +78,16 @@ test('no-api-client-in-libraries', () => {
       {
         code: "import { PlatformPracticesService } from 'api-client';",
         ...inUi,
-        errors: [{ messageId: 'apiClientInLibrary', data: { project: 'ui' } }],
+        errors: [
+          { messageId: 'apiClientInLibrary', data: { specifier: 'api-client', project: 'ui' } },
+        ],
       },
       {
         code: "import { BASE_PATH } from 'api-client';",
         ...inCore,
-        errors: [{ messageId: 'apiClientInLibrary', data: { project: 'core' } }],
+        errors: [
+          { messageId: 'apiClientInLibrary', data: { specifier: 'api-client', project: 'core' } },
+        ],
       },
 
       // A default import, and a namespace one.
