@@ -2,9 +2,10 @@ import { Component, computed, effect, ElementRef, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ListedOrganization, ListedOrganizationStatusEnum } from 'api-client';
+import { PageHeader } from 'ui';
 
 import { SearchPanel } from '../../components/search-panel/search-panel';
-import { PageHeader } from '../../../../layout/page-header';
+import { routeTitle } from '../../../../layout/route-title';
 import { practicePath, ROUTE_PATHS } from '../../../../route-paths';
 import {
   ANY,
@@ -167,6 +168,14 @@ interface PracticeRow {
   host: { '(document:keydown)': 'onShortcut($event)' },
 })
 export class PracticeList {
+  /**
+   * The screen's heading, taken from the route so that the browser tab and the page
+   * cannot disagree - see `routeTitle`. It is passed to `lib-page-header` rather
+   * than read inside it, because that component is shared with a console that has no
+   * route titles at all.
+   */
+  protected readonly title = routeTitle();
+
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

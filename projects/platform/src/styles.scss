@@ -51,11 +51,17 @@
 
 // The gutter, matching the frame's own so the first field lines up under the
 // wordmark.
+
+// THE GUTTER ABOVE THE SCREEN IS THE SCREEN'S, not its header's. It used to come
+// from this console's own `PageHeader`, which meant a screen that did not use one -
+// the practice record - had to supply its own and did; T-98 moved the header into
+// `ui`, where the space above it cannot belong to it, because the staff console
+// already pads its content region and would have got the gap twice.
 .stage {
   max-inline-size: 60rem;
   margin-inline: auto;
+  padding-block: var(--space-4) var(--space-5);
   padding-inline: var(--space-4);
-  padding-block-end: var(--space-5);
 }
 
 // EDGE TO EDGE, because the frame around it is. 60rem is a measure for a form:

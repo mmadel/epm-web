@@ -1,0 +1,31 @@
+<div class="page-header">
+  <div class="page-header__text">
+    <!--
+      `tabindex="-1"` so an application's frame can move focus here after a
+      navigation. Without it the browser silently refuses and focus stays wherever
+      the last click left it - which looks exactly like it working.
+
+      It is inert until something focuses it, so it costs a console that does not do
+      this nothing; the platform console does, and the alternative was an input for
+      a behaviour that is one attribute.
+    -->
+    <h1 class="page-header__title" tabindex="-1">{{ title() }}</h1>
+
+    @if (supporting()) {
+      <p class="page-header__supporting">{{ supporting() }}</p>
+    }
+  </div>
+
+  <!--
+    NOT WRAPPED IN A CONTAINER, and that is the whole of criterion 4. A wrapper is
+    in the DOM whether or not anything lands in it, so a screen with no action gets
+    an empty flex item that takes the gap beside the title on three screens out of
+    four. Projecting straight into the row means a screen with no action has no
+    element here at all.
+
+    The action sits at the inline end because the text block beside it grows and this
+    does not - not because anything here names a side. In Arabic the browser mirrors
+    the row and no rule changes.
+  -->
+  <ng-content select="[action]" />
+</div>

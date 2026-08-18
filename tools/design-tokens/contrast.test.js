@@ -330,6 +330,53 @@ const PAIRS = [
   [STAFF, 'the focus ring on the page', '--color-primary', '--color-surface', MARK],
 ];
 
+/**
+ * What each shared `ui` component draws, and on what.
+ *
+ * A COMPONENT IN `ui` IS MOUNTED BY MORE THAN ONE APPLICATION, so "its colours pass"
+ * is a question with one answer per theme rather than one answer. The pairs below are
+ * every foreground the component sets and the surface it sets it on; the test under
+ * them requires each to be listed in PAIRS for every theme that could mount it, and
+ * PAIRS is what actually measures them.
+ *
+ * IT IS NOT A SECOND LIST OF PAIRS. Nothing here is checked for contrast - the entries
+ * above do that, once. This checks that nothing a shared component draws was left out
+ * of them, which is the failure a per-application list cannot see: a token retinted for
+ * one console is fine everywhere it is listed and unmeasured everywhere it is not.
+ */
+const SHARED_COMPONENT_PAIRS = {
+  // T-98. The title, the line under it, and the ring drawn on the title when a frame
+  // moves focus to it after a navigation. All three sit on the page's own surface -
+  // the header is on the canvas, not on a raised band.
+  'lib-page-header': [
+    ['--color-text', '--color-surface'],
+    ['--color-muted-text', '--color-surface'],
+    ['--color-primary', '--color-surface'],
+  ],
+};
+
+test('every pair a shared ui component draws is checked in every theme that mounts it', () => {
+  const listed = new Set(
+    PAIRS.map(([theme, , foreground, background]) => `${theme}|${foreground}|${background}`),
+  );
+  const missing = [];
+
+  for (const [component, pairs] of Object.entries(SHARED_COMPONENT_PAIRS)) {
+    for (const [foreground, background] of pairs) {
+      // Every theme, including the workspace default: a component in `ui` can be
+      // mounted by an application that has claimed no identity, and the patient app
+      // is exactly that.
+      for (const theme of [DEFAULT, PLATFORM, STAFF]) {
+        if (!listed.has(`${theme}|${foreground}|${background}`)) {
+          missing.push(`${component} draws ${foreground} on ${background}, unchecked in ${theme}`);
+        }
+      }
+    }
+  }
+
+  assert.deepEqual(missing, []);
+});
+
 test('every colour the product stacks on another clears its contrast floor', () => {
   const themes = readThemes();
   const failures = [];
