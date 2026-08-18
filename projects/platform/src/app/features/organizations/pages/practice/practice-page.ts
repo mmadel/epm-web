@@ -87,7 +87,7 @@ interface BranchRow {
  * clinical - and the screen shows the response and never asks anything else for
  * more. The footnote says so in words, as it does on the list.
  *
- * IT DOES NOT USE `app-page-header`, which is the one convention this screen
+ * IT DOES NOT USE `lib-page-header`, which is the one convention this screen
  * breaks and the reason is worth writing down. That component takes the `h1` from
  * the route's title so that the tab and the heading cannot disagree. A route cannot
  * know a practice's name before the call that fetches it, so the heading here is

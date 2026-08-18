@@ -10,7 +10,9 @@ import {
   untracked,
 } from '@angular/core';
 
-import { PageHeader } from '../../../../layout/page-header';
+import { PageHeader } from 'ui';
+
+import { routeTitle } from '../../../../layout/route-title';
 import { BranchForm, BranchValues } from '../../components/branch-form/branch-form';
 import { Dialog } from '../../components/dialog/dialog';
 import { CreatedPanel } from '../../components/created-panel/created-panel';
@@ -81,6 +83,14 @@ const LAST = REVIEW;
   styleUrl: './onboard-practice.scss',
 })
 export class OnboardPractice {
+  /**
+   * The screen's heading, taken from the route so that the browser tab and the page
+   * cannot disagree - see `routeTitle`. It is passed to `lib-page-header` rather
+   * than read inside it, because that component is shared with a console that has no
+   * route titles at all.
+   */
+  protected readonly title = routeTitle();
+
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly injector = inject(Injector);
 

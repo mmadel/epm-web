@@ -1,5 +1,8 @@
 <div class="stage">
-  <app-page-header subtitle="A practice, its branches and its staff, created together." />
+  <lib-page-header
+    [title]="title()"
+    supporting="A practice, its branches and its staff, created together."
+  />
 
   <!--
     The progress bar counts FINISHED steps, not the one that is open, so it cannot

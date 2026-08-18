@@ -24,7 +24,7 @@ import { PracticeList } from './pages/practice-list/practice-list';
  * second screen arriving with the first is a load nobody waits for twice.
  *
  * The title here is the single source for both the browser tab and the `h1`:
- * `PlatformTitleStrategy` composes the tab from it and `PageHeader` reads the same
+ * `PlatformTitleStrategy` composes the tab from it and `routeTitle` reads the same
  * value, so the two cannot drift.
  */
 export const routes: Routes = [
@@ -37,7 +37,7 @@ export const routes: Routes = [
     // ONE PRACTICE, opened from a row in the list above. The title is the constant
     // the browser tab reads; the heading on the screen is the practice's name,
     // which a route cannot know before the call that fetches it - see the note on
-    // `PracticePage` for why this is the one screen that does not use `PageHeader`.
+    // `PracticePage` for why this is the one screen that does not use `lib-page-header`.
     path: 'practices/:id',
     title: 'Practice',
     component: PracticePage,

@@ -131,7 +131,7 @@ both statuses, the practice's own and its **billing** one, which
 `LLD-ORGANIZATION.md` §1 keeps deliberately apart and which are allowed to disagree;
 and every branch, active and inactive.
 
-**It is the one screen that does not use `app-page-header`.** That component takes
+**It is the one screen that does not use `lib-page-header`.** That component takes
 the `h1` from the route's title so the tab and the heading cannot disagree, and a
 route cannot know a practice's name before the call that fetches it. The route title
 is the constant `Practice`, which the tab reads; the `h1` is the practice, and it

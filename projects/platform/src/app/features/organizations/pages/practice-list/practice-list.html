@@ -14,8 +14,8 @@
     that calls `navigate` cannot. "Add a practice" is §4's word for it; the schema's
     noun does not appear on this screen.
   -->
-  <app-page-header subtitle="Every practice on the platform.">
-    <a class="practices__add" [routerLink]="onboardLink">
+  <lib-page-header [title]="title()" supporting="Every practice on the platform.">
+    <a action class="practices__add" [routerLink]="onboardLink">
       <span class="practices__add-mark" aria-hidden="true">
         <svg viewBox="0 0 16 16" focusable="false">
           <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3" />
@@ -30,7 +30,7 @@
       </span>
       Add a practice
     </a>
-  </app-page-header>
+  </lib-page-header>
 
   <!--
     ONE BAND, ALWAYS ON SCREEN, holding every criterion this console can answer. It
