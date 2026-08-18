@@ -14,17 +14,26 @@
  * different one, which is the whole shape of the mistake this console must not
  * make. The same goes for any other tenant identifier.
  *
- * THE ORDER BELOW IS THE ORDER THE NAVIGATION SHOWS, and it is containment: a
- * practice has clinics, clinics have staff, and all of it sits under one
- * subscription. It is not alphabetical and not by how often each is opened.
+ * THE ORDER BELOW IS THE ORDER THE NAVIGATION SHOWS: where you land, and then
+ * containment - a practice has clinics, clinics have staff, and all of it sits
+ * under one subscription. Not alphabetical, and not by how often each is opened.
  */
 export const ROUTE_PATHS = {
   /**
-   * The console's home: the practice's own details.
+   * Where a signed-in staff member lands, and where `/` sends them.
    *
-   * `/` redirects here rather than rendering anything of its own. It is the first
-   * question an org admin has - what is this practice, as the system holds it -
-   * and it is the section every other one is a part of.
+   * IT IS NOT `/practice`, which is what T-97 §4 and criterion 1 specify. The
+   * dashboard was decided after seeing the console running: administering the
+   * practice is one thing this console does rather than the thing it is, and a
+   * front door that opens straight onto a settings screen says otherwise.
+   */
+  dashboard: '/dashboard',
+
+  /**
+   * The practice's own details.
+   *
+   * The first question an org admin has - what is this practice, as the system
+   * holds it - and the area the three below are parts of.
    */
   practice: '/practice',
 

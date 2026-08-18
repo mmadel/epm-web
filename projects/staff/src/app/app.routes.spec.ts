@@ -51,18 +51,19 @@ describe('staff routes', () => {
     document.documentElement.removeAttribute('dir');
   });
 
-  it('opens onto the practice section', async () => {
-    // `/` renders nothing of its own. It is the address a person types, and the
-    // console's home is the practice's own details.
+  it('opens onto the dashboard', async () => {
+    // `/` renders nothing of its own. NOT `/practice`, which is what T-97 §4 and
+    // criterion 1 specify: administering the practice is one thing this console does
+    // rather than the thing it is, and the landing page was decided after seeing it
+    // running. The assertion is here so the departure is a decision on the record
+    // rather than a drift somebody finds later.
     const { router, element } = await open('/');
 
-    expect(router.url).toBe(ROUTE_PATHS.practice);
-    expect(element.querySelector('.placeholder__heading')?.textContent?.trim()).toBe(
-      'Practice details',
-    );
+    expect(router.url).toBe(ROUTE_PATHS.dashboard);
+    expect(element.querySelector('.placeholder__heading')?.textContent?.trim()).toBe('Dashboard');
   });
 
-  it('reaches every section by its own address, and each renders its own name', async () => {
+  it('reaches every area by its own address, and each renders its own name', async () => {
     // Typed directly, not clicked. It is the way a bookmark and a shared link
     // arrive, and it is what proves the routes exist rather than the navigation.
 
@@ -70,6 +71,7 @@ describe('staff routes', () => {
     // component: the name comes from the route's `data`, so a route wired to the
     // wrong key renders the wrong heading here rather than in front of a user.
     const expected = {
+      [ROUTE_PATHS.dashboard]: 'Dashboard',
       [ROUTE_PATHS.practice]: 'Practice details',
       [ROUTE_PATHS.clinics]: 'Clinics',
       [ROUTE_PATHS.staff]: 'Staff',
@@ -80,23 +82,23 @@ describe('staff routes', () => {
       const { router, element } = await open(url);
 
       expect(router.url, url).toBe(url);
-      expect(element.querySelector('app-section-placeholder'), url).not.toBeNull();
       expect(element.querySelector('.placeholder__heading')?.textContent?.trim(), url).toBe(
         heading,
       );
     }
   });
 
-  it('marks exactly one tab active, and it is the section that is open', async () => {
+  it('marks exactly one rail entry active, and it is the area that is open', async () => {
     // The active state is derived from the router - T-97 §5 - so this navigates and
     // reads what the frame drew, rather than asking a component what it thinks it is.
     const expected = {
+      [ROUTE_PATHS.dashboard]: ['Dashboard'],
       [ROUTE_PATHS.practice]: ['Practice details'],
       [ROUTE_PATHS.clinics]: ['Clinics'],
       [ROUTE_PATHS.staff]: ['Staff'],
       [ROUTE_PATHS.subscription]: ['Subscription'],
 
-      // Nothing is open, so nothing is marked. A tab marked here would tell the
+      // Nothing is open, so nothing is marked. An entry marked here would tell the
       // reader they are somewhere they are not.
       '/nonsense': [],
     };
@@ -143,6 +145,7 @@ describe('staff routes', () => {
         link.getAttribute('href'),
       ),
     ).toEqual([
+      ROUTE_PATHS.dashboard,
       ROUTE_PATHS.practice,
       ROUTE_PATHS.clinics,
       ROUTE_PATHS.staff,

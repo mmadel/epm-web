@@ -21,6 +21,7 @@ export const shellAr: Record<ShellKey, string> = {
 
   'shell.nav.label': 'Main navigation',
 
+  'shell.section.dashboard': 'Dashboard',
   'shell.section.practice': 'Practice details',
   'shell.section.clinics': 'Clinics',
   'shell.section.staff': 'Staff',

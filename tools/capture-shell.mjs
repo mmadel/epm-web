@@ -125,57 +125,50 @@ async function capture() {
       // Reported so the caller can see the geometry that the picture is evidence
       // of, and so a broken layout is loud even before anyone opens the file.
 
-      // WHAT MIRRORS IS NO LONGER A COLUMN. The navigation used to be a rail beside
-      // the content and "which side is it on" was the whole check; it is a full-width
-      // band of tabs now, so what has to flip is where the FIRST TAB sits within it,
-      // and where the content's own gutter starts. Both are measured as an inset from
-      // the inline start - the left edge in English, the right edge in Arabic - which
-      // is the one measurement that means the same thing in both directions.
+      // WHAT MIRRORS IS THE ORDER OF TWO COLUMNS. The rail comes before the content
+      // on the inline axis - the left in English, the right in Arabic - and that is
+      // one fact measured as two insets from the inline start: the rail's is zero,
+      // and the content's is at least the rail's width. Reading it that way means
+      // the check says the same thing in both directions instead of naming a side.
       const geometry = await page.evaluate(() => {
         const viewport = document.documentElement.clientWidth;
         const rtl = document.documentElement.getAttribute('dir') === 'rtl';
 
-        const startInset = (selector) => {
+        const measure = (selector) => {
           const rect = document.querySelector(selector)?.getBoundingClientRect();
 
           if (!rect) {
             return undefined;
           }
 
-          return Math.round(rtl ? viewport - (rect.x + rect.width) : rect.x);
+          return {
+            start: Math.round(rtl ? viewport - (rect.x + rect.width) : rect.x),
+            width: Math.round(rect.width),
+          };
         };
 
-        return {
-          viewport,
-          band: Math.round(
-            document.querySelector('.shell-nav')?.getBoundingClientRect().width ?? 0,
-          ),
-          firstTab: startInset('.shell-nav__link'),
-          content: startInset('.staff-content'),
-        };
+        return { viewport, nav: measure('.shell-nav'), main: measure('.shell-main') };
       });
 
       console.log(
-        `${file}: lang=${language} dir=${direction} band w=${geometry.band}, ` +
-          `first tab ${geometry.firstTab}px from the inline start, ` +
-          `content ${geometry.content}px from it, viewport w=${geometry.viewport}`,
+        `${file}: lang=${language} dir=${direction} rail starts ${geometry.nav?.start}px ` +
+          `from the inline start and is ${geometry.nav?.width}px wide, content starts ` +
+          `${geometry.main?.start}px from it, viewport w=${geometry.viewport}`,
       );
 
-      // The band spans the window, so a frame that had stopped mirroring would still
-      // look plausible in these numbers unless they are read as insets. A tab or a
-      // gutter more than a quarter of the way across the window is not a gutter.
-      const limit = geometry.viewport / 4;
+      if (!geometry.nav || !geometry.main) {
+        throw new Error('The frame rendered no rail or no content region.');
+      }
 
-      for (const [name, inset] of Object.entries({
-        'the first tab': geometry.firstTab,
-        'the content gutter': geometry.content,
-      })) {
-        if (inset === undefined || inset > limit) {
-          throw new Error(
-            `In ${direction}, ${name} starts ${inset}px from the inline start, which is not ` +
-              'a gutter. The frame is no longer mirroring; do not trust the screenshots.',
-          );
-        }
+      // A frame that had stopped mirroring puts the rail at the far edge, which is a
+      // large inset rather than a zero one - and leaves the content starting at zero,
+      // underneath it.
+      if (geometry.nav.start !== 0 || geometry.main.start < geometry.nav.width) {
+        throw new Error(
+          `In ${direction} the rail starts ${geometry.nav.start}px from the inline start ` +
+            `and the content ${geometry.main.start}px, which does not put the rail first. ` +
+            'The frame is no longer mirroring; do not trust the screenshots.',
+        );
       }
     }
 

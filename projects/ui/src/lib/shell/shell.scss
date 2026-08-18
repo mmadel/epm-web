@@ -1,15 +1,11 @@
 // The application frame.
 
 // EVERY SIDE HERE IS AN INLINE SIDE, NOT A LEFT OR A RIGHT. Nothing below names a
-// physical direction: the frame is a single-column grid, and everything within a row
-// that has a side uses a logical property - `border-inline-end`, `inset-inline-start`,
-// `border-start-start-radius`. In Arabic the browser mirrors the whole frame with no
-// second stylesheet and no `[dir='rtl']` selector.
-
-// ONE LAYOUT AT EVERY WIDTH. The frame used to be two columns above 60rem and one
-// below it, which meant the navigation had two designs and the breakpoint had to keep
-// them agreeing. It is a band now, so there is one design; what the breakpoint still
-// owns is how much room things get, not what shape they are.
+// physical direction: the frame is a grid whose template places `nav` before `main`
+// on the inline axis, a grid's inline axis follows the document direction, and
+// everything else that has a side is a logical property - `border-inline-end`,
+// `inset-inline-start`, `border-start-end-radius`. In Arabic the browser mirrors the
+// whole frame with no second stylesheet and no `[dir='rtl']` selector.
 
 // No raw colour and no `px` spacing: every value is a token from
 // projects/ui/styles/_tokens.scss, and Stylelint rejects anything else.
@@ -17,15 +13,19 @@
 :host {
   display: grid;
 
-  // The navigation sits between the header and the content, full width. A product
-  // with no navigation renders no element in that row, so the row collapses to
-  // nothing rather than leaving a gap where a band would have been.
+  // Rows, areas and columns in one declaration: the navigation sits before the
+  // content on the inline axis, and the browser decides which physical side that
+  // is from the document's direction.
+
+  // The navigation column is `auto` rather than a fixed width, and the width lives
+  // on `.shell-nav` instead. A product with no navigation renders no element in
+  // that area, so the column collapses to nothing rather than leaving a gutter
+  // beside the content.
   grid-template:
-    'edge' auto
-    'header' auto
-    'nav' auto
-    'main' 1fr
-    / 1fr;
+    'edge edge' auto
+    'header header' auto
+    'nav main' 1fr
+    / auto 1fr;
   min-block-size: 100dvh;
   background-color: var(--color-surface);
   color: var(--color-text);
@@ -94,81 +94,70 @@
 // Navigation
 // ---------------------------------------------------------------------------
 
-// THE ENTRIES ARE TABS ON ONE RECORD, NOT DESTINATIONS IN A MENU. A practice's
-// details, its clinics, its people and its subscription are four faces of a single
-// thing, and a rail down the side says the opposite - it says these are four places
-// you can go, the way a rail in any administrative console does.
+// A RAIL, BECAUSE THIS CONSOLE IS GOING TO GROW. Its entries are the areas of the
+// staff console - the dashboard a person lands on, and the parts of the practice
+// they administer - with patients, appointments and billing to come. A row of tabs
+// across the top is the right drawing for four faces of one record and the wrong
+// one for eight destinations: it scrolls, and navigation that has scrolled off the
+// edge is navigation that is not there.
 
-// So they are drawn the way every clinical system already draws the faces of a
-// record: index tabs along its top edge. The active tab is PAINTED IN THE PAGE'S
-// OWN SURFACE and its lower edge is removed, so the tab and the screen below it are
-// one continuous sheet rather than a control sitting above a panel. That is the
-// whole idea, and it is also the state: you are not next to this section, you are
-// inside it.
-
-// It costs the console its side rail and gives back the full width of the window,
-// which is what a screen of forms and a table of staff both want.
+// THE ACTIVE ENTRY IS THE PAGE'S OWN SURFACE, with the accent marking its leading
+// edge and the corners rounded away from that edge - so it reads as a plate
+// attached to the mark rather than a button that happens to be lit. The rail is a
+// step darker than the page for exactly this reason: a white plate on a white rail
+// is a hit area nobody can see.
 
 .shell-nav {
   grid-area: nav;
-  padding-block-start: var(--space-2);
-  padding-inline: var(--space-2);
+  inline-size: 15rem;
+  padding: var(--space-4) var(--space-2);
   background-color: var(--color-chrome-surface);
-  border-block-end: 1px solid var(--color-chrome-border);
+  border-inline-end: 1px solid var(--color-chrome-border);
 }
 
-// It scrolls on the inline axis rather than wrapping. A record's tabs are one row
-// by definition; a second row of them is a second record.
 .shell-nav__list {
   display: flex;
+  flex-direction: column;
   gap: var(--space-1);
   margin: 0;
   padding: 0;
   list-style: none;
-  overflow-x: auto;
 }
 
-// Every tab carries its full border and its accent edge from the start, painted
-// transparent, so nothing moves and nothing resizes when one becomes active. The
-// negative block-end margin is what lets the active tab's lower edge cover the
-// band's, which is what joins it to the sheet; it is in `rem` because a `px` margin
-// is a spacing value the token scale would have to explain.
+// Every entry carries the marker at full width, painted transparent, so the label
+// never moves when it lands. It is in `rem` rather than `px` because a `px` margin
+// or padding is a spacing value the token scale would have to explain - see
+// stylelint.config.mjs - and the border beside it keeps the same unit for company.
 .shell-nav__link {
   display: block;
-  margin-block-end: -0.0625rem;
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid transparent;
-  border-block-start: 0.1875rem solid transparent;
-  border-start-start-radius: 0.25rem;
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 0.1875rem solid transparent;
   border-start-end-radius: 0.25rem;
+  border-end-end-radius: 0.25rem;
   color: var(--color-chrome-muted-text);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
   text-decoration: none;
-  white-space: nowrap;
   transition:
     color 120ms ease-out,
     background-color 120ms ease-out;
 }
 
+// Hovering goes DARKER and selecting goes LIGHTER, which is what keeps the two
+// states apart in a palette this gentle. Two tints a step apart on the same side of
+// the rail would read as the same thing.
 .shell-nav__link:hover {
   background-color: var(--color-chrome-hover-surface);
   color: var(--color-chrome-text);
 }
 
-// FOUR CARRIERS, NOT ONE: the sheet the tab is painted in, the edge it is joined
-// along, the accent line on its top, and the weight of its label. Colour alone fails
-// for a colour-blind reader, and a console whose only "you are here" is a hue is a
-// console people get lost in.
-
-// `border-color` comes first so the two edges below override it rather than the
-// other way round: the top edge is the accent, and the bottom edge is the page,
-// which is what removes it.
+// FOUR CARRIERS, NOT ONE: the surface the entry is painted in, the accent marking
+// its leading edge, the ink, and the weight. Colour alone fails for a colour-blind
+// reader, and a console whose only "you are here" is a hue is one people get lost
+// in.
 .shell-nav__link--active {
-  border-color: var(--color-chrome-border);
-  border-block-start-color: var(--color-chrome-accent);
-  border-block-end-color: var(--color-surface);
+  border-inline-start-color: var(--color-chrome-accent);
   background-color: var(--color-surface);
   color: var(--color-text);
   font-weight: var(--font-weight-bold);
@@ -225,17 +214,44 @@
 // Narrow
 // ---------------------------------------------------------------------------
 
-// The one breakpoint, and it no longer changes the frame's shape - the band is the
-// band at every width. What it changes is the gutter, so the tabs do not lose the
-// window's edge on a small screen, and they keep scrolling on the inline axis when
-// they outgrow it. Phone layouts are a separate design problem - the patient app -
-// and are out of scope here.
+// Desktop-first: this is the one breakpoint, and it is where a 15rem rail stops
+// leaving a usable content area. Below it the frame becomes a single column and the
+// rail becomes a strip under the header, scrolling on the inline axis if the entries
+// outgrow it. THE MARKER TURNS THROUGH A RIGHT ANGLE rather than becoming something
+// else, so the console reads as one design at both widths. Phone layouts are a
+// separate design problem - the patient app - and are out of scope here.
 @media (width <= 60rem) {
+  :host {
+    grid-template:
+      'edge' auto
+      'header' auto
+      'nav' auto
+      'main' 1fr
+      / 1fr;
+  }
+
   .shell-nav {
-    padding-inline: 0;
+    inline-size: auto;
+    padding: var(--space-2) var(--space-3);
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--color-chrome-border);
+  }
+
+  .shell-nav__list {
+    flex-direction: row;
+    gap: var(--space-2);
+    overflow-x: auto;
   }
 
   .shell-nav__link {
-    padding-inline: var(--space-3);
+    border-block-start: 0.1875rem solid transparent;
+    border-inline-start: 0;
+    border-start-end-radius: 0;
+    border-start-start-radius: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .shell-nav__link--active {
+    border-block-start-color: var(--color-chrome-accent);
   }
 }

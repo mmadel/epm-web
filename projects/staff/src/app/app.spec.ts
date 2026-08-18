@@ -32,13 +32,13 @@ describe('App', () => {
     // asserts the wiring between the two, not the shell's own behaviour, which is
     // covered where the shell lives.
     //
-    // THE ORDER IS THE ASSERTION as much as the membership. It is containment - a
-    // practice has clinics, clinics have staff, all of it under one subscription -
-    // and a set comparison would pass on an alphabetical console.
+    // THE ORDER IS THE ASSERTION as much as the membership. It is where you land and
+    // then containment - a practice has clinics, clinics have staff, all of it under
+    // one subscription - and a set comparison would pass on an alphabetical console.
     expect(compiled.querySelector('lib-shell')).not.toBeNull();
     expect(
       [...compiled.querySelectorAll('.shell-nav__link')].map((link) => link.textContent?.trim()),
-    ).toEqual(['Practice details', 'Clinics', 'Staff', 'Subscription']);
+    ).toEqual(['Dashboard', 'Practice details', 'Clinics', 'Staff', 'Subscription']);
   });
 
   it('says which console this is, in the wordmark, and links it home', async () => {
