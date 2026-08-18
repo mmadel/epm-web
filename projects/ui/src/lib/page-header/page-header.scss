@@ -1,0 +1,63 @@
+// The block every screen opens with.
+
+// No raw colour and no `px` spacing: every value is a token from
+// projects/ui/styles/_tokens.scss, and Stylelint rejects anything else. Nothing here
+// names a physical side either - the row is a flex container, its inline axis
+// follows the document direction, and that is what puts the action at the end in
+// both languages.
+
+:host {
+  display: block;
+}
+
+.page-header {
+  display: flex;
+
+  // Centred rather than baseline-aligned: the text side is one line on some screens
+  // and two on others, and an action pinned to the title's baseline moves up the
+  // screen as the block beside it grows.
+  align-items: center;
+  gap: var(--space-4);
+  padding-block-end: var(--space-4);
+}
+
+// It takes the room, which is what leaves the action at the inline end without
+// `justify-content` deciding anything. `min-inline-size: 0` because a flex item's
+// automatic minimum size is its content, so a long unbroken title would otherwise
+// push the action off the screen instead of wrapping.
+.page-header__text {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+// NO NEGATIVE TRACKING, which the platform console's own header had. Arabic is a
+// connected script and letter-spacing pulls its letterforms apart; a shared
+// component cannot carry a treatment that is fine in one language and damage in the
+// other.
+.page-header__title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+// The heading is focused after a navigation in consoles that do that, and a ring
+// that only appears for keyboard users is the whole point of `:focus-visible` - a
+// mouse click on a link would otherwise leave a box drawn around the next screen's
+// title.
+.page-header__title:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// A step below the body size, and not the body size in a quieter colour. Colour
+// alone carrying the distinction between a title and the line under it is the
+// distinction that disappears on a dim laptop screen at an angle, which is most of
+// the screens this product is read on.
+.page-header__supporting {
+  margin: var(--space-2) 0 0;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
