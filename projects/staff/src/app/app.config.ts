@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { ApplicationConfig, inject, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { BASE_PATH } from 'api-client';
 import { API_BASE_URL, provideApiBaseUrl, provideLanguage } from 'core';
 
@@ -10,12 +10,7 @@ import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    // `withComponentInputBinding` is what lets a route say WHICH section it is, in
-    // its own `data`, and have that reach the component as an input. The alternative
-    // is a component injecting `ActivatedRoute` and reading a snapshot, which works
-    // until the router reuses the component across two routes and the snapshot it
-    // read is the previous one's.
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(routes),
 
     // -----------------------------------------------------------------------
     // The API

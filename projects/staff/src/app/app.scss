@@ -17,3 +17,9 @@
     padding: var(--space-5) var(--space-3);
   }
 }
+
+// Hidden, not removed. See app.html: the outlet has to stay registered while the
+// router is fetching the screen it will put inside it.
+.staff-outlet--waiting {
+  display: none;
+}

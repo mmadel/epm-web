@@ -26,6 +26,21 @@
     console's gutter lives here.
   -->
   <div class="staff-content">
-    <router-outlet />
+    @if (loading()) {
+      <lib-placeholder
+        [heading]="'common.state.loading' | translate"
+        [body]="'common.state.loading-section' | translate"
+      />
+    }
+
+    <!--
+      THE OUTLET IS HIDDEN RATHER THAN DESTROYED while a chunk is in flight. Putting
+      it behind an `@else` would tear it down mid-navigation and leave the router
+      with nowhere to activate the screen it has just finished fetching; hiding it
+      keeps the outlet registered and only takes the previous screen off the page.
+    -->
+    <div class="staff-outlet" [class.staff-outlet--waiting]="loading()">
+      <router-outlet />
+    </div>
   </div>
 </lib-shell>

@@ -2,31 +2,30 @@ import { Routes } from '@angular/router';
 
 import { NotFoundPage } from './layout/not-found-page';
 import { PracticeHome } from './sections/practice-home';
-import { SectionPlaceholder } from './sections/section-placeholder';
 
 /**
  * The console's route table.
  *
  * THERE IS NO PRACTICE ID IN ANY PATH, and none is coming. The practice is the
- * caller's, and the backend takes it from the session; a segment for it here
- * would be a way to ask for somebody else's (`LLD-PRACTICE.md` §1).
+ * caller's, and the backend takes it from the session; a segment for it here would
+ * be a way to ask for somebody else's (`LLD-PRACTICE.md` §1).
  *
  * NO TITLES YET. Angular's title strategy takes a resolved string per route, and
- * this console is bilingual with the language switched at runtime, so a title in
- * the route table would be the one piece of the product that stays English after
- * a switch. It is a strategy that reads the language service, and it belongs with
- * the ticket that needs it rather than half-built here.
+ * this console is bilingual with the language switched at runtime, so a title in the
+ * route table would be the one piece of the product that stays English after a
+ * switch. It is a strategy that reads the language service, and it belongs with the
+ * ticket that needs it rather than half-built here.
  *
- * `data.section` NAMES THE SECTION, and it is a translation key rather than a
- * word: it reaches `SectionPlaceholder`'s input through
- * `withComponentInputBinding` and is resolved in the active language there. The
- * navigation reads the same key for the same section, so the tab and the heading
- * are one name.
+ * EVERY SECTION IS `loadComponent` AND NOT `component`, and that is the one thing in
+ * this file a passing test suite can hide: four eager imports render every screen
+ * correctly and produce one bundle. What checks it is the build output - see
+ * `tools/sections/check-lazy-chunks.mjs`, which runs after every `npm run build` and
+ * fails if a section's code is in the initial bundle.
  *
- * EVERY SECTION IS ITS OWN COMPONENT, LOADED LAZILY, IN T-97c. Today the four
- * share one placeholder: this sub-task owes a navigation that is reachable by
- * clicking, and four eagerly imported components would satisfy that while quietly
- * failing criterion 4, which only the build output can see.
+ * The home screen is NOT lazy. It is what `/` renders, so deferring it would buy a
+ * second request before the first paint in exchange for splitting out a screen every
+ * visit needs. Neither is the unknown-route screen, which has to be able to render
+ * when something has already gone wrong.
  */
 export const routes: Routes = [
   {
@@ -49,28 +48,25 @@ export const routes: Routes = [
     // and what ties the two together is the spec beside it, which navigates to every
     // constant and asserts it resolves.
     path: 'practice',
-    component: SectionPlaceholder,
-    data: { section: 'shell.section.practice' },
+    loadComponent: () => import('./sections/practice-section').then((m) => m.PracticeSection),
   },
   {
     path: 'clinics',
-    component: SectionPlaceholder,
-    data: { section: 'shell.section.clinics' },
+    loadComponent: () => import('./sections/clinics-section').then((m) => m.ClinicsSection),
   },
   {
     path: 'staff',
-    component: SectionPlaceholder,
-    data: { section: 'shell.section.staff' },
+    loadComponent: () => import('./sections/staff-section').then((m) => m.StaffSection),
   },
   {
     path: 'subscription',
-    component: SectionPlaceholder,
-    data: { section: 'shell.section.subscription' },
+    loadComponent: () =>
+      import('./sections/subscription-section').then((m) => m.SubscriptionSection),
   },
   {
-    // NOT a redirect to the practice section - see `NotFoundPage`. It is last
-    // because the router matches in order, and it renders under the same outlet
-    // as every section, so the frame and the navigation stay on the screen.
+    // NOT a redirect to the home screen - see `NotFoundPage`. It is last because the
+    // router matches in order, and it renders under the same outlet as every section,
+    // so the frame stays on the screen.
     path: '**',
     component: NotFoundPage,
   },

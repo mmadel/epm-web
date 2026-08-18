@@ -106,20 +106,51 @@ describe('staff routes', () => {
     // component: the name comes from the route's `data`, so a route wired to the
     // wrong key renders the wrong heading here rather than in front of a user.
     const expected = {
-      [ROUTE_PATHS.practice]: 'Practice details',
-      [ROUTE_PATHS.clinics]: 'Clinics',
-      [ROUTE_PATHS.staff]: 'Staff',
-      [ROUTE_PATHS.subscription]: 'Subscription',
+      [ROUTE_PATHS.practice]: ['Practice details', 'app-practice-section'],
+      [ROUTE_PATHS.clinics]: ['Clinics', 'app-clinics-section'],
+      [ROUTE_PATHS.staff]: ['Staff', 'app-staff-section'],
+      [ROUTE_PATHS.subscription]: ['Subscription', 'app-subscription-section'],
     };
 
-    for (const [url, heading] of Object.entries(expected)) {
+    for (const [url, [heading, selector]] of Object.entries(expected)) {
       const { router, element } = await open(url);
 
       expect(router.url, url).toBe(url);
       expect(element.querySelector('.placeholder__heading')?.textContent?.trim(), url).toBe(
         heading,
       );
+      // Its OWN component, not a shared one wearing its name. The four are separate
+      // files so that each owning ticket can fill one without touching the others.
+      expect(element.querySelector(selector), url).not.toBeNull();
     }
+  });
+
+  it('swaps the content region without reloading the page', async () => {
+    // Criterion 5, and the reason it is worth asserting: a section is fetched on
+    // demand now, so "the screen changed" and "the application restarted" look the
+    // same to a person watching. The frame surviving the navigation is what tells
+    // them apart, and `App` is only constructed once here.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [...appConfig.providers] });
+
+    const router = TestBed.inject(Router);
+    const fixture = TestBed.createComponent(App);
+    const wordmark = () =>
+      (fixture.nativeElement as HTMLElement).querySelector('.wordmark__product');
+
+    await router.navigateByUrl(ROUTE_PATHS.clinics);
+    await fixture.whenStable();
+    const before = wordmark();
+
+    await router.navigateByUrl(ROUTE_PATHS.staff);
+    await fixture.whenStable();
+
+    // THE SAME ELEMENT, not merely one that looks the same. A reload would have
+    // built a new one.
+    expect(wordmark()).toBe(before);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('app-staff-section'),
+    ).not.toBeNull();
   });
 
   it('has no practice id, and no other tenant identifier, in any path', async () => {

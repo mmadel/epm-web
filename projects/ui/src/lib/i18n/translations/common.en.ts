@@ -14,6 +14,7 @@ export const commonEn = {
   'common.state.loading': 'Loading',
   'common.state.empty': 'Nothing to show',
   'common.state.error': 'Something went wrong',
+  'common.state.loading-section': 'This part of the console is being fetched.',
   'common.state.not-built': 'This part of the console has not been built yet.',
 };
 
