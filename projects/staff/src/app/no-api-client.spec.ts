@@ -14,10 +14,15 @@ import { routes } from './app.routes';
  * makes itself, not the frame's own fetch - and a shell that acquired one would be
  * a request every screen in the console pays for on every load.
  *
- * This is the runtime half. The static half - that nothing in `ui` or in this
- * console imports `api-client` at all - is `tools/boundaries/no-api-client.test.js`,
- * which reads the sources; an unused import is invisible from here, and a call made
- * through a service this file never imports is invisible from there.
+ * THIS IS THE RUNTIME HALF, AND IT IS THE HALF THAT SURVIVED. The static half used
+ * to be a test reading the sources of two folders; T-99 replaced it with the
+ * `epm/no-api-client-in-libraries` lint rule, which fails the build for every
+ * library in the workspace rather than for the two folders somebody remembered.
+ *
+ * The two halves were never the same assertion and this one is not superseded: an
+ * unused import is invisible from here, and a call made through a service this file
+ * never imports is invisible from there. What that rule does not say is that the
+ * console opens no request when it starts, which is what this measures.
  */
 describe('the shell on load', () => {
   afterEach(() => {

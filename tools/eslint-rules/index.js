@@ -10,6 +10,7 @@
 const noRelativeApiUrl = require('./no-relative-api-url');
 const noCrossAppImports = require('./no-cross-app-imports');
 const noServerTypeMirrors = require('./no-server-type-mirrors');
+const noApiClientInLibraries = require('./no-api-client-in-libraries');
 
 module.exports = {
   meta: {
@@ -20,5 +21,6 @@ module.exports = {
     'no-relative-api-url': noRelativeApiUrl,
     'no-cross-app-imports': noCrossAppImports,
     'no-server-type-mirrors': noServerTypeMirrors,
+    'no-api-client-in-libraries': noApiClientInLibraries,
   },
 };

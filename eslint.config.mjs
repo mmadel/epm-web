@@ -51,6 +51,12 @@ export default tseslint.config(
       'epm/no-relative-api-url': 'error',
       'epm/no-cross-app-imports': 'error',
       'epm/no-server-type-mirrors': 'error',
+
+      // APPLIED TO EVERY PROJECT, NOT TO A NAMED ONE. The rule works out from
+      // angular.json whether the file it is looking at belongs to a library, so a
+      // project added tomorrow is covered without being listed here or anywhere
+      // else - which is the whole of T-99 criterion 3.
+      'epm/no-api-client-in-libraries': 'error',
     },
   },
 
