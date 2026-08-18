@@ -1,8 +1,8 @@
 import { afterNextRender, Component, ElementRef, inject, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { SESSION_SOURCE } from 'core';
-import { Shell } from 'ui';
+import { Shell, Wordmark } from 'ui';
 import { filter } from 'rxjs';
 
 import { ENVIRONMENT_NAME } from '../environment/environment-name';
@@ -66,7 +66,7 @@ export function initialsOf(displayName: string): string {
  */
 @Component({
   selector: 'app-console-layout',
-  imports: [Shell, RouterLink, EnvironmentChip],
+  imports: [Shell, Wordmark, EnvironmentChip],
   templateUrl: './console-layout.html',
   styleUrl: './console-layout.scss',
 })

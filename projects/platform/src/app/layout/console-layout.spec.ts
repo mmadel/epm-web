@@ -151,12 +151,21 @@ describe('ConsoleLayout', () => {
     expect(brand!.textContent?.replace(/\s+/g, ' ').trim()).toBe('EPM Platform');
   });
 
+  it('renders the shared wordmark rather than one of its own', async () => {
+    const fixture = await render();
+
+    // T-100. The mark is the product's rather than either console's, and it was
+    // drawn twice - identically, because the staff console's copy was taken from
+    // this one - which meant changing it changed half of it.
+    expect(element(fixture).querySelector('.shell-header__start lib-wordmark')).not.toBeNull();
+  });
+
   it('does not announce the wordmark glyph, which the words already name', async () => {
     const fixture = await render();
 
-    expect(
-      element(fixture).querySelector('.console-brand__mark')?.getAttribute('aria-hidden'),
-    ).toBe('true');
+    expect(element(fixture).querySelector('.wordmark__mark')?.getAttribute('aria-hidden')).toBe(
+      'true',
+    );
   });
 
   // -------------------------------------------------------------------------

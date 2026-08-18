@@ -478,6 +478,13 @@
   --color-chrome-border: #3a3663;
   --color-chrome-hover-surface: #252244;
 
+  // WHICH CONSOLE THIS IS. `lib-wordmark` draws its tile in this, and on an ink
+  // band that has to be the value tuned against ink rather than the one tuned
+  // against a page - so it is `--color-chrome-accent`'s value and not
+  // `--color-primary`'s. The staff console's frame is light and its two agree,
+  // which is exactly why the roles are separate names.
+  --epm-accent: #7c6cf5;
+
   // BRIGHTER THAN `--color-primary`, and this is the pair of values that most
   // needs its comment. The page accent has to stay readable as body-sized link
   // text on white, which caps how light it can be; on ink that same value is a
