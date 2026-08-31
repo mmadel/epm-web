@@ -185,8 +185,9 @@ export class Practices {
    * WITHOUT THIS THE TABLE BLINKS TO EMPTY between pages: a resource whose params
    * change has no value until the new one arrives, so pressing Next would clear the
    * rows, collapse the page to the height of its heading, and fill it again a
-   * moment later. Holding the previous page means the only thing that changes while
-   * loading is that the rows go quiet - see `.board--loading`.
+   * moment later. Holding the previous page means the rows a reader is mid-sentence
+   * in stay exactly as they are; what changes while loading is a ring in the board's
+   * head - see `.spinner`.
    *
    * It is deliberately NOT held through a failure: `haveFailed` takes the screen,
    * because rows left on display under an error message read as the result of the

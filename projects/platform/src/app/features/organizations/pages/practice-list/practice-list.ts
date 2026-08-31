@@ -57,6 +57,21 @@ interface Column {
   readonly second: string;
 }
 
+/**
+ * The rows drawn while the first answer is on its way, as the width each name's
+ * placeholder takes of the column it sits in.
+ *
+ * VARIED, AND FIXED RATHER THAN RANDOM. A column of identical bars reads as a
+ * loading graphic; names of different lengths read as a list that has not arrived
+ * yet, which is what this is. Fixed because a width recomputed on every change
+ * detection would make the placeholder itself flicker.
+ *
+ * Eight of them, which is roughly what a laptop shows above the fold. Fewer leaves
+ * the card visibly short of where it is about to be; more draws rows past the point
+ * the answer may not reach.
+ */
+const WAITING: readonly number[] = [72, 46, 61, 84, 53, 68, 40, 57];
+
 const COLUMNS: readonly Column[] = [
   { label: 'Practice', order: 'name', first: 'A to Z', second: 'Z to A' },
   { label: 'Branches', order: 'branches', first: 'most first', second: 'fewest first' },
@@ -290,6 +305,9 @@ export class PracticeList {
   // ---------------------------------------------------------------------------
 
   protected readonly columns = COLUMNS;
+
+  /** The placeholder rows drawn until the first answer arrives. See {@link WAITING}. */
+  protected readonly waiting = WAITING;
 
   /**
    * A column heading pressed: order by it, turn it round, or put it back.

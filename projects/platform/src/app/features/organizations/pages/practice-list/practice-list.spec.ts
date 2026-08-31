@@ -1390,6 +1390,75 @@ describe('PracticeList', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // While the answer is on its way
+  // ---------------------------------------------------------------------------
+
+  it('draws the board it is about to fill rather than a sentence on an empty canvas', async () => {
+    const harness = await openList({ answer: 'unanswered' });
+
+    // The card, its head and its rows are all on screen before the answer is, so
+    // nothing on the page moves when the answer replaces them. The grey sentence
+    // this replaced meant every one of them arrived at once and shoved the footnote
+    // and the pager down the screen as they did.
+    expect(harness.all('.practice__waiting')).toHaveLength(8);
+    expect(harness.query('.loading')).toBeNull();
+  });
+
+  it('names the columns that are coming while it waits', async () => {
+    const harness = await openList({ answer: 'unanswered' });
+
+    // Those four things are what the answer will be arranged in whatever it turns
+    // out to say, so they are said rather than drawn as four more bars.
+    expect(
+      harness.all('.board--waiting .board__column').map((name) => (name.textContent ?? '').trim()),
+    ).toEqual(['Practice', 'Branches', 'Staff', 'Onboarded']);
+  });
+
+  it('says it is waiting, for a reader who cannot see it', async () => {
+    const harness = await openList({ answer: 'unanswered' });
+
+    expect(
+      harness.all('[role="status"]').map((region) => (region.textContent ?? '').trim()),
+    ).toContain('Loading practices…');
+
+    // The placeholders themselves are not read out: there is nothing in them to
+    // read, and a screen reader walking eight empty rows is worse than one that is
+    // told the screen is busy.
+    expect(harness.query('.board--waiting .board__rows')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('keeps the rows lit and turns a ring while the next answer is in flight', async () => {
+    const harness = await openList();
+
+    await harness.search('care');
+
+    // The board used to drop to 55% opacity for this, which is the picture of a
+    // screen that has stopped - and it dimmed the rows the reader was mid-sentence
+    // in. The previous answer stays exactly as it was; the ring is what is new.
+    expect(harness.names).toEqual(['Nile Care', 'Delta Physio']);
+    expect(harness.query('.spinner')).not.toBeNull();
+    expect(harness.query('.board')?.getAttribute('aria-busy')).toBe('true');
+  });
+
+  it('takes the ring away when the answer lands', async () => {
+    const harness = await openList();
+
+    await harness.search('care');
+    await harness.answer(page([NILE], { totalElements: 1, totalPages: 1 }));
+
+    expect(harness.query('.spinner')).toBeNull();
+    expect(harness.query('.board')?.getAttribute('aria-busy')).toBeNull();
+  });
+
+  it('shows the placeholders and not the ring on the first paint', async () => {
+    const harness = await openList({ answer: 'unanswered' });
+
+    // Two things saying "waiting" on a screen with nothing else on it is one too
+    // many, and the skeleton is the one that also says what is coming.
+    expect(harness.query('.spinner')).toBeNull();
+  });
+
+  // ---------------------------------------------------------------------------
   // When the call fails
   // ---------------------------------------------------------------------------
 

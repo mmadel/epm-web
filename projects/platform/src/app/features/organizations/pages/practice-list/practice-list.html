@@ -102,7 +102,66 @@
       <button class="failed__retry" type="button" (click)="practices.retry()">Try again</button>
     </div>
   } @else if (isFirstLoad()) {
-    <p class="loading">Loading practices…</p>
+    <!--
+      THE FIRST PAINT IS THE BOARD, NOT A SENTENCE IN THE MIDDLE OF NOTHING. It was
+      "Loading practices…" in grey on an empty canvas, which meant the card, its
+      head, twenty-five rows, the footnote and the pager all arrived at once and
+      shoved each other down the screen as they did. This is the same grid, the same
+      head and the same row height, so the answer replaces it without anything
+      moving.
+
+      A SKELETON RATHER THAN A RING, and only here. A list has a shape worth drawing
+      before it arrives; a record does not, which is why `.loading` still holds the
+      other two screens. The ring is for the calls that land on rows already on
+      screen - see the head below.
+    -->
+    <div class="board board--waiting" aria-busy="true">
+      <p class="visually-hidden" role="status">Loading practices…</p>
+
+      <!--
+        The real column names. Those four things are what is coming whatever the
+        answer turns out to be, so they are said rather than drawn as bars - and
+        `aria-hidden` because nothing under them can be read yet.
+      -->
+      <div class="board__head" aria-hidden="true">
+        @for (column of columns; track column.order) {
+          <span class="board__column">{{ column.label }}</span>
+        }
+      </div>
+
+      <ul class="board__rows" aria-hidden="true">
+        @for (width of waiting; track $index) {
+          <li class="practice">
+            <span class="practice__waiting">
+              <span class="practice__edge"></span>
+
+              <!--
+                THE REAL ELEMENT, HOLDING ONE SPACE. A bar with a height of its own
+                is a guess at how tall a name is; `.practice__name` with `&nbsp;` in
+                it is exactly as tall as the name that replaces it, because it is
+                the same element at the same size in the same row.
+              -->
+              <span class="practice__identity">
+                <span class="practice__name waiting" [style.inline-size.%]="width">&nbsp;</span>
+                <span class="pill waiting waiting--pill">&nbsp;</span>
+              </span>
+
+              <span class="cell">
+                <span class="cell__value waiting waiting--figure">&nbsp;</span>
+                <span class="cell__track"></span>
+              </span>
+
+              <span class="cell">
+                <span class="cell__value waiting waiting--figure">&nbsp;</span>
+                <span class="cell__track"></span>
+              </span>
+
+              <span class="practice__onboarded waiting">&nbsp;</span>
+            </span>
+          </li>
+        }
+      </ul>
+    </div>
   } @else if (matchedNothing()) {
     <!--
       IT NAMES WHAT WAS SEARCHED AND OFFERS ONE CONTROL TO CLEAR IT (§6.1). It never
@@ -210,11 +269,7 @@
       The rows on screen are the PREVIOUS page while the next one is on its way, so
       they go quiet rather than disappearing and the card does not collapse.
     -->
-    <div
-      class="board"
-      [class.board--loading]="practices.areLoading()"
-      [attr.aria-busy]="practices.areLoading() ? 'true' : null"
-    >
+    <div class="board" [attr.aria-busy]="practices.areLoading() ? 'true' : null">
       <!--
         The column names, `aria-hidden` as they are everywhere this console names
         columns: each row already reads as its own sentence, and a heading row
@@ -235,7 +290,7 @@
         it. The third one matters - a list you cannot get back out of a sort is a
         list where "as listed" is gone for good.
       -->
-      <div class="board__head">
+      <div class="board__head" [class.board__head--busy]="practices.areLoading()">
         @for (column of columns; track column.order) {
           <button
             class="board__column"
@@ -251,6 +306,21 @@
               }
             </span>
           </button>
+        }
+
+        <!--
+          A CALL IS IN FLIGHT AND THERE ARE ALREADY ROWS UNDER IT. The board used to
+          drop to 55% opacity for this, which is the picture of a screen that has
+          stopped rather than one that is working - and it dimmed the very rows the
+          reader was mid-sentence in. The rows stay lit; the ring goes in the head's
+          last cell, which is the one column on this board that carries no figure,
+          so nothing is displaced while it is there and nothing moves when it goes.
+
+          `aria-hidden`, because the board's own `aria-busy` above is what carries
+          this to a reader who cannot see it turn.
+        -->
+        @if (practices.areLoading()) {
+          <span class="spinner" aria-hidden="true"></span>
         }
       </div>
 

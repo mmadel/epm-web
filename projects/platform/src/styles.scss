@@ -752,11 +752,148 @@
 // true of that screen.
 
 .loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   margin: 0;
   padding: var(--space-6) var(--space-3);
   color: var(--color-muted-text);
   font-size: var(--font-size-sm);
-  text-align: center;
+}
+
+// ---------------------------------------------------------------------------
+// The ring
+// ---------------------------------------------------------------------------
+
+// ONE RING, DRAWN ONCE, for the two places this console waits: a screen that has
+// nothing on it yet, and a board replacing rows it already has. It is here rather
+// than in either of them for the reason the note above gives - a wait that looked
+// different on the record and on the list would be two vocabularies for one event.
+
+// A SENTENCE ON ITS OWN WAS NOT ENOUGH. "Loading the practice…" in grey on an empty
+// canvas is the same picture as a screen that has given up, and the second before a
+// slow call comes back is exactly when those two are worth telling apart.
+.loading::before,
+.spinner {
+  flex: none;
+  inline-size: 1rem;
+  block-size: 1rem;
+  border: 2px solid var(--color-muted-surface);
+  border-block-start-color: var(--color-primary);
+  border-radius: 50%;
+  animation: ring-turn 700ms linear infinite;
+}
+
+.loading::before {
+  content: '';
+}
+
+// IT ARRIVES LATE ON PURPOSE, which is the whole difference between this and the
+// sentence above: that one is on a screen with nothing else on it, and this one
+// appears over rows a reader is already reading. Most of these calls come back
+// inside a couple of hundred milliseconds, and a ring that appears and vanishes in
+// that time is a flicker rather than an answer.
+
+// `both` is what holds it invisible through the delay. Without the fill mode the
+// ring is on screen for exactly the period it was given to sit out.
+.spinner {
+  display: inline-block;
+  animation:
+    ring-turn 700ms linear infinite,
+    ring-arrive 1ms linear 200ms both;
+}
+
+@keyframes ring-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes ring-arrive {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// A screen that has not been answered yet
+// ---------------------------------------------------------------------------
+
+// THE PLACEHOLDER IS THE REAL ELEMENT HOLDING ONE SPACE, which is the whole trick:
+// `.practice__name` with `&nbsp;` in it is exactly as tall as the name that replaces
+// it, and `.pill` is exactly as tall as the status. A bar with a height of its own
+// would be a guess, and a guess a few pixels out is every row below it sliding up
+// the screen as the answer lands - the one thing a skeleton exists to prevent.
+
+// A SKELETON AND NOT THE RING ABOVE, for a list. A list has a shape worth drawing
+// before it arrives; a record does not, and gets the sentence. Which of the two a
+// screen uses is that screen's decision - what is here is the fill both would draw.
+.waiting {
+  border-radius: 0.25rem;
+  background-color: var(--color-muted-surface);
+
+  // The space holds the line box open. It is not there to be read.
+  color: transparent;
+
+  // A light band travelling across the fill, which is what separates a list that has
+  // not arrived from a list of genuinely empty rows. A background rather than an
+  // element, so nothing is added to the DOM once per row to draw it.
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-surface-raised) 80%, transparent),
+    transparent
+  );
+  background-repeat: no-repeat;
+  background-size: 40% 100%;
+  animation: waiting-pass 1.4s ease-in-out infinite;
+}
+
+@keyframes waiting-pass {
+  from {
+    background-position: -60% 0;
+  }
+
+  to {
+    background-position: 160% 0;
+  }
+}
+
+// The two shapes this console already has a size for. A name varies per row and is
+// passed in by the screen drawing it; a status word and a count do not.
+.waiting--pill {
+  inline-size: 4.5rem;
+}
+
+.waiting--figure {
+  inline-size: 1.75rem;
+}
+
+// §7 removes motion, not meaning: the ring stops turning and closes into a complete
+// accent circle, which is still a mark that was not on the screen a moment ago - the
+// same trade the progress line above makes. The delay stays, because a mark that
+// flashes for eighty milliseconds is worth sitting out whether or not it is turning.
+@media (prefers-reduced-motion: reduce) {
+  .loading::before,
+  .spinner {
+    border-color: var(--color-primary);
+    animation: none;
+  }
+
+  .spinner {
+    animation: ring-arrive 1ms linear 200ms both;
+  }
+
+  // The fill stays and stops travelling, the same trade the progress line makes.
+  .waiting {
+    background-image: none;
+    animation: none;
+  }
 }
 
 // The danger tint, and every use of it carries `role="alert"`: this is the one

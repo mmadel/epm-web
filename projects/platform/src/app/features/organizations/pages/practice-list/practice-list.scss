@@ -135,11 +135,6 @@
   background-color: var(--color-surface-raised);
 }
 
-.board--loading {
-  opacity: 0.55;
-  transition: opacity 120ms ease;
-}
-
 // On the canvas colour rather than white, so the head reads as the edge of the
 // board rather than as its first practice.
 .board__head {
@@ -203,6 +198,13 @@
   line-height: 1;
 }
 
+// THE RING SITS WHERE THE ROW'S CHEVRON DOES. The head's last cell is a fixed 2rem
+// track carrying nothing, so the ring can appear and go without a single column
+// changing width - which is the whole reason it is here and not beside the count.
+.board__head .spinner {
+  justify-self: end;
+}
+
 .board__rows {
   margin: 0;
   padding: 0;
@@ -219,12 +221,21 @@
 
 // THE WHOLE ROW IS THE CONTROL - an anchor filling it rather than a button on the
 // end, so the target is the size of the row and there is one tab stop per practice.
-.practice__open {
+
+// The row that has not arrived yet shares the geometry and nothing else: it is a
+// `span`, it is not a target, and it must land on the same grid or the answer moves
+// sideways as it replaces it. Sharing the selector is what makes that impossible to
+// get wrong - a column added to one cannot miss the other.
+.practice__open,
+.practice__waiting {
   display: grid;
   gap: var(--space-3);
   grid-template-columns: var(--practice-columns);
   align-items: center;
   padding-inline-end: var(--space-3);
+}
+
+.practice__open {
   color: inherit;
   text-decoration: none;
 }
@@ -395,6 +406,33 @@
 }
 
 // ---------------------------------------------------------------------------
+// The board before it has an answer
+// ---------------------------------------------------------------------------
+
+// The placeholder itself is `styles.scss`, beside `.loading` and the ring: it is the
+// pattern for a screen that has not been answered yet rather than this screen's
+// furniture. What is here is the part that knows about this board - its grid, its
+// status column, and the width of a date in an 8rem cell.
+.practice__onboarded.waiting {
+  inline-size: 5rem;
+}
+
+// The status column reads as a column rather than as four pixels of nothing. Not a
+// tone: no practice here has a status yet, and one drawn in the accent would be a
+// screen guessing at the answer it is waiting for.
+.board--waiting .practice__edge {
+  background-color: var(--color-border-soft);
+}
+
+// The head is the real one - those four columns are what is coming - but nothing in
+// it is pressable yet, so it neither offers a pointer nor lights up under one.
+.board--waiting .board__column,
+.board--waiting .board__column:hover {
+  color: var(--color-muted-text);
+  cursor: default;
+}
+
+// ---------------------------------------------------------------------------
 // Narrow
 // ---------------------------------------------------------------------------
 
@@ -405,7 +443,23 @@
     display: none;
   }
 
-  .practice__open {
+  // THE COLUMN NAMES GO AND THE STRIP COMES BACK FOR THE RING. There is no room to
+  // sort by pressing a word squeezed to four letters, but a call in flight is worth
+  // saying at every width - so the head returns as a bare strip holding the ring
+  // alone, and goes again the moment the answer does.
+  .board__head--busy {
+    display: flex;
+    justify-content: flex-end;
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3);
+  }
+
+  .board__head--busy .board__column {
+    display: none;
+  }
+
+  .practice__open,
+  .practice__waiting {
     grid-template-columns: 3px minmax(0, 1fr) 3.5rem 3.5rem 2rem;
   }
 
@@ -534,7 +588,6 @@
 // a colour change, and this takes those away too.
 @media (prefers-reduced-motion: reduce) {
   .practices__add,
-  .practices--loading,
   .search__field,
   .search__glyph {
     transition: none;
