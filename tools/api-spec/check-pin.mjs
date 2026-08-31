@@ -8,9 +8,9 @@
  *    developers install two specifications a fortnight apart, each generates a
  *    client from the one they happened to get, and the diff between them is
  *    attributed to whoever pushed second. Worse, nothing in the repository
- *    records which specification the committed client came from, so the CI
- *    staleness check - which regenerates and compares - starts failing for
- *    reasons unrelated to the commit that fails it.
+ *    records which specification the committed client came from, so a staleness
+ *    check - which regenerates and compares - starts failing for reasons
+ *    unrelated to the commit that fails it.
  *
  *    Bumping by hand is the point. It is the moment somebody reads an API change.
  *
@@ -20,7 +20,7 @@
  *    reaches a commit is a token to rotate, and it stays readable in the history
  *    afterwards, so this is cheaper to prevent than to undo. The scan covers
  *    every tracked file, not just `.npmrc`: a token pasted into a README or a
- *    workflow while debugging an install is the likelier accident.
+ *    script while debugging an install is the likelier accident.
  */
 
 import { spawnSync } from 'node:child_process';

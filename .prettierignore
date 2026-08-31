@@ -10,7 +10,7 @@ package-lock.json
 # The API client, generated from the specification in @mmadel/openapi-spec by
 # `npm run generate:api` (tickets T-85 and T-91). Its formatting is the
 # generator's, not Prettier's, and the two disagree. Formatting it would make the committed files differ from what a
-# regeneration produces, so CI's staleness check would report a stale client on
+# regeneration produces, so a staleness check would report a stale client on
 # a commit that changed nothing about the API. The generator owns these bytes.
 /projects/api-client/src/generated
 

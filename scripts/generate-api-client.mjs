@@ -20,9 +20,9 @@
  * .npmrc and scripts/check-packages-token.mjs.
  *
  * The output is COMMITTED. That is what lets a clean checkout build without Java
- * installed, and it is what CI's staleness check compares against - CI runs this
- * script and then `git diff --exit-code`, so a specification change that was not
- * regenerated fails the build and names the difference.
+ * installed, and it is what a staleness check compares against - run this script
+ * and then `git diff --exit-code`, and a specification change that was not
+ * regenerated shows up as the difference it is.
  *
  * Two details keep that check honest, and both are the reason this is a script
  * rather than a bare `openapi-generator-cli generate` in package.json:
@@ -84,8 +84,8 @@ if (!existsSync(SPEC)) {
 // written - by the JVM this script spawned a moment ago, by an editor, or by a
 // virus scanner reading it - makes the delete fail with EPERM. It succeeds on a
 // second attempt; without the retries, running this script twice in quick
-// succession fails on Windows and works on CI, which is the worst shape a
-// failure can have.
+// succession fails on Windows and works everywhere else, which is the worst
+// shape a failure can have.
 rmSync(OUTPUT, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 mkdirSync(OUTPUT, { recursive: true });
 writeFileSync(join(OUTPUT, '.openapi-generator-ignore'), ignoreFileContents(), 'utf8');
@@ -106,7 +106,8 @@ console.log(
 
 // No arguments: the generator name, the input and every additional property live
 // in openapitools.json, alongside the pinned generator version. A flag passed
-// here and not there would be a flag CI did not use.
+// here and not there would be a flag a plain `openapi-generator-cli generate`
+// did not use.
 const { status, error } = spawnSync('npx openapi-generator-cli generate', {
   cwd: workspaceRoot,
   stdio: 'inherit',
@@ -120,7 +121,7 @@ if (error || status !== 0) {
     'openapi-generator-cli failed.',
     [
       'The generator runs on a JVM. If the failure above mentions `java`, install',
-      'a JDK (17 or newer) and try again; CI installs one explicitly.',
+      'a JDK (17 or newer) and try again.',
       '',
       'If it compiled but the OUTPUT does not typecheck against this workspace’s',
       'Angular version, do not edit the generated files - the fix is the pinned',
@@ -129,7 +130,7 @@ if (error || status !== 0) {
   );
 }
 
-console.log('[generate-api-client] Done. Commit the result: it is checked by CI.');
+console.log('[generate-api-client] Done. Commit the result alongside the version bump.');
 
 function ignoreFileContents() {
   return [

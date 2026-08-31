@@ -103,7 +103,8 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
 }
 
 function generate() {
-  // A root .env is optional: CI and containers set the variable in the environment.
+  // A root .env is optional: containers and deployments set the variable in the
+  // environment instead.
   try {
     process.loadEnvFile(join(workspaceRoot, '.env'));
   } catch {

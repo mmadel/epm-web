@@ -2,7 +2,7 @@
 //
 // A shell `&&` would short-circuit: one ESLint error and Stylelint never runs,
 // so a contributor fixes one rule only to be told about the next on the following
-// push - and a CI failure would only ever name half the rules that are broken.
+// push - and one run would only ever name half the rules that are broken.
 // Both linters always run; the exit code is the aggregate.
 import { spawnSync } from 'node:child_process';
 

@@ -81,7 +81,6 @@ test('containsTokenLiteral leaves the committed configuration and its prose alon
   const innocent = [
     '//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}',
     '@mmadel:registry=https://npm.pkg.github.com',
-    'NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}',
     'A classic token starts with ghp_ and a fine-grained one with github_pat_.',
     'export NODE_AUTH_TOKEN=<token>',
   ];

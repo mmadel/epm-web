@@ -27,7 +27,7 @@ export default tseslint.config(
       // otherwise walk it - and it is machine output, so the only two outcomes
       // are both bad: a rule fires on code nobody wrote and cannot fix, or
       // someone applies `--fix` and the file no longer matches its own
-      // regeneration, which is the difference CI's staleness check reports as a
+      // regeneration, which is the difference a staleness check reports as a
       // stale client. Regenerate it with `npm run generate:api`; never edit it.
       'projects/api-client/src/generated/**',
     ],

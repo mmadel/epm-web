@@ -13,20 +13,18 @@
  *
  * WHAT IT DOES NOT CATCH, because npm does not offer a hook early enough:
  * `npm ci` downloads dependencies BEFORE it runs the root package's `preinstall`
- * script. On a cold cache - which every CI runner has, and any developer who has
- * not installed this package before - the registry therefore answers 401 and npm
- * exits before this file executes. Measured, not assumed: a cold-cache `npm ci`
- * with the variable unset prints the bare 401 and nothing from here.
+ * script. On a cold cache - which any developer who has not installed this
+ * package before has - the registry therefore answers 401 and npm exits before
+ * this file executes. Measured, not assumed: a cold-cache `npm ci` with the
+ * variable unset prints the bare 401 and nothing from here.
  *
- * So it is wired in TWO places, and neither is redundant:
+ * So `preinstall` is where it is wired: it catches the warm-cache case and
+ * `npm install` on a populated tree - the shape a developer hits most often,
+ * since their cache usually has the package from last time. Ahead of a cold
+ * `npm ci`, running this file by hand is the only position that reliably
+ * precedes npm's first request.
  *
- *   - a step before `npm ci` in every CI job, which is the only position that
- *     reliably precedes npm's first request, and
- *   - `preinstall`, which catches the warm-cache case and `npm install` on a
- *     populated tree - the shape a developer hits most often, since their cache
- *     usually has the package from last time.
- *
- * When neither fires, the fallback is documentation: the 401 row in
+ * When it does not fire, the fallback is documentation: the 401 row in
  * docs/api-client.md says what the registry will not.
  *
  * The check is deliberately narrow. It asks whether the token is in the
@@ -63,10 +61,6 @@ if (token === '') {
       'Putting it in ~/.npmrc instead will NOT work: the committed .npmrc sets the',
       "same key for this registry, and a project's configuration beats the user's,",
       'so the file is shadowed and npm authenticates with nothing.',
-      '',
-      'In CI it comes from the PACKAGES_READ_TOKEN secret. The automatic',
-      "GITHUB_TOKEN cannot stand in for it: it reads only its own repository's",
-      'packages, and the specification is published from epm-service.',
     ].join('\n  '),
   );
   console.error('');

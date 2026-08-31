@@ -50,16 +50,14 @@ generated `BaseService` falls back to `http://localhost` when `BASE_PATH` is abs
 the first request would not fail, it would quietly go to whatever is on port 80 of the
 machine the browser is on.
 
-CI must define `EPM_API_BASE_URL` for build and test jobs.
-
 ## The API client, and bumping the API version
 
 Nothing in this workspace hand-writes a request or a response type. The `api-client`
 library is generated from the API's own OpenAPI specification, which arrives as a
 **pinned npm package** — `@mmadel/openapi-spec`, published from the backend repository
 and named at one exact version in `package.json`. The generated client is committed;
-`npm run generate:api` regenerates it and CI insists the result is byte-for-byte what
-was committed.
+`npm run generate:api` regenerates it, and the result must be byte-for-byte what was
+committed.
 
 Bumping the API version is three commands:
 
@@ -88,20 +86,17 @@ export NODE_AUTH_TOKEN=<token>            # bash
 $env:NODE_AUTH_TOKEN = "<token>"          # PowerShell
 ```
 
-Export it — that is the one mechanism, on a laptop and in CI alike. The committed
-`.npmrc` redirects only the `@mmadel` scope to `https://npm.pkg.github.com` and reads the
-token from `NODE_AUTH_TOKEN`; no token is written to a file in this repository, and
+Export it — that is the one mechanism. The committed `.npmrc` redirects only the
+`@mmadel` scope to `https://npm.pkg.github.com` and reads the token from
+`NODE_AUTH_TOKEN`; no token is written to a file in this repository, and
 `npm run lint` fails if one ever is.
 
 Without the variable set, the registry answers **401** and npm reports a published package
 as unreadable. A `preinstall` guard turns that into a message naming the variable —
 though only when npm does not need the network first, since `npm ci` downloads before it
 runs `preinstall`. On a cold cache the 401 is what you get; `docs/api-client.md` says what
-it means. CI runs the same guard as a step **before** `npm ci`, which is early enough.
-
-In CI the value is the `PACKAGES_READ_TOKEN` secret; the automatic `GITHUB_TOKEN` cannot
-stand in for it, because it reads only this repository's packages and the specification is
-published from another.
+it means. Running `node scripts/check-packages-token.mjs` before `npm ci` is early enough
+to get the message instead.
 
 ## Language and direction
 
@@ -296,10 +291,10 @@ ng test
 Five steps, and they are mandatory: `git add -A`, `npm run lint`, `npm run format:check`,
 `npm test`, `npm run build`.
 
-The pre-commit hook runs only the first two of those checks, and CI runs all of them - so
-a commit the hook accepts can still turn a pull request red. `docs/committing.md` has the
-full table of what is enforced where, what each step catches that the others do not, and
-the branch and commit message conventions.
+The pre-commit hook runs only the first two of those checks, so a commit the hook accepts
+can still be broken - nothing else runs them for you. `docs/committing.md` has the full
+table of what is enforced where, what each step catches that the others do not, and the
+branch and commit message conventions.
 
 ## Running end-to-end tests
 

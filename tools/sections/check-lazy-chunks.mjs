@@ -6,10 +6,9 @@
 // one. Nothing about that is visible from a rendered DOM, which is why this reads the
 // build output instead.
 //
-// It runs as `postbuild`, so `npm run build` enforces it and so does the CI job that
-// runs the build. It deliberately does not live in `tools/**/*.test.js`: those run in
-// the lint job, which never builds, and a check that quietly passes because there is
-// nothing to look at is worse than no check.
+// It runs as `postbuild`, so `npm run build` enforces it. It deliberately does not
+// live in `tools/**/*.test.js`: those run without ever building, and a check that
+// quietly passes because there is nothing to look at is worse than no check.
 //
 // Usage:  npm run build   (or: node tools/sections/check-lazy-chunks.mjs)
 
