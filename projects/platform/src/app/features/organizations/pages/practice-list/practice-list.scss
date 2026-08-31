@@ -49,20 +49,25 @@
 // The one action
 // ---------------------------------------------------------------------------
 
-// A PILL, which in this console is reserved for a status and for the single primary
-// action per screen (§3.4). The header carries one and the fresh-platform empty
-// state carries the same one at the same size - it is one action rendered twice, in
-// the two places a reader looks for it, and there is never a second pill-shaped
-// control offering something else.
+// THE ONE SCREEN WHERE THE ACTION CANNOT BE A ROW. Everywhere else on this list it
+// is the first row of the board - see `.practice__add` - but a fresh platform has no
+// board for it to be a row of, and this is the one screen in the console where
+// adding a practice is the only thing there is to do.
+
+// SAME ACCENT, SAME PLUS, SAME TINT AS THE ROW, boxed rather than full width because
+// it is standing on its own in the middle of a card. It is not filled: nothing on
+// this screen is any more, and a solid block of accent here would be the only one in
+// the console.
 .practices__add {
   display: inline-flex;
   flex: none;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border-radius: 1.25rem;
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-primary);
+  border-radius: 0.5rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-deep);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
@@ -71,16 +76,26 @@
 }
 
 .practices__add:hover {
-  background-color: var(--color-primary-hover);
+  background-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface-raised));
+}
+
+// A press that can be felt, which a colour change is not. One pixel down the block
+// axis, with no transition on it, so it lands at the moment of the press.
+.practices__add:active {
+  transform: translateY(1px);
 }
 
 .practices__add-mark {
   display: inline-flex;
 }
 
+// A BARE PLUS. It was a plus inside a circle inside a rounded button - three nested
+// round shapes doing the work of one - and the circled form is the mark for an
+// inline "add a row" control rather than for a filled action that already has an
+// edge of its own saying where it starts and stops.
 .practices__add-mark svg {
-  inline-size: 1rem;
-  block-size: 1rem;
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
 }
 
 // ---------------------------------------------------------------------------
@@ -227,7 +242,8 @@
 // sideways as it replaces it. Sharing the selector is what makes that impossible to
 // get wrong - a column added to one cannot miss the other.
 .practice__open,
-.practice__waiting {
+.practice__waiting,
+.practice__add {
   display: grid;
   gap: var(--space-3);
   grid-template-columns: var(--practice-columns);
@@ -272,6 +288,61 @@
 .practice__edge--closed,
 .practice__edge--unknown {
   background-color: var(--color-border-strong);
+}
+
+// ---------------------------------------------------------------------------
+// The action, which is a row
+// ---------------------------------------------------------------------------
+
+// A ROW ON THE BOARD IT ADDS TO, at the top, above the first practice. It reads as
+// part of the list rather than as a banner on top of one: the same grid, the same
+// height, the same chevron at the same end. What separates it is that it is the only
+// tinted row and the only one whose words are in the accent.
+
+// A HEAVIER RULE UNDER IT than the one between two practices. It is not a practice,
+// and the line is what says the list starts below it.
+.practice__add {
+  border-block-end: 1px solid var(--color-border);
+  background-color: color-mix(in srgb, var(--color-primary-soft) 55%, var(--color-surface-raised));
+  color: var(--color-primary-deep);
+  text-decoration: none;
+  transition: background-color 120ms ease;
+}
+
+.practice__add:hover {
+  background-color: var(--color-primary-soft);
+}
+
+// Inset, like the practice rows above it and for the same reason: the row has no
+// padding at its leading end, so a ring at its bounds would be drawn off the card.
+.practice__add:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+// THE MARK STARTS WHERE THE NAMES START, and the words sit a glyph's width in from
+// them. That indent is the row saying it is not a practice, and it costs nothing:
+// the column still has one thing at its leading edge all the way down.
+.practice__add-mark {
+  display: inline-flex;
+}
+
+.practice__add-mark svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.practice__add-label {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+// `-2` is the last column at both widths - the board drops a column below 60rem, and
+// a chevron placed by number would land in the staff figure there. It is in the
+// accent already rather than only on hover, because the whole row is the accent.
+.practice__add .practice__chevron {
+  grid-column: -2;
+  color: var(--color-primary);
 }
 
 .practice__identity {
@@ -459,7 +530,8 @@
   }
 
   .practice__open,
-  .practice__waiting {
+  .practice__waiting,
+  .practice__add {
     grid-template-columns: 3px minmax(0, 1fr) 3.5rem 3.5rem 2rem;
   }
 
@@ -569,6 +641,11 @@
   background: none;
   color: var(--color-primary);
   font: inherit;
+
+  // One of the two is an anchor - the offer to add a practice - and a link that
+  // arrives underlined beside a button that does not is two treatments for one
+  // thing. Both take the underline on hover instead.
+  text-decoration: none;
   cursor: pointer;
 }
 

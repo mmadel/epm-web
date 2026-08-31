@@ -5,32 +5,11 @@
 -->
 <div class="stage stage--full">
   <!--
-    THE ACTION IS A PILL, and it is the only pill-shaped control on the screen apart
-    from a status badge (design §3.4): the shape itself says "this is the main
-    thing", so a second one would be a design error anyone can spot.
-
-    IT IS A LINK, NOT A BUTTON. It goes to another screen, so it can be opened in a
-    new tab, copied, and reached with the browser's own controls - which a button
-    that calls `navigate` cannot. "Add a practice" is §4's word for it; the schema's
-    noun does not appear on this screen.
+    THE HEADER CARRIES NO ACTION, and `lib-page-header` renders no element for one -
+    which is the whole of its criterion 4. The action moved into the board; see the
+    row below the column names.
   -->
-  <lib-page-header [title]="title()" supporting="Every practice on the platform.">
-    <a action class="practices__add" [routerLink]="onboardLink">
-      <span class="practices__add-mark" aria-hidden="true">
-        <svg viewBox="0 0 16 16" focusable="false">
-          <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3" />
-          <path
-            d="M8 4.8v6.4M4.8 8h6.4"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-        </svg>
-      </span>
-      Add a practice
-    </a>
-  </lib-page-header>
+  <lib-page-header [title]="title()" supporting="Every practice on the platform." />
 
   <!--
     ONE BAND, ALWAYS ON SCREEN, holding every criterion this console can answer. It
@@ -129,6 +108,14 @@
         }
       </div>
 
+      <!--
+        The one live control on a screen that is otherwise placeholder, and the
+        reason it is here rather than only below: without it the first practice
+        would land a row lower than the first placeholder did, which is the shift
+        the whole skeleton exists to avoid.
+      -->
+      <ng-container [ngTemplateOutlet]="addRow" />
+
       <ul class="board__rows" aria-hidden="true">
         @for (width of waiting; track $index) {
           <li class="practice">
@@ -207,6 +194,17 @@
         }
         {{ clearInvitation() }}
       </p>
+
+      <!--
+        THE OTHER ANSWER TO "NOTHING MATCHED", and the reason it is said here. The
+        action is a row on the board, and a search that matched nothing has no board
+        - so the one state where a reader has looked for a practice and been told it
+        is not on the platform is the one state that would offer no way to add it.
+      -->
+      <p class="empty__body">
+        Not on the platform yet?
+        <a class="empty__link" [routerLink]="onboardLink">Add a practice</a>.
+      </p>
     </div>
   } @else if (isEmpty()) {
     <!--
@@ -244,12 +242,11 @@
       <a class="practices__add" [routerLink]="onboardLink">
         <span class="practices__add-mark" aria-hidden="true">
           <svg viewBox="0 0 16 16" focusable="false">
-            <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3" />
             <path
-              d="M8 4.8v6.4M4.8 8h6.4"
+              d="M8 3.5v9M3.5 8h9"
               fill="none"
               stroke="currentColor"
-              stroke-width="1.5"
+              stroke-width="1.6"
               stroke-linecap="round"
             />
           </svg>
@@ -323,6 +320,8 @@
           <span class="spinner" aria-hidden="true"></span>
         }
       </div>
+
+      <ng-container [ngTemplateOutlet]="addRow" />
 
       <ul class="board__rows">
         @for (row of rows(); track row.id) {
@@ -483,3 +482,53 @@
     }
   }
 </div>
+
+<!--
+  THE ACTION IS A ROW IN THE LIST IT ADDS TO. It was a filled control in the corner
+  of the header - the shape every console puts there, and the shape this one had
+  already spent on a status badge. A practice is a row on this board, so the control
+  that makes one is a row on this board: same grid, same height, same chevron, at the
+  top where the eye already is when the column names are read.
+
+  IT IS DECLARED ONCE AND RENDERED TWICE - into the board that is waiting and the
+  board that has arrived - because a control copied into two branches is a control
+  that changes in one of them. This is the workspace's first `ng-template`; the
+  alternative was fourteen lines of anchor and path in two places.
+
+  NO STATUS EDGE. The first column carries a practice's state, and a tone invented
+  for the row that has not made one yet would be a colour saying something about a
+  practice that does not exist.
+-->
+<ng-template #addRow>
+  <a class="practice__add" [routerLink]="onboardLink">
+    <span class="practice__edge" aria-hidden="true"></span>
+
+    <span class="practice__identity">
+      <span class="practice__add-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" focusable="false">
+          <path
+            d="M8 3.5v9M3.5 8h9"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </span>
+      <span class="practice__add-label">Add a practice</span>
+    </span>
+
+    <span class="practice__chevron" aria-hidden="true">
+      <svg viewBox="0 0 16 16" focusable="false">
+        <path
+          d="m6 3.5 4.5 4.5L6 12.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </span>
+  </a>
+</ng-template>

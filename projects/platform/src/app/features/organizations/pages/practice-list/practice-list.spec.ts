@@ -614,7 +614,7 @@ describe('PracticeList', () => {
     const harness = await openList({ answer: page([NILE, DELTA, CAIRO]) });
 
     const tones = harness
-      .all('.practice__edge')
+      .all('.board__rows .practice__edge')
       .map((edge) => edge.className.replace('practice__edge ', ''));
 
     expect(tones).toEqual([
@@ -642,13 +642,13 @@ describe('PracticeList', () => {
 
     // One link per practice, covering the row - not an "Open" button on the end of
     // it, which would be a target the size of a word and a second tab stop per row.
-    const opens = harness.all('.practice__open') as HTMLAnchorElement[];
+    const opens = harness.all('.board__rows .practice__open') as HTMLAnchorElement[];
 
     expect(opens.map((open) => open.getAttribute('href'))).toEqual([
       '/practices/org-1',
       '/practices/org-2',
     ]);
-    expect(harness.all('.practice__chevron')).toHaveLength(2);
+    expect(harness.all('.board__rows .practice__chevron')).toHaveLength(2);
   });
 
   it('offers no edit control, because no route would answer one', async () => {
@@ -713,7 +713,9 @@ describe('PracticeList', () => {
     // Not dropped and not blank: a status nobody has styled is still the practice's
     // status, and hiding it would report a state that is not the one the server has.
     expect(harness.query('.pill')?.textContent?.trim()).toBe('Standard · archived');
-    expect(harness.query('.practice__edge')?.className).toContain('practice__edge--unknown');
+    expect(harness.query('.board__rows .practice__edge')?.className).toContain(
+      'practice__edge--unknown',
+    );
   });
 
   // ---------------------------------------------------------------------------
@@ -1339,16 +1341,55 @@ describe('PracticeList', () => {
   // The one action
   // ---------------------------------------------------------------------------
 
-  it('offers "Add a practice" as a link, not a button', async () => {
+  it('offers "Add a practice" as a row of the board, and as a link', async () => {
     const harness = await openList();
 
     // A link can be opened in a new tab, copied, and reached with the browser's own
     // controls; a button that calls `navigate` cannot. The schema's noun - onboard,
     // organization - does not appear on this screen.
-    const add = harness.query<HTMLAnchorElement>('.practices__add');
+    const add = harness.query<HTMLAnchorElement>('.practice__add');
 
     expect(add?.getAttribute('href')).toBe('/onboard');
     expect(add?.textContent?.trim()).toBe('Add a practice');
+  });
+
+  it('puts the action above the first practice rather than in the header', async () => {
+    const harness = await openList();
+
+    // The control that makes a row is the first row. A filled control in the corner
+    // of the header wore the same shape as the status badge on every row under it.
+    const board = harness.query('.board')!;
+
+    expect(board.querySelector('.practice__add')).not.toBeNull();
+    expect(harness.query('.page-header .practice__add')).toBeNull();
+    expect(
+      board.querySelector('.practice__add')!.compareDocumentPosition(harness.all('.practice')[0]) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('keeps the action on screen while the first answer is still coming', async () => {
+    const harness = await openList({ answer: 'unanswered' });
+
+    // Without it the first practice lands a row lower than the first placeholder
+    // did, which is the shift the skeleton exists to avoid - and it is the only
+    // thing a reader can actually do while they wait.
+    expect(harness.query('.board--waiting .practice__add')).not.toBeNull();
+  });
+
+  it('offers the action when a search matched nothing, which has no board', async () => {
+    const harness = await openList();
+
+    await harness.search('nile care');
+    await harness.answer(page([], { totalElements: 0, totalPages: 0 }));
+
+    // The one state where a reader has looked for a practice, been told it is not
+    // on the platform, and would otherwise be offered no way to add it.
+    const add = harness
+      .all('.empty__link')
+      .find((link) => (link.textContent ?? '').trim() === 'Add a practice');
+
+    expect(add?.getAttribute('href')).toBe('/onboard');
   });
 
   // ---------------------------------------------------------------------------

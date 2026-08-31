@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, ElementRef, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -177,7 +178,7 @@ interface PracticeRow {
  */
 @Component({
   selector: 'app-practice-list',
-  imports: [PageHeader, RouterLink, SearchPanel],
+  imports: [NgTemplateOutlet, PageHeader, RouterLink, SearchPanel],
   templateUrl: './practice-list.html',
   styleUrl: './practice-list.scss',
   host: { '(document:keydown)': 'onShortcut($event)' },
