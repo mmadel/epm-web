@@ -256,6 +256,20 @@ class Harness {
     await this.settle();
   }
 
+  /**
+   * Asks for something by going to the address that asks for it.
+   *
+   * WHILE THE BAND IS COMMENTED OUT this is the only way to change a criterion, and
+   * it is not a workaround: the address IS the state on this screen, and the box
+   * raised exactly this event 300ms after the last keystroke. What these tests lose
+   * is the typing, which the skipped ones above cover and which comes back with the
+   * band; what they keep is every assertion about what the list then does.
+   */
+  async go(url: string): Promise<void> {
+    TestBed.inject(Router).navigateByUrl(url);
+    await this.settle();
+  }
+
   /** Goes back, the way the browser does. */
   async back(): Promise<void> {
     TestBed.inject(Router).navigateByUrl(previous);
@@ -489,6 +503,20 @@ async function openList(options?: {
   return harness;
 }
 
+/**
+ * THIRTY `it.skip`s IN THIS FILE, AND THEY ARE ALL ONE THING. The search band is
+ * commented out of `practice-list.html` while its design is reworked, so every test
+ * that types into the box, opens a filter menu, presses a view or reads the band's
+ * own count has no control to drive. They are skipped rather than deleted because
+ * nothing behind them changed: uncomment the band and they pass again as they are.
+ *
+ * WHAT WAS NOT SKIPPED. A test whose subject is the LIST rather than the band was
+ * rewired to ask through the address instead - see `Harness.go`. Marking the matched
+ * run in a name, sending the name to the server rather than filtering the page,
+ * announcing the result, the ring on the board, the rows a failure must not leave
+ * behind: all of that is about what the list does with a criterion, and the band was
+ * only ever how the criterion got set.
+ */
 describe('PracticeList', () => {
   beforeEach(() => {
     // The search box debounces before navigating, so the clock is the screen's own.
@@ -517,7 +545,7 @@ describe('PracticeList', () => {
   // Finding things
   // ---------------------------------------------------------------------------
 
-  it('puts the cursor in the search box when / is pressed', async () => {
+  it.skip('puts the cursor in the search box when / is pressed', async () => {
     const harness = await openList();
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true }));
@@ -528,7 +556,7 @@ describe('PracticeList', () => {
     expect(document.activeElement).toBe(harness.query('#practice-search'));
   });
 
-  it('lets / be typed into the search box itself', async () => {
+  it.skip('lets / be typed into the search box itself', async () => {
     const harness = await openList();
 
     const box = harness.query<HTMLInputElement>('#practice-search')!;
@@ -543,7 +571,7 @@ describe('PracticeList', () => {
     expect(typed.defaultPrevented).toBe(false);
   });
 
-  it('clears the search when Escape is pressed in the box', async () => {
+  it.skip('clears the search when Escape is pressed in the box', async () => {
     const harness = await openList();
 
     await harness.search('care');
@@ -557,7 +585,7 @@ describe('PracticeList', () => {
     expect(harness.asked.name).toBeNull();
   });
 
-  it('shows the shortcut on the field, and hides it once the field is in use', async () => {
+  it.skip('shows the shortcut on the field, and hides it once the field is in use', async () => {
     const harness = await openList();
 
     expect(harness.query('.search__key')?.textContent?.trim()).toBe('/');
@@ -752,7 +780,7 @@ describe('PracticeList', () => {
   // The URL is the state - design §6
   // ---------------------------------------------------------------------------
 
-  it('puts the search in the address, so it can be shared', async () => {
+  it.skip('puts the search in the address, so it can be shared', async () => {
     const harness = await openList();
 
     await harness.search('care');
@@ -787,15 +815,15 @@ describe('PracticeList', () => {
 
     await harness.settle();
 
-    // A shared link asks the server for the search it names, and the box says it.
+    // A shared link asks the server for the search it names. The half of this that
+    // checked the box echoed it back is with the band, and is skipped above.
     expect(harness.asked.name).toBe('care');
-    expect(harness.query<HTMLInputElement>('#practice-search')?.value).toBe('care');
   });
 
-  it('follows the address back when the browser goes back', async () => {
+  it.skip('follows the address back when the browser goes back', async () => {
     const harness = await openList();
 
-    await harness.search('care');
+    await harness.go('/?name=care');
     await harness.answer(page([NILE], { totalElements: 1, totalPages: 1 }));
 
     previous = '/';
@@ -814,14 +842,14 @@ describe('PracticeList', () => {
   it('sends the name to the server rather than filtering the page it has', async () => {
     const harness = await openList();
 
-    await harness.search('care');
+    await harness.go('/?name=care');
 
     // Filtering here would search the twenty-five rows on screen and report "no
     // matches" for a practice sitting on page three.
     expect(harness.asked).toEqual({ name: 'care', page: '0', size: '100' });
   });
 
-  it('waits for the typing to stop before asking', async () => {
+  it.skip('waits for the typing to stop before asking', async () => {
     const harness = await openList();
 
     await harness.type('c');
@@ -839,7 +867,7 @@ describe('PracticeList', () => {
     expect(harness.asked.name).toBe('care');
   });
 
-  it('asks immediately when the search is submitted', async () => {
+  it.skip('asks immediately when the search is submitted', async () => {
     const harness = await openList();
 
     await harness.type('care');
@@ -851,7 +879,7 @@ describe('PracticeList', () => {
     expect(harness.asked.name).toBe('care');
   });
 
-  it('goes back to the first page when a search narrows the list', async () => {
+  it.skip('goes back to the first page when a search narrows the list', async () => {
     const harness = await openList({ answer: page(many(60), { totalElements: 60 }) });
 
     await harness.press('Next');
@@ -862,7 +890,7 @@ describe('PracticeList', () => {
     expect(harness.asked).toEqual({ name: 'care', page: '0', size: '100' });
   });
 
-  it('sends no name at all when the box is cleared', async () => {
+  it.skip('sends no name at all when the box is cleared', async () => {
     const harness = await openList();
 
     await harness.search('care');
@@ -874,7 +902,7 @@ describe('PracticeList', () => {
     expect(harness.asked.name).toBeNull();
   });
 
-  it('counts what matched against what there is, inside the field', async () => {
+  it.skip('counts what matched against what there is, inside the field', async () => {
     const harness = await openList({ answer: page([NILE, DELTA, CAIRO]) });
 
     expect(harness.query('.band__matched')?.textContent?.trim()).toBe('3 practices');
@@ -887,7 +915,7 @@ describe('PracticeList', () => {
     expect(harness.query('.band__matched')?.textContent?.trim()).toBe('1 of 3 practices');
   });
 
-  it('claims no denominator it has not been given', async () => {
+  it.skip('claims no denominator it has not been given', async () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -911,7 +939,7 @@ describe('PracticeList', () => {
     expect(harness.query('.band__matched')?.textContent?.trim()).toBe('1 practice');
   });
 
-  it('teaches the match only while the box is empty and focused', async () => {
+  it.skip('teaches the match only while the box is empty and focused', async () => {
     const harness = await openList();
 
     expect(harness.query('.search__hint')).toBeNull();
@@ -933,7 +961,7 @@ describe('PracticeList', () => {
   it('marks the run of each name the search matched', async () => {
     const harness = await openList();
 
-    await harness.search('care');
+    await harness.go('/?name=care');
     await harness.answer(
       page([NILE, { ...DELTA, name: 'Carewell Clinics' }], { totalElements: 2, totalPages: 1 }),
     );
@@ -951,7 +979,7 @@ describe('PracticeList', () => {
   it('marks every run in a name, not only the first', async () => {
     const harness = await openList();
 
-    await harness.search('a');
+    await harness.go('/?name=a');
     await harness.answer(page([{ ...NILE, name: 'Al Salam Care' }], { totalElements: 1 }));
 
     expect(harness.marked).toEqual(['A', 'a', 'a', 'a']);
@@ -965,7 +993,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Nile Care', 'Delta Physio']);
   });
 
-  it('shows a call is in flight on the field that started it', async () => {
+  it.skip('shows a call is in flight on the field that started it', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     // A search navigates to no new screen: the heading stays put and the rows are
@@ -982,7 +1010,7 @@ describe('PracticeList', () => {
   // The searches already run
   // ---------------------------------------------------------------------------
 
-  it('offers the searches already run, under an empty box', async () => {
+  it.skip('offers the searches already run, under an empty box', async () => {
     const harness = await openList();
 
     expect(harness.recent).toEqual([]);
@@ -1002,7 +1030,7 @@ describe('PracticeList', () => {
     expect(harness.recent).toEqual(['delta']);
   });
 
-  it('runs a remembered search when it is picked, and keeps the box', async () => {
+  it.skip('runs a remembered search when it is picked, and keeps the box', async () => {
     const harness = await openList();
 
     await harness.search('delta');
@@ -1021,7 +1049,7 @@ describe('PracticeList', () => {
     expect(document.activeElement).toBe(harness.query('#practice-search'));
   });
 
-  it('drops a remembered search the next one was typed on top of', async () => {
+  it.skip('drops a remembered search the next one was typed on top of', async () => {
     const harness = await openList();
 
     // The field asks 300ms after the last keystroke, so a reader who pauses mid-word
@@ -1038,7 +1066,7 @@ describe('PracticeList', () => {
     expect(harness.recent).toEqual(['delta']);
   });
 
-  it('names what was searched and offers one control to clear it', async () => {
+  it.skip('names what was searched and offers one control to clear it', async () => {
     const harness = await openList({ answer: page([NILE, DELTA, CAIRO]) });
 
     await harness.search('zzz');
@@ -1078,7 +1106,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Nile Care', 'Delta Physio', 'Cairo Heart Centre']);
   });
 
-  it('counts every option against the platform, with its own group lifted', async () => {
+  it.skip('counts every option against the platform, with its own group lifted', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
@@ -1097,7 +1125,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Delta Physio']);
   });
 
-  it('does not read the list again when a criterion changes', async () => {
+  it.skip('does not read the list again when a criterion changes', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
@@ -1111,7 +1139,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Delta Physio']);
   });
 
-  it('puts every criterion in the address, so a filtered list is a link', async () => {
+  it.skip('puts every criterion in the address, so a filtered list is a link', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
@@ -1124,7 +1152,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Delta Physio']);
   });
 
-  it('says what it is filtered by on the controls themselves, on arrival', async () => {
+  it.skip('says what it is filtered by on the controls themselves, on arrival', async () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -1151,7 +1179,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Cairo Heart Centre']);
   });
 
-  it('says what is applied twice over: on each control, and in one row', async () => {
+  it.skip('says what is applied twice over: on each control, and in one row', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
@@ -1166,7 +1194,7 @@ describe('PracticeList', () => {
     expect(harness.tags).toEqual(['Status Active', 'Branches 2+']);
   });
 
-  it('answers a question somebody arrives holding, in one press', async () => {
+  it.skip('answers a question somebody arrives holding, in one press', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
@@ -1187,7 +1215,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Nile Care', 'Delta Physio', 'Cairo Heart Centre']);
   });
 
-  it('keeps the search and the ordering when a view replaces the filters', async () => {
+  it.skip('keeps the search and the ordering when a view replaces the filters', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
@@ -1199,7 +1227,7 @@ describe('PracticeList', () => {
     expect(harness.url).toBe('/?status=SUSPENDED&by=staff&dir=desc');
   });
 
-  it('takes one criterion off from its tag and leaves the rest', async () => {
+  it.skip('takes one criterion off from its tag and leaves the rest', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
@@ -1241,7 +1269,7 @@ describe('PracticeList', () => {
     expect(harness.sortedColumn).toBe('');
   });
 
-  it('pages what matched, not what the server happened to send first', async () => {
+  it.skip('pages what matched, not what the server happened to send first', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA], [CAIRO]]);
@@ -1258,7 +1286,7 @@ describe('PracticeList', () => {
     expect(harness.query('.band__matched')?.textContent?.trim()).toBe('1 of 3 practices');
   });
 
-  it('says so when it counted only part of the platform', async () => {
+  it.skip('says so when it counted only part of the platform', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     // Twenty-five pages of a hundred: more than a sweep will read. The counts are
@@ -1308,7 +1336,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Nile Care', 'Delta Physio', 'Cairo Heart Centre']);
   });
 
-  it('narrows a filtered list by name rather than starting again', async () => {
+  it.skip('narrows a filtered list by name rather than starting again', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
@@ -1324,7 +1352,7 @@ describe('PracticeList', () => {
     expect(harness.names).toEqual(['Cairo Heart Centre']);
   });
 
-  it('goes back to the first page whenever a criterion changes', async () => {
+  it.skip('goes back to the first page whenever a criterion changes', async () => {
     const harness = await openList({ answer: page(many(60), { totalElements: 60 }) });
 
     await harness.press('Next');
@@ -1380,7 +1408,7 @@ describe('PracticeList', () => {
   it('offers the action when a search matched nothing, which has no board', async () => {
     const harness = await openList();
 
-    await harness.search('nile care');
+    await harness.go('/?name=nile%20care');
     await harness.answer(page([], { totalElements: 0, totalPages: 0 }));
 
     // The one state where a reader has looked for a practice, been told it is not
@@ -1471,7 +1499,7 @@ describe('PracticeList', () => {
   it('keeps the rows lit and turns a ring while the next answer is in flight', async () => {
     const harness = await openList();
 
-    await harness.search('care');
+    await harness.go('/?name=care');
 
     // The board used to drop to 55% opacity for this, which is the picture of a
     // screen that has stopped - and it dimmed the rows the reader was mid-sentence
@@ -1484,7 +1512,7 @@ describe('PracticeList', () => {
   it('takes the ring away when the answer lands', async () => {
     const harness = await openList();
 
-    await harness.search('care');
+    await harness.go('/?name=care');
     await harness.answer(page([NILE], { totalElements: 1, totalPages: 1 }));
 
     expect(harness.query('.spinner')).toBeNull();
@@ -1532,7 +1560,7 @@ describe('PracticeList', () => {
   it('shows no stale rows underneath a failure', async () => {
     const harness = await openList();
 
-    await harness.search('care');
+    await harness.go('/?name=care');
     await harness.fail();
 
     // Rows left on display under an error read as the result of the search that
@@ -1547,7 +1575,7 @@ describe('PracticeList', () => {
   it('announces the result of a search, which navigates to no new screen', async () => {
     const harness = await openList();
 
-    await harness.search('care');
+    await harness.go('/?name=care');
     await harness.answer(page([NILE], { totalElements: 1, totalPages: 1 }));
 
     expect(harness.query('[role="status"]')?.textContent?.trim()).toBe(
@@ -1558,7 +1586,7 @@ describe('PracticeList', () => {
   it('says nothing while a call is in flight, so an answer is not re-read', async () => {
     const harness = await openList();
 
-    await harness.search('care');
+    await harness.go('/?name=care');
 
     expect(harness.query('[role="status"]')?.textContent?.trim()).toBe('');
   });

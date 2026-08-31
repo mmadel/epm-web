@@ -5,7 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ListedOrganization, ListedOrganizationStatusEnum } from 'api-client';
 import { PageHeader } from 'ui';
 
-import { SearchPanel } from '../../components/search-panel/search-panel';
+// Commented out with the band it renders - see `practice-list.html`.
+// import { SearchPanel } from '../../components/search-panel/search-panel';
 import { routeTitle } from '../../../../layout/route-title';
 import { practicePath, ROUTE_PATHS } from '../../../../route-paths';
 import {
@@ -178,7 +179,7 @@ interface PracticeRow {
  */
 @Component({
   selector: 'app-practice-list',
-  imports: [NgTemplateOutlet, PageHeader, RouterLink, SearchPanel],
+  imports: [NgTemplateOutlet, PageHeader, RouterLink],
   templateUrl: './practice-list.html',
   styleUrl: './practice-list.scss',
   host: { '(document:keydown)': 'onShortcut($event)' },

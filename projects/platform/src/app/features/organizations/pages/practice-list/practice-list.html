@@ -18,6 +18,18 @@
     filters hidden behind something that had to be pressed to find out what it was
     hiding.
   -->
+  <!--
+    COMMENTED OUT, NOT DELETED. The band is off the screen while its design is
+    reworked; everything behind it is untouched, so restoring it is uncommenting
+    these ten lines and the two beside them in `practice-list.ts`.
+
+    WHAT IS STILL WIRED WHILE IT IS GONE: the criteria are still read off the
+    address, so a hand-typed or bookmarked `?name=care&status=suspended` still
+    narrows the list, and the tag row below still says so and still takes them off.
+    Nothing on screen can SET one - which is the point of taking the band off - and
+    that is why the tests that drove the box are skipped rather than deleted.
+  -->
+  <!--
   <app-search-panel
     [criteria]="practices.criteria()"
     [facets]="practices.facets()"
@@ -29,6 +41,7 @@
     [at]="practices.at()"
     (refined)="refine($event)"
   />
+  -->
 
   <!--
     WHAT IS APPLIED, IN ONE LINE, UNDER THE BAND THAT APPLIED IT. Every menu says
