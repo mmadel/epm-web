@@ -1,3 +1,18 @@
-<app-console-layout>
-  <router-outlet />
-</app-console-layout>
+<!--
+  THE TWO BRANCHES NEVER BOTH EXIST. The console and the pages that come before it
+  are alternatives rather than layers: `@else` and not a second block, so there is
+  no arrangement of states in which a frame is in the document behind a splash.
+
+  The router's outlet lives inside the signed-in branch, which means it is not
+  registered while nobody is signed in - and that is correct rather than merely
+  tolerable. `platformAdminGuard` refuses every route in those states, so there is
+  never a screen waiting for an outlet that is not there; when the token arrives,
+  `OidcConsoleAuth` navigates, and by then this branch has rendered.
+-->
+@if (isSignedIn()) {
+  <app-console-layout>
+    <router-outlet />
+  </app-console-layout>
+} @else {
+  <app-auth-state-page />
+}

@@ -41,7 +41,7 @@ describe('TRANSLATIONS', () => {
   });
 
   it('prefixes every key with the area it belongs to', () => {
-    const areas = ['common', 'errors', 'shell'];
+    const areas = ['auth', 'common', 'errors', 'shell'];
 
     for (const key of Object.keys(TRANSLATIONS.en)) {
       expect(areas, `area of "${key}"`).toContain(key.split('.')[0]);

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { provideStubAuth } from 'core';
 
 import { App } from './app';
 
@@ -56,6 +57,9 @@ describe('the console while a section is being fetched', () => {
           { path: '', pathMatch: 'full', component: ArrivedSection },
           { path: 'slow', loadComponent: () => chunk },
         ]),
+        // The frame only exists once somebody is signed in, and the frame
+        // surviving a lazy chunk is the whole of what this file measures.
+        provideStubAuth(),
       ],
     });
 

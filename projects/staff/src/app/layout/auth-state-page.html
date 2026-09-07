@@ -1,0 +1,83 @@
+<!--
+  ONE BRANCH PER STATE, WITH NO `@else` CATCH-ALL. Every value of the status is
+  named, so a seventh state added to the union renders nothing here and fails the
+  spec that walks them - rather than falling into whichever branch happened to be
+  written last, which for this component would mean telling somebody who has been
+  refused that they are being signed in.
+-->
+<div class="auth-state">
+  @switch (status()) {
+    @case ('starting') {
+      <lib-placeholder
+        [heading]="'auth.console.title' | translate"
+        [body]="'auth.state.starting' | translate"
+      />
+    }
+    @case ('redirecting') {
+      <!--
+        THE PAGE IS ON ITS WAY OUT while this renders. Neutral on purpose - no
+        frame, no navigation, nothing from behind the sign-in - because the one
+        thing this state must never do is flash the signed-in console at somebody
+        who is not signed in (T-111 §4).
+      -->
+      <lib-placeholder
+        [heading]="'auth.console.title' | translate"
+        [body]="'auth.state.redirecting' | translate"
+      />
+    }
+    @case ('signingIn') {
+      <lib-placeholder
+        [heading]="'auth.console.title' | translate"
+        [body]="'auth.state.signing-in' | translate"
+      />
+    }
+    @case ('notPermitted') {
+      <!--
+        THE 403. A valid token whose owner the API has no row for. There is
+        deliberately no retry: signing in again returns the same valid token and
+        the same refusal, and a console that offered the button would be inviting
+        somebody into the loop this ticket exists to stop (criterion 10).
+
+        THIS IS THE STATE EVERY STAFF ACCOUNT WOULD REACH TODAY if one existed.
+        None does - T-111 §6 - so the console stops at Keycloak's login page,
+        which is the expected end of criterion 12 rather than a fault.
+      -->
+      <lib-placeholder
+        [heading]="'auth.not-permitted.title' | translate"
+        [body]="'auth.not-permitted.body' | translate"
+      >
+        <button type="button" class="auth-state__action" (click)="signOut()">
+          {{ 'auth.action.sign-out' | translate }}
+        </button>
+      </lib-placeholder>
+    }
+    @case ('providerUnreachable') {
+      <!--
+        NAMES THE PROVIDER (criterion 11). The issuer is what turns "sign-in is
+        broken" into something the reader can act on: it is both the host to check
+        and the string that is wrong when the configuration is what is wrong.
+      -->
+      <lib-placeholder
+        [heading]="'auth.provider-unreachable.title' | translate"
+        [body]="'auth.provider-unreachable.body' | translate"
+      >
+        <p class="auth-state__issuer">
+          <span class="auth-state__issuer-label">
+            {{ 'auth.provider-unreachable.provider' | translate }}
+          </span>
+          <!--
+            `dir="ltr"` REGARDLESS OF THE PAGE. A URL is left-to-right in every
+            language, and one rendered in an RTL paragraph has its scheme and its
+            path swapped around on screen - which is unreadable exactly when
+            somebody is checking it character by character.
+          -->
+          <code class="auth-state__issuer-value" dir="ltr">{{ issuer }}</code>
+        </p>
+
+        <button type="button" class="auth-state__action" (click)="retry()">
+          {{ 'common.action.retry' | translate }}
+        </button>
+      </lib-placeholder>
+    }
+  }
+</div>

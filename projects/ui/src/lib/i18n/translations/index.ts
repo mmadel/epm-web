@@ -1,5 +1,7 @@
 import { Language } from 'core';
 
+import { authAr } from './auth.ar';
+import { authEn } from './auth.en';
 import { commonAr } from './common.ar';
 import { commonEn } from './common.en';
 import { errorsAr } from './errors.ar';
@@ -21,12 +23,14 @@ import { shellEn } from './shell.en';
 // ---------------------------------------------------------------------------
 
 const en = {
+  ...authEn,
   ...commonEn,
   ...errorsEn,
   ...shellEn,
 };
 
 const ar = {
+  ...authAr,
   ...commonAr,
   ...errorsAr,
   ...shellAr,

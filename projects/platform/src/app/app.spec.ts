@@ -5,7 +5,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
 import { provideRouter, Router, TitleStrategy, withInMemoryScrolling } from '@angular/router';
 import { BASE_PATH } from 'api-client';
-import { API_BASE_URL, provideApiBaseUrl, providePlatformAdminSession } from 'core';
+import {
+  API_BASE_URL,
+  provideApiBaseUrl,
+  providePlatformAdminSession,
+  provideStubAuth,
+} from 'core';
 
 import { App } from './app';
 import { routes } from './app.routes';
@@ -22,6 +27,11 @@ async function open(url: string, environment = 'production'): Promise<ComponentF
   TestBed.configureTestingModule({
     providers: [
       provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
+      // SIGNED IN, BECAUSE THIS SPEC IS ABOUT WHAT AN ADMINISTRATOR LANDS ON. The
+      // console renders nothing at all in the other five auth states, so without
+      // this every assertion below would be about a splash. The states themselves
+      // are `auth-routes.spec.ts`.
+      provideStubAuth(),
       providePlatformAdminSession(),
       provideEnvironmentName(environment),
       { provide: TitleStrategy, useClass: PlatformTitleStrategy },

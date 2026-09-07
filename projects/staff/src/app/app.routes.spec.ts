@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Route, Router, Routes } from '@angular/router';
+import { provideStubAuth } from 'core';
 
 import { App } from './app';
 import { appConfig } from './app.config';
@@ -14,6 +15,12 @@ import { ROUTE_PATHS } from './route-paths';
  * the wordmark and the navigation have to survive a route that matched nothing, and
  * a harness that renders only the outlet's component cannot tell.
  *
+ * IT SIGNS SOMEBODY IN, AND THE STUB HAS TO COME AFTER `appConfig.providers` to
+ * do it - the later provider for a token wins. Every route is behind
+ * `authenticatedGuard` now, so a harness without this would navigate nowhere and
+ * every assertion here would be a test of the guard. What an unauthenticated
+ * visit reaches is `auth-routes.spec.ts`, which is where it belongs.
+ *
  * IT TAKES THE APPLICATION'S OWN PROVIDERS rather than a router assembled here.
  * The route table alone is not the configuration: `withComponentInputBinding` is
  * what carries a route's `data.section` into the screen it opens, and a spec that
@@ -22,7 +29,7 @@ import { ROUTE_PATHS } from './route-paths';
  */
 async function open(url: string): Promise<{ router: Router; element: HTMLElement }> {
   TestBed.resetTestingModule();
-  TestBed.configureTestingModule({ providers: [...appConfig.providers] });
+  TestBed.configureTestingModule({ providers: [...appConfig.providers, provideStubAuth()] });
 
   const router = TestBed.inject(Router);
   const fixture: ComponentFixture<App> = TestBed.createComponent(App);
@@ -131,7 +138,7 @@ describe('staff routes', () => {
     // same to a person watching. The frame surviving the navigation is what tells
     // them apart, and `App` is only constructed once here.
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [...appConfig.providers] });
+    TestBed.configureTestingModule({ providers: [...appConfig.providers, provideStubAuth()] });
 
     const router = TestBed.inject(Router);
     const fixture = TestBed.createComponent(App);

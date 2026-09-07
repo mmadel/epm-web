@@ -1,7 +1,15 @@
-import { afterNextRender, Component, ElementRef, inject, Injector, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
-import { SESSION_SOURCE } from 'core';
+import { CONSOLE_AUTH, SESSION_SOURCE } from 'core';
 import { Shell, Wordmark } from 'ui';
 import { filter } from 'rxjs';
 
@@ -78,6 +86,9 @@ export class ConsoleLayout {
   /** Who is signed in. Read through the seam; never resolved here (P-02). */
   private readonly session = inject(SESSION_SOURCE).session;
 
+  /** Ending the session. The frame owns the control; the seam owns what it does. */
+  private readonly auth = inject(CONSOLE_AUTH);
+
   protected readonly homeLink = ROUTE_PATHS.practices;
 
   /**
@@ -96,17 +107,42 @@ export class ConsoleLayout {
     ? `console-edge console-edge--${this.environment.tone}`
     : 'console-edge';
 
-  /** The signed-in administrator's full name, for the account mark's tooltip. */
-  protected readonly accountName = this.session().displayName;
+  /**
+   * The signed-in administrator's full name, for the account mark's tooltip.
+   *
+   * COMPUTED RATHER THAN READ ONCE IN A FIELD, which it was while a mock answered
+   * the seam. The mock had its answer before anything could ask; an identity
+   * provider does not, and a value snapshotted during construction would be the
+   * name of whoever was signed in when the frame was built - which, after a
+   * sign-out and a sign-in in the same tab, is the wrong person's name.
+   *
+   * The empty string is unreachable while this is on screen: the root only mounts
+   * the frame once the status is `signedIn`, and by then the session has resolved.
+   * It is here because the seam's type says `undefined` is possible, and inventing
+   * a placeholder name would be worse than rendering no name at all.
+   */
+  protected readonly accountName = computed(() => this.session()?.displayName ?? '');
 
-  /** Their initials, which is all the mark shows. There is no menu behind it. */
-  protected readonly accountInitials = initialsOf(this.accountName);
+  /** Their initials, which is all the mark shows. */
+  protected readonly accountInitials = computed(() => initialsOf(this.accountName()));
 
   /**
    * What the live region says. Empty until the first navigation completes, so
    * the region does not announce the landing page on top of the page load.
    */
   protected readonly announcement = signal('');
+
+  /**
+   * Ends the session, at the provider and not merely here.
+   *
+   * The header carries this now because auth exists; it used to carry a comment
+   * saying that sign-out belonged with auth and auth was blocked on decisions
+   * nobody had made. What it does NOT carry is a menu - there is one action, and a
+   * menu with one item in it is a click in front of a button.
+   */
+  protected signOut(): void {
+    this.auth.signOut();
+  }
 
   constructor() {
     this.router.events

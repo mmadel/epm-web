@@ -1,0 +1,72 @@
+<!--
+  ONE BRANCH PER STATE, WITH NO `@else` CATCH-ALL. Every value of the status is
+  named, so a seventh state added to the union renders nothing here and fails the
+  spec that walks them - rather than quietly falling into whichever branch was
+  written last, which for this component would mean showing "signing in" to
+  somebody who has been refused.
+-->
+<div class="auth-state">
+  @switch (status()) {
+    @case ('starting') {
+      <!--
+        A restored session usually resolves inside a few hundred milliseconds, so
+        this is often not painted at all. It says the console is looking rather
+        than that it is loading, because what it is doing is deciding whether the
+        person is already signed in.
+      -->
+      <lib-placeholder heading="EPM Platform" body="Checking your sign-in…" />
+    }
+    @case ('redirecting') {
+      <!--
+        THE PAGE IS ON ITS WAY OUT while this renders. It is neutral on purpose -
+        no shell, no account, nothing from behind the sign-in - because the one
+        thing this state must never do is flash the signed-in console at somebody
+        who is not signed in (T-111 §4).
+      -->
+      <lib-placeholder heading="EPM Platform" body="Taking you to sign in…" />
+    }
+    @case ('signingIn') {
+      <lib-placeholder heading="EPM Platform" body="Signing you in…" />
+    }
+    @case ('notPermitted') {
+      <!--
+        THE 403. A valid token whose `sub` matches no platform administrator
+        (`LLD-IDENTITY.md` §4). It is a plain page and a dead end, and both halves
+        are deliberate: there is no "try again" here, because trying again returns
+        the same valid token and the same refusal, and a console that offered the
+        button would be inviting somebody into the loop this ticket exists to stop
+        (criterion 10).
+
+        Signing out IS offered, because it is the one action that changes
+        anything - it is how somebody who signed in with the wrong account gets to
+        use the right one.
+      -->
+      <lib-placeholder
+        heading="Your account is not set up for this console"
+        body="You signed in successfully, but this account is not a platform administrator. Ask a platform administrator to set it up, or sign in with a different account."
+      >
+        <button type="button" class="auth-state__action" (click)="signOut()">Sign out</button>
+      </lib-placeholder>
+    }
+    @case ('providerUnreachable') {
+      <!--
+        NAMES THE PROVIDER. Criterion 11 is that stopping Keycloak and reloading
+        produces this rather than a blank screen, and the issuer is what turns
+        "sign-in is broken" into something the person reading it can act on - it is
+        both the host to check and the string that is wrong when the configuration
+        is what is wrong.
+      -->
+      <lib-placeholder
+        heading="Cannot reach the sign-in provider"
+        body="The console could not reach the identity provider, so nobody can be signed in. It may be starting up, or it may not be running."
+      >
+        <p class="auth-state__issuer">
+          <span class="auth-state__issuer-label">Provider</span>
+          <code class="auth-state__issuer-value">{{ issuer }}</code>
+        </p>
+
+        <button type="button" class="auth-state__action" (click)="retry()">Try again</button>
+      </lib-placeholder>
+    }
+  }
+</div>
