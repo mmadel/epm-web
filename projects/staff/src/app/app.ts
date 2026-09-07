@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   NavigationCancel,
@@ -8,8 +8,10 @@ import {
   Router,
   RouterOutlet,
 } from '@angular/router';
+import { CONSOLE_AUTH } from 'core';
 import { LanguageSwitch, Placeholder, Shell, TranslatePipe, Wordmark } from 'ui';
 
+import { AuthStatePage } from './layout/auth-state-page';
 import { ROUTE_PATHS } from './route-paths';
 
 /**
@@ -31,15 +33,44 @@ import { ROUTE_PATHS } from './route-paths';
  * billing are its too - this is the decision to revisit. `Shell` still takes a
  * `navigation` input and `shell-nav.spec.ts` still holds it to its behaviour, so
  * revisiting it means passing an array rather than rebuilding a frame.
+ *
+ * THE FRAME IS NOT RENDERED UNTIL SOMEBODY IS SIGNED IN. T-111 §4: "never a flash
+ * of the signed-in shell". A frame that mounted first and was covered over would
+ * still paint, would still be in the DOM, and would still say which console this
+ * is to somebody with no session. `@if` and not a hidden class - and note that
+ * this is a DIFFERENT decision from the one `loading` makes below, which hides
+ * rather than destroys and says why.
  */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Shell, Wordmark, LanguageSwitch, Placeholder, TranslatePipe],
+  imports: [
+    RouterOutlet,
+    Shell,
+    Wordmark,
+    LanguageSwitch,
+    Placeholder,
+    TranslatePipe,
+    AuthStatePage,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   private readonly router = inject(Router);
+
+  private readonly auth = inject(CONSOLE_AUTH);
+
+  private readonly status = this.auth.status;
+
+  /**
+   * Whether the console itself may be on the screen.
+   *
+   * ONE STATE OUT OF SIX SAYS YES, which is why this is an equality rather than a
+   * list of the states that say no. A seventh state added to the union renders the
+   * auth pages, which is the safe half of the answer; written the other way round
+   * it would render the console, which is not.
+   */
+  protected readonly isSignedIn = computed(() => this.status() === 'signedIn');
 
   /**
    * Where the wordmark goes, which is where `/` goes: this console's home screen.
@@ -64,6 +95,18 @@ export class App {
    * - the wait is only ever shown for a wait that is real.
    */
   protected readonly loading = signal(false);
+
+  /**
+   * Ends the session, at the provider and not merely here.
+   *
+   * The frame owns the control and the seam owns what it does, which is the same
+   * split as everything else in this header: the wordmark knows where home is, the
+   * language switch knows nothing about storage, and this knows nothing about
+   * tokens.
+   */
+  protected signOut(): void {
+    this.auth.signOut();
+  }
 
   constructor() {
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {

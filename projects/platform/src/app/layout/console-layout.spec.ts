@@ -1,7 +1,12 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
-import { LANGUAGE_STORAGE, PlatformAdminSession, providePlatformAdminSession } from 'core';
+import {
+  LANGUAGE_STORAGE,
+  PlatformAdminSession,
+  providePlatformAdminSession,
+  provideStubAuth,
+} from 'core';
 
 import { provideEnvironmentName } from '../environment/environment-name';
 import { ConsoleLayout, initialsOf } from './console-layout';
@@ -46,6 +51,11 @@ async function render(options?: {
         { path: '', component: FirstPage },
         { path: 'second', component: SecondPage },
       ]),
+      // The frame carries a sign-out control now, so it reads the auth seam as
+      // well as the session one. The two are separate questions - what the console
+      // is doing about signing in, and who it decided was signed in - and the
+      // frame is the one place both are on screen at once.
+      provideStubAuth(),
       providePlatformAdminSession(options?.admin ?? ADMIN),
       provideEnvironmentName(options?.environment ?? 'local'),
       {
@@ -281,6 +291,7 @@ describe('ConsoleLayout', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([{ path: '', component: FirstPage }]),
+        provideStubAuth(),
         providePlatformAdminSession(ADMIN),
         provideEnvironmentName('local'),
       ],

@@ -23,3 +23,44 @@
 .staff-outlet--waiting {
   display: none;
 }
+
+// ---------------------------------------------------------------------------
+// The end of the header
+// ---------------------------------------------------------------------------
+
+// The language switch and the way out, in one row. The frame projects a single
+// element into `shell-header-end`, so the two controls need a box of their own -
+// and a flex row is the whole of what it does.
+.staff-header-end {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+// DRAWN QUIETLY ON PURPOSE. Signing out is a way out rather than something anybody
+// came here to do, and a filled button beside the language switch would make the
+// two read as a pair of equal choices at the end of every screen.
+
+// Chrome roles and not page roles: this sits on the header band. A rule here
+// reaching for --color-text would be invisible on it.
+.staff-signout {
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-chrome-muted-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  background: none;
+  border: 1px solid var(--color-chrome-border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.staff-signout:hover {
+  background-color: var(--color-chrome-hover-surface);
+  color: var(--color-chrome-text);
+}
+
+.staff-signout:focus-visible {
+  outline: 2px solid var(--color-chrome-focus);
+  outline-offset: 2px;
+}

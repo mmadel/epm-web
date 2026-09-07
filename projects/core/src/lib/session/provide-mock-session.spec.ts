@@ -14,7 +14,15 @@ describe('providePlatformAdminSession', () => {
   it('signs in a platform administrator', () => {
     TestBed.configureTestingModule({ providers: [providePlatformAdminSession()] });
 
-    expect(isPlatformAdmin(TestBed.inject(SESSION_SOURCE).session())).toBe(true);
+    const session = TestBed.inject(SESSION_SOURCE).session();
+
+    // THE MOCK IS THE ONE IMPLEMENTATION THAT IS NEVER `undefined`, which is why
+    // this narrows first and then asserts rather than simply passing the value in.
+    // The seam's type allows nobody-signed-in because an identity provider
+    // genuinely has nothing to say until it has answered (T-111); a mock has its
+    // answer before anything can ask, and that difference is the assertion.
+    expect(session).toBeDefined();
+    expect(isPlatformAdmin(session!)).toBe(true);
   });
 
   it('signs in a context with no organization', () => {
@@ -23,7 +31,7 @@ describe('providePlatformAdminSession', () => {
     // The same assertion the type carries, made against what actually reaches an
     // injector. A type can be right while the value handed out is a stale object
     // literal with an organization left on it.
-    expect('organizationId' in TestBed.inject(SESSION_SOURCE).session()).toBe(false);
+    expect('organizationId' in TestBed.inject(SESSION_SOURCE).session()!).toBe(false);
   });
 
   it('accepts an overridden administrator', () => {

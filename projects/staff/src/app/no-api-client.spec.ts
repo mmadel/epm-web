@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideStubAuth } from 'core';
 
 import { App } from './app';
 import { routes } from './app.routes';
@@ -34,7 +35,16 @@ describe('the shell on load', () => {
 
   it('makes no HTTP request at all', async () => {
     TestBed.configureTestingModule({
-      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
+      // SIGNED IN, WHICH MAKES THIS ASSERTION STRONGER RATHER THAN WEAKER. A
+      // console that is not signed in renders a splash and could not make a
+      // request if it wanted to; the state worth measuring is the one where the
+      // whole frame is mounted and still asks for nothing.
+      providers: [
+        provideRouter(routes),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideStubAuth(),
+      ],
     });
 
     const fixture = TestBed.createComponent(App);

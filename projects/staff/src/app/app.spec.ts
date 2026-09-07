@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideStubAuth } from 'core';
 
 import { App } from './app';
 import { ROUTE_PATHS } from './route-paths';
@@ -8,7 +9,11 @@ describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([])],
+      // SIGNED IN, BECAUSE THIS SPEC IS ABOUT THE FRAME. The frame does not exist
+      // in the other five auth states - T-111 §4, "never a flash of the signed-in
+      // shell" - so without this every assertion below would be about a splash.
+      // What the console shows instead is `auth-routes.spec.ts`.
+      providers: [provideRouter([]), provideStubAuth()],
     }).compileComponents();
   });
 

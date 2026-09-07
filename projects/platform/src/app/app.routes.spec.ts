@@ -4,7 +4,12 @@ import { inject as injectFn } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Route, Router, Routes } from '@angular/router';
 import { BASE_PATH } from 'api-client';
-import { API_BASE_URL, provideApiBaseUrl, providePlatformAdminSession } from 'core';
+import {
+  API_BASE_URL,
+  provideApiBaseUrl,
+  providePlatformAdminSession,
+  provideStubAuth,
+} from 'core';
 
 import { routes } from './app.routes';
 import { platformAdminGuard } from './session/platform-admin-guard';
@@ -60,6 +65,12 @@ async function landsOn(url: string): Promise<{ url: string; title: string | unde
   TestBed.configureTestingModule({
     providers: [
       provideRouter(routes),
+      // SIGNED IN, BECAUSE THIS SPEC IS ABOUT WHERE ADDRESSES GO. Every route is
+      // behind the guard now, so without this the navigations below are all
+      // refused and every assertion here becomes a test of the guard instead -
+      // which has its own spec. What happens to an unauthenticated visit is
+      // asserted in `auth-routes.spec.ts`.
+      provideStubAuth(),
       providePlatformAdminSession(),
       provideHttpClient(),
       provideHttpClientTesting(),

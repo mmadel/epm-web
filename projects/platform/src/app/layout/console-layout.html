@@ -29,16 +29,31 @@
     <app-environment-chip />
 
     <!--
-      No menu behind the account. Sign-out belongs with auth, and auth is
-      blocked on the token and realm decisions (P-02.4); a menu with one
-      disabled item in it is worse than no menu. The full name is the title,
-      the initials are the mark, and the mark is not a control.
+      STILL NO MENU BEHIND THE ACCOUNT, now for the opposite reason. It used to be
+      that sign-out belonged with auth and auth was blocked on the token and realm
+      decisions (P-02.4), so a menu would have held one disabled item. T-111
+      settled those decisions and there is exactly one thing to offer - and one
+      action behind a menu is a click in front of a button.
+
+      The mark is not a control. The full name is the title, the initials are the
+      mark, and the button beside it is the only thing here that does anything.
     -->
-    <span class="console-account" [title]="accountName">
+    <span class="console-account" [title]="accountName()">
       <span class="visually-hidden">Signed in as</span>
-      <span class="console-account__initials" aria-hidden="true">{{ accountInitials }}</span>
-      <span class="visually-hidden">{{ accountName }}</span>
+      <span class="console-account__initials" aria-hidden="true">{{ accountInitials() }}</span>
+      <span class="visually-hidden">{{ accountName() }}</span>
     </span>
+
+    <!--
+      IT ENDS THE SESSION AT KEYCLOAK AND NOT ONLY HERE (T-111 criterion 7).
+      Forgetting the token locally would leave the provider's own session open, so
+      reopening the console would sign the person straight back in without asking
+      for anything - which is a sign-out that looks like it worked and did not.
+
+      A `button` and not a link: it is an action, it has no address, and there is
+      nothing to open in a new tab.
+    -->
+    <button type="button" class="console-signout" (click)="signOut()">Sign out</button>
   </div>
 
   <!--

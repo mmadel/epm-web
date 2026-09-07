@@ -1,10 +1,24 @@
 import { Routes } from '@angular/router';
+import { authenticatedGuard } from 'core';
 
 import { NotFoundPage } from './layout/not-found-page';
 import { PracticeHome } from './sections/practice-home';
 
 /**
  * The console's route table.
+ *
+ * EVERY ROUTE IS BEHIND `authenticatedGuard`, INCLUDING THE UNKNOWN-ADDRESS ONE.
+ * T-111 §4: an unauthenticated visit never renders a shell, and "Page not found"
+ * is a screen inside the shell like any other - a console that let a stranger
+ * reach it would be telling them which addresses do not exist, which is a small
+ * leak of the shape of the product and a large inconsistency. `app.routes.spec.ts`
+ * walks whatever ends up here and fails if a route is added without the guard.
+ *
+ * IT IS `core`'s GUARD AND NOT THIS CONSOLE'S. Staff has no actor question to ask
+ * yet - there is no staff session, because an organization id cannot come from a
+ * token (§I9) - so the only question is whether anybody is signed in, and that is
+ * the same question in both consoles. The platform console composes a second one
+ * on top of it; this one does not have a second one to ask.
  *
  * THERE IS NO PRACTICE ID IN ANY PATH, and none is coming. The practice is the
  * caller's, and the backend takes it from the session; a segment for it here would
@@ -39,6 +53,7 @@ export const routes: Routes = [
     // the practice is one thing this console does rather than the thing it is.
     path: '',
     pathMatch: 'full',
+    canActivate: [authenticatedGuard],
     component: PracticeHome,
   },
   {
@@ -48,18 +63,22 @@ export const routes: Routes = [
     // and what ties the two together is the spec beside it, which navigates to every
     // constant and asserts it resolves.
     path: 'practice',
+    canActivate: [authenticatedGuard],
     loadComponent: () => import('./sections/practice-section').then((m) => m.PracticeSection),
   },
   {
     path: 'clinics',
+    canActivate: [authenticatedGuard],
     loadComponent: () => import('./sections/clinics-section').then((m) => m.ClinicsSection),
   },
   {
     path: 'staff',
+    canActivate: [authenticatedGuard],
     loadComponent: () => import('./sections/staff-section').then((m) => m.StaffSection),
   },
   {
     path: 'subscription',
+    canActivate: [authenticatedGuard],
     loadComponent: () =>
       import('./sections/subscription-section').then((m) => m.SubscriptionSection),
   },
@@ -68,6 +87,7 @@ export const routes: Routes = [
     // router matches in order, and it renders under the same outlet as every section,
     // so the frame stays on the screen.
     path: '**',
+    canActivate: [authenticatedGuard],
     component: NotFoundPage,
   },
 ];

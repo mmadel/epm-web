@@ -20,8 +20,20 @@ import { Session } from './session';
  * would be guessing at their shape.
  */
 export interface SessionSource {
-  /** Who is signed in. Read-only: only the implementation may change it. */
-  readonly session: Signal<Session>;
+  /**
+   * Who is signed in, or `undefined` while nobody is.
+   *
+   * NULLABLE BECAUSE THE REAL IMPLEMENTATION GENUINELY HAS NOTHING TO SAY YET.
+   * While a mock answered this, "there is always a session" was true and cost
+   * nothing; with an identity provider behind it (T-111) there is a real stretch
+   * of time - the session being restored, the redirect to the provider, the code
+   * coming back - during which the honest answer is that nobody is signed in.
+   *
+   * A caller that gets `undefined` must not treat it as a session with holes in
+   * it. It is the whole of the answer: ask again once {@link ConsoleAuth.status}
+   * says `signedIn`, which is the only state a console renders a screen in.
+   */
+  readonly session: Signal<Session | undefined>;
 }
 
 /**

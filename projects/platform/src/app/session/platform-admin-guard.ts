@@ -1,29 +1,42 @@
 import { inject } from '@angular/core';
 import { CanActivateFn } from '@angular/router';
-import { isPlatformAdmin, SESSION_SOURCE } from 'core';
+import { isPlatformAdmin, isSignedIn, SESSION_SOURCE } from 'core';
 
 /**
- * Every route in this console requires a platform administrator.
+ * Every route in this console requires a signed-in platform administrator.
  *
- * With the mock in place this always passes, and that is the expected state: the
- * point of the ticket that added it is that the seam exists before auth arrives,
- * not that it protects anything yet. When an identity provider replaces the
- * mock, this guard starts doing real work without moving and without any route
- * changing.
+ * TWO QUESTIONS, AND THEY ARE NOT THE SAME QUESTION. `isSignedIn` asks whether
+ * anybody is signed in at all, which is the identity provider's business and is
+ * `core`'s to answer for both consoles. This asks whether the person who
+ * signed in is the kind of actor this console serves, which is only ever this
+ * console's business - staff needs a guard for a different kind of actor, not
+ * this one.
  *
- * It asks the session seam rather than resolving the caller itself. That is the
- * whole arrangement - one place answers "who is signed in", so there is no
- * second, staler answer for a screen to act on.
+ * It asks the session seam rather than resolving the caller itself, and the seam
+ * now has an identity provider behind it instead of a mock (T-111). Nothing about
+ * this guard moved when that happened, which is what the seam was for.
  *
- * **A denied caller gets `false` and no redirect.** There is deliberately
- * nowhere to send them: whether this console has its own identity realm, and
- * whether sign-in is a bearer token or a cookie session, are both open
- * architecture decisions. Redirecting to a `/login` route would mean inventing
- * the login screen this milestone says not to build, and it would be thrown away
- * when those decisions land.
+ * **A denied caller gets `false` and no redirect**, and the reason has changed
+ * even though the behaviour has not. It used to be that there was nowhere to send
+ * them; now there is, and sending them is somebody else's job - `ConsoleAuth`
+ * decides to go to the provider once, when the console starts, from the address
+ * the browser was opened with. A guard that also redirected would race it and
+ * would lose the deep link it is carrying (T-111 criterion 8).
  *
- * It lives in the platform application rather than in `core` because it is not
- * reusable: staff needs a guard for a different kind of actor, not this one.
+ * WHAT A REFUSED NAVIGATION LOOKS LIKE is not decided here either. The root
+ * renders on the auth status: a splash while a session is restored, nothing at
+ * all while the redirect is in flight, the not-permitted page after a 403. All
+ * this guarantees is that no screen activates in any of them.
  */
-export const platformAdminGuard: CanActivateFn = () =>
-  isPlatformAdmin(inject(SESSION_SOURCE).session());
+export const platformAdminGuard: CanActivateFn = () => {
+  if (!isSignedIn()) {
+    return false;
+  }
+
+  const session = inject(SESSION_SOURCE).session();
+
+  // `undefined` is not "let them through". A signed-in person whose session has
+  // not resolved is not a platform administrator, and treating an unanswered
+  // question as a yes is the shape of every authorization bug worth having.
+  return session !== undefined && isPlatformAdmin(session);
+};

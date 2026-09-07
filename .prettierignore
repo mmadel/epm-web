@@ -19,3 +19,11 @@ package-lock.json
 # document that was actually signed off, and the embedded images are single
 # lines megabytes long.
 /docs/**/*.html
+
+# Tickets, for the same reason and one sharper one: Prettier RENUMBERS ordered
+# lists. T-111 lists its acceptance criteria out of order deliberately - the ones
+# checkable without a running backend first - and a reformat silently rewrote
+# `5.` to `3.`, which left the ticket's own test table naming different criteria
+# from the ones it now numbered. A ticket is a handed-over document; its bytes are
+# the agreement.
+/docs/tickets
