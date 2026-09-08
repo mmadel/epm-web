@@ -149,10 +149,14 @@ describe('OnboardPractice, plans', () => {
     await harness.addBranch('Maadi');
     await harness.addBranch('Nasr City');
 
+    // One of the six is the org admin, because a practice needs exactly one (T-112).
+    // That rule is about the shape of the staff array and this test is about the seat
+    // counter; satisfying it is what keeps the two apart.
     for (const at of [1, 2, 3, 4, 5, 6]) {
       await harness.addStaff({
         fullName: `Person ${at}`,
         email: `person-${at}@nilecare.eg`,
+        roles: at === 1 ? ['Doctor', 'Org admin'] : ['Doctor'],
         branches: ['Maadi'],
       });
     }

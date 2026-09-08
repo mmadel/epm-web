@@ -38,6 +38,7 @@ export const ERROR_MESSAGE_KEYS = {
   'EPM-ORG-009': 'errors.organization.last-active-branch',
   'EPM-ORG-010': 'errors.organization.last-admin',
   'EPM-ORG-011': 'errors.organization.staff-needs-branch',
+  'EPM-ORG-014': 'errors.organization.needs-one-org-admin',
 } as const satisfies Readonly<Record<string, TranslationKey>>;
 
 /** Every code this client has wording for. */

@@ -101,6 +101,30 @@ describe('OnboardPractice, refused', () => {
   });
 
   // -------------------------------------------------------------------------
+  // T-112 - exactly one ORG_ADMIN, which is a fact about the array
+  // -------------------------------------------------------------------------
+
+  it('puts EPM-ORG-014 against the staff section rather than against a person', async () => {
+    const harness = await openOnboarding();
+
+    // A draft this console would send: one person, and they are the org admin. The
+    // client checks the same rule before submitting, so reaching this refusal means
+    // the server and this build disagree about it - which is exactly the case the
+    // code has to be handled for, and the reason the check here is a hint and not
+    // the rule.
+    await fillValidPractice(harness);
+    await refusedWith(harness, problem('EPM-ORG-014', { field: 'staff' }));
+
+    // The fault is the array, not a person: with nobody ticked there is no row to
+    // mark, and with two ticked neither of them is the mistake.
+    expect(harness.all('.entry--faulted')).toHaveLength(0);
+    expect(harness.query('.region-fault')).not.toBeNull();
+    expect(focused(harness)).toBe('step-panel-3');
+    expect(harness.text).toContain('exactly one person with the Org admin role');
+    showsNothingFromTheBody(harness);
+  });
+
+  // -------------------------------------------------------------------------
   // Criterion 14 - the speciality of the row the server named
   // -------------------------------------------------------------------------
 
@@ -112,6 +136,7 @@ describe('OnboardPractice, refused', () => {
     await harness.addStaff({
       fullName: 'Mona Adel',
       email: 'mona@nilecare.eg',
+      roles: ['Doctor', 'Org admin'],
       branches: ['Maadi'],
     });
     await harness.addStaff({
@@ -189,6 +214,7 @@ describe('OnboardPractice, refused', () => {
     await harness.addStaff({
       fullName: 'Hassan Ali',
       email: 'hassan@nilecare.eg',
+      roles: ['Doctor', 'Org admin'],
       branches: ['Maadi'],
     });
 

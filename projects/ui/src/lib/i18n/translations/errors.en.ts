@@ -51,6 +51,14 @@ export const errorsEn = {
     'This is the last person with administrator access, so it cannot be taken away. Give someone else administrator access first.',
   'errors.organization.staff-needs-branch':
     'Every staff member belongs to at least one branch. Pick a branch before saving.',
+
+  // ONE SENTENCE FOR BOTH WAYS OF BREAKING THE RULE - nobody has it, or more than one
+  // does. Naming the rule and then the remedy covers both without the message having to
+  // know which of them happened, which it cannot: the code says the set is wrong, not
+  // how. It is about the staff as a whole rather than about any one person, and the
+  // wording never says "this person" for that reason.
+  'errors.organization.needs-one-org-admin':
+    'A practice needs exactly one person with administrator access. Give it to one of them and take it off the rest.',
 };
 
 /** Every key this area defines. `errors.ar.ts` must define exactly these. */

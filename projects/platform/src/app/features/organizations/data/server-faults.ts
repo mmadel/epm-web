@@ -89,6 +89,14 @@ export function faultFrom(problem: Problem, draft: OrganizationDraft): Fault {
       // over the limit, and marking the last one added would say they were.
       return { region: 'staff', message: messageForProblem(problem) };
 
+    case 'EPM-ORG-014':
+      // THE STAFF REGION, NEVER A ROW - and unlike every per-person code above,
+      // there is no row to look for. The body names `staff`, the array, because
+      // that is what is wrong: the wrong number of people hold the role. Whether
+      // none of them does or two of them do, no single person is the mistake, and
+      // marking one would tell the reader to fix that person.
+      return { region: 'staff', message: messageForProblem(problem) };
+
     default:
       // A code this build has never heard of - ordinary traffic, since codes are
       // added server-side and clients are not rebuilt in step with them. It gets
