@@ -5,9 +5,12 @@
 -->
 <div class="stage stage--full">
   <!--
-    THE HEADER CARRIES NO ACTION, and `lib-page-header` renders no element for one -
-    which is the whole of its criterion 4. The action moved into the board; see the
-    row below the column names.
+    THE ACTION IS BESIDE THE HEADING, in `lib-page-header`'s one action slot. It was
+    a row at the top of the board, sharing the board's grid, its height and its
+    chevron - and that is exactly what was wrong with it: a chevron says "this
+    opens", every row around it was a practice that opens, and the first row of the
+    list was neither a practice nor openable. Beside the heading it is read as what
+    it is, because that is the one place on this screen where nothing is a row.
   -->
   <!--
     THE LINE UNDER THE TITLE NAMES THE TWO HALVES OF A ROW - who is on the platform,
@@ -21,7 +24,28 @@
     which practices exist and how large each one is, and nothing about the people in
     them.
   -->
-  <lib-page-header [title]="title()" supporting="Who is on the platform, and how big they are." />
+  <lib-page-header [title]="title()" supporting="Who is on the platform, and how big they are.">
+    <!--
+      A LINK AND NOT A BUTTON: it can be opened in a new tab, copied into a support
+      thread, and reached with the browser's own controls, none of which is true of a
+      button that calls `navigate`. The schema's nouns - onboard, organization - are
+      not on this screen; §4's word is "practice".
+    -->
+    <a action class="practices__add" [routerLink]="onboardLink">
+      <span class="practices__add-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" focusable="false">
+          <path
+            d="M8 3.5v9M3.5 8h9"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </span>
+      Add a practice
+    </a>
+  </lib-page-header>
 
   <!--
     ONE BAND, ALWAYS ON SCREEN, holding every criterion this console can answer. It
@@ -133,14 +157,6 @@
         }
       </div>
 
-      <!--
-        The one live control on a screen that is otherwise placeholder, and the
-        reason it is here rather than only below: without it the first practice
-        would land a row lower than the first placeholder did, which is the shift
-        the whole skeleton exists to avoid.
-      -->
-      <ng-container [ngTemplateOutlet]="addRow" />
-
       <ul class="board__rows" aria-hidden="true">
         @for (width of waiting; track $index) {
           <li class="practice">
@@ -153,8 +169,14 @@
                 it is exactly as tall as the name that replaces it, because it is
                 the same element at the same size in the same row.
               -->
+              <!--
+                TWO PILLS, because the row that replaces this has two - the plan and
+                the status - and a placeholder one pill short is the name column
+                changing width at the moment the answer lands.
+              -->
               <span class="practice__identity">
                 <span class="practice__name waiting" [style.inline-size.%]="width">&nbsp;</span>
+                <span class="pill waiting waiting--pill">&nbsp;</span>
                 <span class="pill waiting waiting--pill">&nbsp;</span>
               </span>
 
@@ -221,10 +243,10 @@
       </p>
 
       <!--
-        THE OTHER ANSWER TO "NOTHING MATCHED", and the reason it is said here. The
-        action is a row on the board, and a search that matched nothing has no board
-        - so the one state where a reader has looked for a practice and been told it
-        is not on the platform is the one state that would offer no way to add it.
+        THE OTHER ANSWER TO "NOTHING MATCHED". The action is beside the heading and
+        so it is on screen here as well; what this adds is the sentence. A reader who
+        has just been told a practice is not on the platform is being offered the
+        thing to do about it in the place they are already reading.
       -->
       <p class="empty__body">
         Not on the platform yet?
@@ -346,8 +368,6 @@
         }
       </div>
 
-      <ng-container [ngTemplateOutlet]="addRow" />
-
       <ul class="board__rows">
         @for (row of rows(); track row.id) {
           <li class="practice" [class.practice--quiet]="row.isQuiet">
@@ -395,45 +415,89 @@
                     }
                   }
                 </span>
-                <span class="pill" [class]="'pill--' + row.badgeTone">{{ row.badge }}</span>
+                <!--
+                  TWO FACTS, TWO PILLS. They were one - "Basic · suspended" - and
+                  the halves are not the same kind of fact: a plan is what a
+                  practice pays for, a status is what it currently IS. Joined, the
+                  status was a lowercase tail on a label, and on an active practice
+                  it was not said at all. Apart, it carries the console's own tone
+                  and its dot, on every row.
+                -->
+                <span class="pill pill--quiet practice__plan">{{ row.plan }}</span>
+                <span class="pill" [class]="'pill--' + row.statusTone">
+                  <span class="pill__dot" aria-hidden="true"></span>
+                  {{ row.status }}
+                </span>
               </span>
 
               <!--
-                THE BAR IS RELATIVE TO THE BIGGEST PRACTICE ON THIS PAGE, not to a
-                limit - the list response carries no seat or branch allowance, and a
-                bar drawn against one that was not sent would be a capacity meter
-                made up. It is `aria-hidden` because the figure beside it is the
-                answer and the bar is the same answer drawn.
+                THE BAR IS WHAT THE PLAN ALLOWS. It was drawn against the biggest
+                count on the page, which is a scale that moves with every search -
+                and it drew a practice with one branch as full because it was the
+                only one on screen, beside a staff bar on the same row at one of
+                twenty that looked empty. `listPlans` carries a branch limit and a
+                seat limit per plan, and both columns are now drawn against them by
+                the one rule.
+
+                It is `aria-hidden` because the figure beside it is the answer and
+                the bar is that same answer drawn.
               -->
               <!--
-                THE FIGURE NAMES ITSELF, because the column heading above it is
-                `aria-hidden` - a heading row announced before every practice is
-                five more words to get through, and there are twenty-five rows.
-                The BAR is the part that is hidden: it is the same figure drawn, and
-                it is drawn against the biggest practice on the page rather than
-                against a limit, because the list response carries no allowance of
-                any kind.
+                THE FIGURE NAMES ITSELF, because a heading row announced before each
+                of twenty-five practices is five more words per row to get through.
+                It names the LIMIT with it: a bar with no fraction beside it is a
+                proportion of something the reader cannot see, and "how much room is
+                left" is the question a count on this board is read for.
               -->
-              <span class="cell">
+              <span class="cell" [class.cell--over]="row.branches?.isOver">
                 <span class="visually-hidden">Branches:</span>
-                @if (row.branches !== undefined) {
-                  <span class="cell__value figure">{{ row.branches }}</span>
-                  <span class="cell__track" aria-hidden="true">
-                    <span class="cell__bar" [style.inline-size.%]="branchBar(row)"></span>
+                @if (row.branches; as branches) {
+                  <span class="cell__reading">
+                    <span class="cell__value figure">{{ branches.count }}</span>
+
+                    <!--
+                      `&ngsp;` and not a plain space: Angular drops a whitespace-only
+                      text node between two elements, and "1of 5" is what is left.
+                    -->
+                    @if (branches.limit !== undefined) {
+                      <span class="cell__limit figure">&ngsp;of {{ branches.limit }}</span>
+                    }
                   </span>
+
+                  <!--
+                    NO LIMIT, NO TRACK. A rail with nothing behind it is a capacity
+                    meter measuring a number nobody sent, which is the thing this
+                    column used to draw.
+                  -->
+                  @if (branches.limit !== undefined) {
+                    <span class="cell__track" aria-hidden="true">
+                      <span class="cell__bar" [style.inline-size.%]="branches.filled"></span>
+                    </span>
+                  }
                 } @else {
                   <span class="cell__absent">—</span>
                 }
               </span>
 
-              <span class="cell">
+              <span class="cell" [class.cell--over]="row.staff?.isOver">
                 <span class="visually-hidden">Staff:</span>
-                @if (row.staff !== undefined) {
-                  <span class="cell__value figure">{{ row.staff }}</span>
-                  <span class="cell__track" aria-hidden="true">
-                    <span class="cell__bar cell__bar--staff" [style.inline-size.%]="staffBar(row)">
-                    </span>
+                @if (row.staff; as staff) {
+                  <span class="cell__reading">
+                    <span class="cell__value figure">{{ staff.count }}</span>
+
+                    @if (staff.limit !== undefined) {
+                      <span class="cell__limit figure">&ngsp;of {{ staff.limit }}</span>
+                    }
                   </span>
+
+                  @if (staff.limit !== undefined) {
+                    <span class="cell__track" aria-hidden="true">
+                      <span
+                        class="cell__bar cell__bar--staff"
+                        [style.inline-size.%]="staff.filled"
+                      ></span>
+                    </span>
+                  }
                 } @else {
                   <span class="cell__absent">—</span>
                 }
@@ -507,53 +571,3 @@
     }
   }
 </div>
-
-<!--
-  THE ACTION IS A ROW IN THE LIST IT ADDS TO. It was a filled control in the corner
-  of the header - the shape every console puts there, and the shape this one had
-  already spent on a status badge. A practice is a row on this board, so the control
-  that makes one is a row on this board: same grid, same height, same chevron, at the
-  top where the eye already is when the column names are read.
-
-  IT IS DECLARED ONCE AND RENDERED TWICE - into the board that is waiting and the
-  board that has arrived - because a control copied into two branches is a control
-  that changes in one of them. This is the workspace's first `ng-template`; the
-  alternative was fourteen lines of anchor and path in two places.
-
-  NO STATUS EDGE. The first column carries a practice's state, and a tone invented
-  for the row that has not made one yet would be a colour saying something about a
-  practice that does not exist.
--->
-<ng-template #addRow>
-  <a class="practice__add" [routerLink]="onboardLink">
-    <span class="practice__edge" aria-hidden="true"></span>
-
-    <span class="practice__identity">
-      <span class="practice__add-mark" aria-hidden="true">
-        <svg viewBox="0 0 16 16" focusable="false">
-          <path
-            d="M8 3.5v9M3.5 8h9"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-          />
-        </svg>
-      </span>
-      <span class="practice__add-label">Add a practice</span>
-    </span>
-
-    <span class="practice__chevron" aria-hidden="true">
-      <svg viewBox="0 0 16 16" focusable="false">
-        <path
-          d="m6 3.5 4.5 4.5L6 12.5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </span>
-  </a>
-</ng-template>
