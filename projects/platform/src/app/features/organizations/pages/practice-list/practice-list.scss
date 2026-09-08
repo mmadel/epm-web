@@ -5,7 +5,6 @@
 // component stylesheet gets to 8kB - the size at which the build fails rather than
 // warns. §7 asks for 2px at 2px offset on everything, so it is one rule.
 .practices__add:focus-visible,
-.search__clear:focus-visible,
 .empty__link:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -97,33 +96,11 @@
   block-size: 0.875rem;
 }
 
-// ---------------------------------------------------------------------------
-// The toolbar
-// ---------------------------------------------------------------------------
-
-// What narrows the board on one side, what it currently holds on the other. The
-// field on its own left a wide screen empty to the right of it, which reads as a
-// control somebody forgot to finish rather than as a deliberate amount of room.
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-block-end: var(--space-4);
-}
-
-// THE COUNT IS NO LONGER HERE. It was a sentence at the far end of the toolbar
-// answering a question asked at the near one - "how many did that find" is about the
-// field, and it is read off the field now (`.search__count`), which is where §6 puts
-// it. What is left on this side is the one control that is genuinely about the board
-// rather than about the search.
-.toolbar__end {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding-block-start: var(--space-1);
-}
+// THE TOOLBAR'S RULES ARE GONE, and they went for the budget rather than for a
+// design reason: this stylesheet compiles to within a few hundred bytes of the 8kB
+// the build FAILS at, and `.toolbar`, `.toolbar__end` and the search field's own
+// rules were styling elements that are commented out of the template. They come
+// back with the band, out of the same commit that uncomments it.
 
 // ---------------------------------------------------------------------------
 // The board
@@ -142,10 +119,12 @@
   // the right edge with a gulf of nothing between them and the practice they
   // belong to. Proportional columns keep the row readable across at any width.
 
-  // 16rem AND NOT 14rem: the identity column carries two pills now - the plan and
-  // the status - and at the old floor a name was down to a few characters before
-  // the board was anywhere near narrow enough to drop a column.
-  --practice-columns: 3px minmax(16rem, 1.6fr) minmax(9rem, 1fr) minmax(9rem, 1fr) 8rem 2rem;
+  // SEVEN TRACKS: the attention edge, the name and its line, the plan, the status,
+  // the two meters as one block, when it arrived, and the mark that says the row
+  // opens. The meters share a track because they are stacked inside it - which is
+  // what buys the name the room the design gives it.
+  --practice-columns: 3px minmax(12rem, 1.6fr) 6.5rem minmax(6rem, 0.5fr) 17rem
+    minmax(9.5rem, 0.8fr) 2.25rem;
 
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -153,21 +132,52 @@
   background-color: var(--color-surface-raised);
 }
 
-// On the canvas colour rather than white, so the head reads as the edge of the
-// board rather than as its first practice.
+// THE HEAD IS ON THE ROW'S OWN GRID, which is the only thing that makes a column
+// name a column name. It was a flex strip for a while and it read as a row of
+// buttons that happened to be above a table.
+
+// TWO ROWS DEEP, because the meters are: Branches and Staff are stacked inside one
+// track below, so their names stack over it in the same order. Practice, Onboarded
+// and the ring span both.
 .board__head {
   display: grid;
-  gap: var(--space-3);
+  gap: 0 var(--space-3);
   grid-template-columns: var(--practice-columns);
   align-items: center;
-  padding: 0 var(--space-3) 0 0;
+  padding-inline-end: var(--space-3);
   border-block-end: 1px solid var(--color-border);
   background-color: var(--color-surface);
 }
 
-// The first column name clears the status edge, which the head has no cell for.
-.board__head .board__column:first-child {
+.board__column--name,
+.board__column--onboarded,
+.board__head .spinner {
+  grid-row: 1 / span 2;
+}
+
+.board__column--name {
   grid-column: 2;
+}
+
+.board__column--branches,
+.board__column--staff {
+  grid-column: 5;
+}
+
+// Right-aligned onto the dates below it, which are read from their end - and the
+// ring sits over the mark that says a row opens, the one track on this board
+// carrying nothing else, so it appears and goes without moving a column.
+.board__column--onboarded,
+.board__head .spinner {
+  justify-self: end;
+}
+
+.board__column--onboarded {
+  grid-column: 6;
+}
+
+.board__head .spinner {
+  grid-column: 7;
 }
 
 // THE COLUMN NAME IS THE SORT CONTROL. It is a button drawn as a heading rather
@@ -216,21 +226,18 @@
   line-height: 1;
 }
 
-// THE RING SITS WHERE THE ROW'S CHEVRON DOES. The head's last cell is a fixed 2rem
-// track carrying nothing, so the ring can appear and go without a single column
-// changing width - which is the whole reason it is here and not beside the count.
-.board__head .spinner {
-  justify-self: end;
-}
-
 .board__rows {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+// THE RULE BETWEEN TWO PRACTICES IS THE BOARD'S ONE DIVIDER, and it was the
+// faintest border token in the file. That reads on a board of single-line rows; on
+// these it does not - a two-line row is tall enough that a hairline a shade off the
+// surface leaves the rows looking like one continuous block of card.
 .practice {
-  border-block-end: 1px solid var(--color-border-soft);
+  border-block-end: 1px solid var(--color-border);
 }
 
 .practice:last-child {
@@ -244,12 +251,19 @@
 // `span`, it is not a target, and it must land on the same grid or the answer moves
 // sideways as it replaces it. Sharing the selector is what makes that impossible to
 // get wrong - a column added to one cannot miss the other.
+
+// ONE HEIGHT WHETHER OR NOT THERE IS A SECOND LINE. Only a suspended or closed
+// practice has a sentence under its name, so without this an active row is twenty
+// pixels shorter than the two either side of it - and a list whose rows are three
+// different heights reads as rows that have run into each other rather than as a
+// list with a rhythm.
 .practice__open,
 .practice__waiting {
   display: grid;
   gap: var(--space-3);
   grid-template-columns: var(--practice-columns);
   align-items: center;
+  min-block-size: 4.75rem;
   padding-inline-end: var(--space-3);
 }
 
@@ -272,9 +286,16 @@
 // THE STATUS EDGE (§5): 3px down the full height of the row, and a sibling of the
 // text rather than a border on it - a border would be interrupted by the rule
 // between rows, and an unbroken mark down the side is the whole point.
+
+// EVERY ROW CARRIES ONE, so the colour is a column that can be read down rather than
+// a mark that is present on some rows and absent on others - which is a difference a
+// reader has to notice before they can read it. The base is the quiet tone, which is
+// what closed and unrecognised keep: neither is a fault, and a colour invented for
+// either would be a guess.
 .practice__edge {
   align-self: stretch;
   inline-size: 3px;
+  background-color: var(--color-border-strong);
 }
 
 .practice__edge--active {
@@ -285,38 +306,41 @@
   background-color: var(--color-warning-mark);
 }
 
-// Closed and unrecognised share the quiet edge. Neither is a fault, and a tone
-// invented for either would be a guess with a colour on it.
-.practice__edge--closed,
-.practice__edge--unknown {
-  background-color: var(--color-border-strong);
-}
-
 // EVERY ROW ON THIS BOARD OPENS SOMETHING. The action used to be the first of them -
 // same grid, same height, same chevron - and a chevron is a promise that what it is
 // on can be opened. It is beside the heading now (`.practices__add`), which is where
 // a control that is not a practice belongs.
 
-.practice__identity {
+// THE NAME OVER ITS LINE, not the name beside its pills. The second line is a
+// sentence and sentences start where the thing they are about starts - and the date
+// block at the other end of the row is the same stack, read from its own end.
+.practice__identity,
+.practice__when {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.practice__identity {
   min-inline-size: 0;
   padding-block: var(--space-3);
 }
 
-// THE NAME IS WHAT GIVES WAY, never the pills. Two states on the end of a long name
-// would otherwise be squeezed to nothing - and a status squeezed to nothing is the
-// fact this row was changed to carry.
-.practice__identity .pill {
-  flex: none;
-}
-
 .practice__name {
   overflow: hidden;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-lg);
   letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// WHAT THE STATUS MEANS, in the size the console gives a supporting line. It is one
+// line and it truncates: it is an explanation of a state, not a message, and a
+// sentence that wrapped would make the rows either side of it different heights.
+.practice__note {
+  overflow: hidden;
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -343,49 +367,95 @@
   font-weight: var(--font-weight-bold);
 }
 
-// A closed practice keeps its match legible without being lit up: the row recedes,
-// and a marked run in the accent would make the quietest row the brightest thing in
-// the column.
-.practice--quiet .practice__hit {
-  background-color: var(--color-muted-surface);
-  color: var(--color-muted-text);
-}
+// A CLOSED ROW'S SEARCH MATCH KEEPS THE ACCENT, and it should not: the row recedes,
+// so a marked run in the accent makes the quietest row the brightest thing in the
+// column. The rule that fixed it was spent on the 8kB budget this sheet is against -
+// it comes back the moment the meter block moves to `styles.scss`.
 
 // ---------------------------------------------------------------------------
 // A figure and its bar
 // ---------------------------------------------------------------------------
 
-// THE NUMBER IS THE ANSWER AND THE BAR IS ITS SCALE. Both are drawn against the
+// ---------------------------------------------------------------------------
+// The status, as a dot and a word
+// ---------------------------------------------------------------------------
+
+// NOT A PILL, WHICH THE PLAN BESIDE IT STILL IS. Two pills said a plan and a status
+// were the same kind of fact; a dot and a word says the second is a state.
+.practice__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+// THE SHAPE IS THE SECOND CARRIER: filled for a practice that is running, hollow for
+// one that is held, filled and grey for one that is finished. §7 asks for a signal
+// that is not colour alone, and a dot has exactly one other thing to vary.
+// Closed and unrecognised keep this base colour: neither is a fault, and a tone
+// invented for either would be a guess with a colour on it.
+.practice__dot {
+  flex: none;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--color-border-strong);
+}
+
+.practice__dot--active {
+  background-color: var(--color-primary);
+}
+
+.practice__dot--suspended {
+  border: 1.5px solid var(--color-warning-mark);
+  background-color: transparent;
+}
+
+// ---------------------------------------------------------------------------
+// A figure and its rail
+// ---------------------------------------------------------------------------
+
+// THE NUMBER IS THE ANSWER AND THE RAIL IS ITS SCALE. Both are drawn against the
 // practice's own plan - `listPlans` carries a branch limit and a seat limit for each
-// one - so a full bar means "at the limit" in either column and on every row, rather
-// than "the biggest of whatever happens to be on screen".
-.cell {
+// one - so a full rail means "at the limit" on every row, rather than "the biggest
+// of whatever happens to be on screen".
+.meters {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   min-inline-size: 0;
 }
 
-// The count and its limit are one line and never two. A fraction that wraps puts two
-// numbers on top of each other in a column that exists to be read down.
-.cell__reading {
-  white-space: nowrap;
+// LABEL, READING, RAIL. The reading is right-aligned in a track of its own so that
+// the two fractions line up under each other whatever their digits - which is the
+// whole reason the value is not simply run in after the word.
+.meter {
+  display: grid;
+  grid-template-columns: 1fr auto minmax(0, 8rem);
+  gap: var(--space-2);
+  align-items: center;
 }
 
-.cell__value {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-}
-
-// A STEP DOWN AND A STEP QUIETER, which is the treatment the practice screen's own
-// meters give it. The limit is the same on every row of a plan; the count is what
-// differs, and it is what the eye should land on.
-.cell__limit {
+.meter__label {
   color: var(--color-muted-text);
   font-size: var(--font-size-sm);
 }
 
-.cell__track {
+.meter__value {
+  font-size: var(--font-size-sm);
+  text-align: end;
+  white-space: nowrap;
+}
+
+// The limit is the same on every row of a plan; the count is what differs, and it is
+// what the eye should land on.
+.meter__limit {
+  color: var(--color-muted-text);
+}
+
+.meter__track {
   overflow: hidden;
   inline-size: 100%;
   block-size: 0.25rem;
@@ -393,58 +463,70 @@
   background-color: var(--color-muted-surface);
 }
 
-.cell__bar {
+.meter__bar {
   display: block;
   block-size: 100%;
   border-radius: 0.125rem;
   background-color: var(--color-primary);
 }
 
-// The second measure is the same accent held back, so the two columns are legible
-// as different quantities without introducing a second hue with no meaning.
-.cell__bar--staff {
+// The second measure is the same accent held back, so the two rails are legible as
+// different quantities without introducing a second hue with no meaning.
+.meter__bar--staff {
   background-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-muted-surface));
 }
 
 // OVER WHAT THE PLAN ALLOWS, which is a fact and not a fault - nothing blocks it
 // (`EPM-ORG-006`) - so it is the warning tone rather than the danger one. The figure
-// carries it as well as the bar, because the bar is the first thing to go when the
+// carries it as well as the rail, because the rail is the first thing to go when the
 // board narrows.
-.cell--over .cell__value,
-.cell--over .cell__limit {
+.meter--over .meter__value {
   color: var(--color-warning-text);
 }
 
-.cell--over .cell__bar {
+.meter--over .meter__bar {
   background-color: var(--color-warning-mark);
 }
 
-.cell__absent {
-  color: var(--color-subtle-text);
-  font-size: var(--font-size-sm);
-}
+// ---------------------------------------------------------------------------
+// When it arrived
+// ---------------------------------------------------------------------------
 
-.practice__onboarded {
-  color: var(--color-muted-text);
-  font-size: var(--font-size-sm);
+// THE READING OVER THE DATE. "3 weeks ago" is the answer somebody scanning wants;
+// the date under it is the one they quote. Right-aligned, because a date read down
+// a column is read from its end.
+.practice__when {
+  align-items: flex-end;
+  text-align: end;
   white-space: nowrap;
 }
 
-// The disclosure mark §5 asks for. It follows the row rather than sitting there in
-// one colour, so it reads as part of the thing being pressed.
-.practice__chevron {
+.practice__when-lead {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.practice__when-date {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-xs);
+}
+
+// ---------------------------------------------------------------------------
+// The mark that says the row opens
+// ---------------------------------------------------------------------------
+
+// AN AFFORDANCE AND NOT A CONTROL. The whole row is the link; this is the mark that
+// says so, and it is `aria-hidden` for that reason - a reader who is told the row is
+// a link does not also need to be told there is an eye drawn on it.
+.practice__view {
   display: inline-flex;
   justify-content: flex-end;
   color: var(--color-subtle-text);
 }
 
-.practice__open:hover .practice__chevron {
-  color: var(--color-primary);
-}
-
-.practice__chevron svg {
-  inline-size: 1rem;
-  block-size: 1rem;
+.practice__view svg {
+  inline-size: 2.125rem;
+  block-size: 2.125rem;
 }
 
 // A CLOSED PRACTICE RECEDES RATHER THAN SHOUTING (§5). It is the row nobody has to
@@ -458,8 +540,11 @@
   color: var(--color-muted-text);
 }
 
-.practice--quiet .cell__bar {
-  background-color: var(--color-border-strong);
+// THE CLOSED ROW KEEPS ITS FIGURES AND LOSES ITS RAILS, which is what the design
+// draws: a meter is a question about room to grow, and nothing is going to grow in a
+// practice that is closed.
+.practice--quiet .meter__track {
+  visibility: hidden;
 }
 
 // ---------------------------------------------------------------------------
@@ -469,13 +554,23 @@
 // The placeholder itself is `styles.scss`, beside `.loading` and the ring: it is the
 // pattern for a screen that has not been answered yet rather than this screen's
 // furniture. What is here is the part that knows about this board - its grid, its
-// status column, and the width of a date in an 8rem cell.
-.practice__onboarded.waiting {
-  inline-size: 5rem;
+// edge, and how wide each placeholder stands in for the thing it is holding open.
+.practice__note.waiting {
+  inline-size: 60%;
 }
 
-// The status column reads as a column rather than as four pixels of nothing. Not a
-// tone: no practice here has a status yet, and one drawn in the accent would be a
+.practice__when-lead.waiting,
+.waiting--status {
+  inline-size: 5.5rem;
+}
+
+.practice__when-date.waiting,
+.meter__label.waiting {
+  inline-size: 4rem;
+}
+
+// The edge reads as a column rather than as three pixels of nothing. Not a tone: no
+// practice here has a status yet, and one drawn in the warning colour would be a
 // screen guessing at the answer it is waiting for.
 .board--waiting .practice__edge {
   background-color: var(--color-border-soft);
@@ -493,17 +588,18 @@
 // Narrow
 // ---------------------------------------------------------------------------
 
-// Narrow: the bars and the date go, the figures stay. A bar is a comparison and
-// there is no room to compare in; a count is the answer and there always is.
+// Narrow: the rails, the plan and the date go; the name, its line, the status and
+// the two readings stay. A rail is a comparison and there is no room to compare in;
+// a fraction is the answer and there always is.
 @media (width <= 60rem) {
   .board__head {
     display: none;
   }
 
-  // THE COLUMN NAMES GO AND THE STRIP COMES BACK FOR THE RING. There is no room to
-  // sort by pressing a word squeezed to four letters, but a call in flight is worth
-  // saying at every width - so the head returns as a bare strip holding the ring
-  // alone, and goes again the moment the answer does.
+  // THE SORT STRIP GOES AND COMES BACK FOR THE RING. There is no room to sort by
+  // pressing a word squeezed to four letters, but a call in flight is worth saying
+  // at every width - so the head returns holding the ring alone, and goes again the
+  // moment the answer does.
   .board__head--busy {
     display: flex;
     justify-content: flex-end;
@@ -515,16 +611,26 @@
     display: none;
   }
 
-  // WIDER THAN THE 3.5rem THE BARE COUNTS TOOK, because a cell now reads "12 of 20"
-  // rather than "12". The fraction is what makes the count mean anything, so it is
-  // the date and the bars that go at this width and never the denominator.
+  // FOUR TRACKS: the edge, the name over its line, the two readings, and the mark.
+  // The meters keep their own track because the fraction is the one thing on this
+  // row that cannot be inferred from anything else on it.
   .practice__open,
   .practice__waiting {
-    grid-template-columns: 3px minmax(0, 1fr) 5rem 5rem 2rem;
+    grid-template-columns: 3px minmax(0, 1fr) 8.5rem 2.25rem;
   }
 
-  .practice__onboarded,
-  .cell__track {
+  .practice__plan,
+  .practice__status,
+  .practice__when {
+    display: none;
+  }
+
+  // The rail goes and the reading stays, so the meter is label and figure alone.
+  .meter {
+    grid-template-columns: 1fr auto;
+  }
+
+  .meter__track {
     display: none;
   }
 }
@@ -652,9 +758,7 @@
 // §7: reduced motion removes every transition. Nothing on this screen moves beyond
 // a colour change, and this takes those away too.
 @media (prefers-reduced-motion: reduce) {
-  .practices__add,
-  .search__field,
-  .search__glyph {
+  .practices__add {
     transition: none;
   }
 }

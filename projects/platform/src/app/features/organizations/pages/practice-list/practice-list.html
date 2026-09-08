@@ -153,7 +153,9 @@
       -->
       <div class="board__head" aria-hidden="true">
         @for (column of columns; track column.order) {
-          <span class="board__column">{{ column.label }}</span>
+          <span class="board__column" [class]="'board__column--' + column.order">
+            {{ column.label }}
+          </span>
         }
       </div>
 
@@ -170,27 +172,40 @@
                 the same element at the same size in the same row.
               -->
               <!--
-                TWO PILLS, because the row that replaces this has two - the plan and
-                the status - and a placeholder one pill short is the name column
-                changing width at the moment the answer lands.
+                THE NAME OVER ITS SECOND LINE, because the row that replaces this is
+                two lines tall wherever a status has something to say - and a
+                placeholder a line short is every row below it sliding up the screen
+                as the answer lands, which is the one thing a skeleton is for.
               -->
               <span class="practice__identity">
                 <span class="practice__name waiting" [style.inline-size.%]="width">&nbsp;</span>
-                <span class="pill waiting waiting--pill">&nbsp;</span>
-                <span class="pill waiting waiting--pill">&nbsp;</span>
+                <span class="practice__note waiting">&nbsp;</span>
               </span>
 
-              <span class="cell">
-                <span class="cell__value waiting waiting--figure">&nbsp;</span>
-                <span class="cell__track"></span>
+              <span class="pill waiting waiting--pill">&nbsp;</span>
+
+              <span class="practice__status waiting waiting--status">&nbsp;</span>
+
+              <span class="meters">
+                <span class="meter">
+                  <span class="meter__label waiting">&nbsp;</span>
+                  <span class="meter__value waiting waiting--figure">&nbsp;</span>
+                  <span class="meter__track"></span>
+                </span>
+
+                <span class="meter">
+                  <span class="meter__label waiting">&nbsp;</span>
+                  <span class="meter__value waiting waiting--figure">&nbsp;</span>
+                  <span class="meter__track"></span>
+                </span>
               </span>
 
-              <span class="cell">
-                <span class="cell__value waiting waiting--figure">&nbsp;</span>
-                <span class="cell__track"></span>
+              <span class="practice__when">
+                <span class="practice__when-lead waiting">&nbsp;</span>
+                <span class="practice__when-date waiting">&nbsp;</span>
               </span>
 
-              <span class="practice__onboarded waiting">&nbsp;</span>
+              <span class="practice__view"></span>
             </span>
           </li>
         }
@@ -339,6 +354,7 @@
           <button
             class="board__column"
             type="button"
+            [class]="'board__column--' + column.order"
             [class.board__column--sorted]="practices.criteria().order === column.order"
             [attr.aria-label]="sortLabel(column)"
             (click)="sortBy(column.order)"
@@ -373,8 +389,11 @@
           <li class="practice" [class.practice--quiet]="row.isQuiet">
             <a class="practice__open" [routerLink]="row.link">
               <!--
-                THE STATUS IS THE EDGE (§5): 3px down the full height of the row,
-                and never the only carrier - the pill beside the name says the word.
+                THE STATUS IS THE EDGE (§5): 3px down the full height of the row, and
+                never the only carrier - the dot and the word are right there beside
+                the name. Every row carries one, so the colour reads as a column that
+                can be scanned rather than as a mark that appears on some rows and
+                not others.
               -->
               <span
                 class="practice__edge"
@@ -383,12 +402,14 @@
               ></span>
 
               <!--
-                ONE LINE, NOT TWO. Design §5 puts the facts on a second line under
-                the name; with those same facts in columns beside it, that line read
-                "2 branches · 6 staff · onboarded 1 Mar 2026" next to 2, 6 and
-                1 Mar 2026 - the same sentence twice, costing a line of every row.
-                The columns won because they can be compared down the page, which is
-                the one thing §5 records the two-line shape cannot do.
+                THE SECOND LINE IS BACK, AND IT IS NOT THE ONE THAT WENT. The old one
+                read "2 branches · 6 staff · onboarded 1 Mar 2026" beside columns
+                saying 2, 6 and 1 Mar 2026 - the same sentence twice, costing a line
+                of every row, which is why it went. This one says what the STATUS
+                means, which is said nowhere else on the board and cannot be read off
+                a figure: suspension is reversible, closure is not, and a platform
+                administrator deciding what to do about a row needs that before they
+                open it.
               -->
               <!--
                 THE MATCHED RUN IS MARKED, and it is the search's own answer drawn
@@ -415,19 +436,41 @@
                     }
                   }
                 </span>
+
                 <!--
-                  TWO FACTS, TWO PILLS. They were one - "Basic · suspended" - and
-                  the halves are not the same kind of fact: a plan is what a
-                  practice pays for, a status is what it currently IS. Joined, the
-                  status was a lowercase tail on a label, and on an active practice
-                  it was not said at all. Apart, it carries the console's own tone
-                  and its dot, on every row.
+                  RENDERED ONLY WHEN THERE IS ONE. An element that is always in the
+                  row and empty on the active ones takes its line height anyway, and
+                  a board of rows two lines tall with one line in them is worse than
+                  a board of rows that are as tall as what they say.
                 -->
-                <span class="pill pill--quiet practice__plan">{{ row.plan }}</span>
-                <span class="pill" [class]="'pill--' + row.statusTone">
-                  <span class="pill__dot" aria-hidden="true"></span>
-                  {{ row.status }}
-                </span>
+                @if (row.note) {
+                  <span class="practice__note">{{ row.note }}</span>
+                }
+              </span>
+
+              <!--
+                THE PLAN IS A PILL AND THE STATUS IS A DOT AND A WORD, which is the
+                design's split and a better one than two pills side by side: a plan
+                is a label a practice was given, a status is a state it is in, and
+                two identical shapes said they were the same kind of fact.
+              -->
+              <span class="pill practice__plan" [class]="'pill--' + row.planTone">
+                {{ row.plan }}
+              </span>
+
+              <span class="practice__status">
+                <!--
+                  THE DOT'S SHAPE CARRIES THE STATE AS WELL AS ITS COLOUR - filled
+                  for active, hollow for suspended, filled and grey for closed - so
+                  the three are told apart by a reader who separates shapes more
+                  easily than hues. §7's rule, and the same one the pill follows.
+                -->
+                <span
+                  class="practice__dot"
+                  [class]="'practice__dot--' + row.tone"
+                  aria-hidden="true"
+                ></span>
+                {{ row.status }}
               </span>
 
               <!--
@@ -449,74 +492,111 @@
                 proportion of something the reader cannot see, and "how much room is
                 left" is the question a count on this board is read for.
               -->
-              <span class="cell" [class.cell--over]="row.branches?.isOver">
-                <span class="visually-hidden">Branches:</span>
-                @if (row.branches; as branches) {
-                  <span class="cell__reading">
-                    <span class="cell__value figure">{{ branches.count }}</span>
+              <!--
+                LABEL, READING, RAIL - ON ONE LINE EACH, and the two stacked. The
+                figures were above their bars in two columns of their own; the design
+                puts them in one block, which is what lets the name have the room a
+                name needs and still leaves the two readings aligned down the page.
+              -->
+              <span class="meters">
+                <span class="meter" [class.meter--over]="row.branches?.isOver">
+                  <!--
+                    THE WHOLE READING IN ONE HIDDEN STRING, and the visible parts
+                    hidden from the reader who gets it. "2 / 5" is announced as "2
+                    slash 5"; the fraction is the design's, the word is the reader's,
+                    and neither has to give way to the other.
+                  -->
+                  <span class="visually-hidden">
+                    Branches: {{ row.branches ? row.branches.reading : 'not sent' }}
+                  </span>
+
+                  <span class="meter__label" aria-hidden="true">Branches</span>
+
+                  @if (row.branches; as branches) {
+                    <span class="meter__value figure" aria-hidden="true">
+                      {{ branches.count }}
+                      @if (branches.limit !== undefined) {
+                        <span class="meter__limit">&ngsp;/ {{ branches.limit }}</span>
+                      }
+                    </span>
 
                     <!--
-                      `&ngsp;` and not a plain space: Angular drops a whitespace-only
-                      text node between two elements, and "1of 5" is what is left.
+                      NO LIMIT, NO RAIL. A rail with nothing behind it is a capacity
+                      meter measuring a number nobody sent, which is the thing this
+                      column used to draw.
                     -->
                     @if (branches.limit !== undefined) {
-                      <span class="cell__limit figure">&ngsp;of {{ branches.limit }}</span>
+                      <span class="meter__track" aria-hidden="true">
+                        <span class="meter__bar" [style.inline-size.%]="branches.filled"></span>
+                      </span>
                     }
+                  } @else {
+                    <span class="meter__value" aria-hidden="true">—</span>
+                  }
+                </span>
+
+                <span class="meter" [class.meter--over]="row.staff?.isOver">
+                  <span class="visually-hidden">
+                    Staff: {{ row.staff ? row.staff.reading : 'not sent' }}
                   </span>
 
-                  <!--
-                    NO LIMIT, NO TRACK. A rail with nothing behind it is a capacity
-                    meter measuring a number nobody sent, which is the thing this
-                    column used to draw.
-                  -->
-                  @if (branches.limit !== undefined) {
-                    <span class="cell__track" aria-hidden="true">
-                      <span class="cell__bar" [style.inline-size.%]="branches.filled"></span>
-                    </span>
-                  }
-                } @else {
-                  <span class="cell__absent">—</span>
-                }
-              </span>
+                  <span class="meter__label" aria-hidden="true">Staff</span>
 
-              <span class="cell" [class.cell--over]="row.staff?.isOver">
-                <span class="visually-hidden">Staff:</span>
-                @if (row.staff; as staff) {
-                  <span class="cell__reading">
-                    <span class="cell__value figure">{{ staff.count }}</span>
+                  @if (row.staff; as staff) {
+                    <span class="meter__value figure" aria-hidden="true">
+                      {{ staff.count }}
+                      @if (staff.limit !== undefined) {
+                        <span class="meter__limit">&ngsp;/ {{ staff.limit }}</span>
+                      }
+                    </span>
 
                     @if (staff.limit !== undefined) {
-                      <span class="cell__limit figure">&ngsp;of {{ staff.limit }}</span>
+                      <span class="meter__track" aria-hidden="true">
+                        <span
+                          class="meter__bar meter__bar--staff"
+                          [style.inline-size.%]="staff.filled"
+                        ></span>
+                      </span>
                     }
-                  </span>
-
-                  @if (staff.limit !== undefined) {
-                    <span class="cell__track" aria-hidden="true">
-                      <span
-                        class="cell__bar cell__bar--staff"
-                        [style.inline-size.%]="staff.filled"
-                      ></span>
-                    </span>
+                  } @else {
+                    <span class="meter__value" aria-hidden="true">—</span>
                   }
+                </span>
+              </span>
+
+              <!--
+                THE READING ABOVE THE DATE. "3 weeks ago" is what somebody scanning
+                the board is after; "17 August 2026" is what they quote into the
+                thread they are answering. Two lines because they are two questions,
+                and the second is the one the first cannot be checked without.
+              -->
+              <span class="practice__when">
+                @if (row.onboardedAgo) {
+                  <span class="practice__when-lead">{{ row.onboardedAgo }}</span>
+                  <span class="practice__when-date figure">{{ row.onboarded }}</span>
                 } @else {
-                  <span class="cell__absent">—</span>
+                  <span class="practice__when-lead">Onboarded —</span>
                 }
               </span>
 
-              <span class="practice__onboarded figure">
-                <span class="visually-hidden">Onboarded:</span>{{ row.onboarded || '—' }}
-              </span>
-
-              <span class="practice__chevron" aria-hidden="true">
-                <svg viewBox="0 0 16 16" focusable="false">
+              <!--
+                THE EYE IS THE AFFORDANCE, NOT THE CONTROL. The whole row is still
+                the one link - a target the size of the row and one tab stop per
+                practice - and this is the mark that says so, where the chevron was.
+                A button here would be a target the size of a word and a second stop
+                on every row, which is the thing the row-wide anchor was chosen over.
+              -->
+              <span class="practice__view" aria-hidden="true">
+                <svg viewBox="0 0 34 34" focusable="false">
+                  <circle cx="17" cy="17" r="16.5" fill="none" stroke="currentColor" />
                   <path
-                    d="m6 3.5 4.5 4.5L6 12.5"
+                    d="M8 17q9-7 18 0-9 7-18 0Z"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
+                    stroke-width="1.4"
                     stroke-linejoin="round"
                   />
+                  <circle cx="17" cy="17" r="2.4" fill="currentColor" stroke="none" />
                 </svg>
               </span>
             </a>
