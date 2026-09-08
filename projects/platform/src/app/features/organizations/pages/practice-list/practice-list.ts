@@ -1,14 +1,14 @@
-import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, ElementRef, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ListedOrganization, ListedOrganizationStatusEnum } from 'api-client';
+import { ListedOrganization, ListedOrganizationStatusEnum, ListedPlan } from 'api-client';
 import { PageHeader } from 'ui';
 
 // Commented out with the band it renders - see `practice-list.html`.
 // import { SearchPanel } from '../../components/search-panel/search-panel';
 import { routeTitle } from '../../../../layout/route-title';
 import { practicePath, ROUTE_PATHS } from '../../../../route-paths';
+import { Plans } from '../../data/plans';
 import {
   ANY,
   Applied,
@@ -92,6 +92,23 @@ interface NamePart {
   readonly isHit: boolean;
 }
 
+/**
+ * One usage figure, and the allowance it is read against.
+ *
+ * ONE SHAPE FOR BOTH COLUMNS, which is what stops the two bars on a row being drawn
+ * to two different scales: branches and staff differ only in which of the plan's
+ * two limits they are handed. See {@link reading}.
+ */
+interface Reading {
+  readonly count: number;
+  /** What the plan allows, or `undefined` when no limit for this plan is known. */
+  readonly limit: number | undefined;
+  /** How much of the track is filled, as a percentage of that limit. */
+  readonly filled: number;
+  /** Using more than the plan allows. A fact about the practice, not an error. */
+  readonly isOver: boolean;
+}
+
 /** One practice, as its row draws it. */
 interface PracticeRow {
   readonly id: string;
@@ -99,18 +116,20 @@ interface PracticeRow {
   /** The name split around what the search matched, for drawing it. */
   readonly parts: readonly NamePart[];
   readonly isUnnamed: boolean;
-  /** `Standard`, or `Basic · suspended` when the status is worth saying. */
-  readonly badge: string;
+  /** The plan it is billed on, in the server's own word. */
+  readonly plan: string;
+  /** `Active`, `Suspended`, `Closed` - said on every row, the active ones included. */
+  readonly status: string;
+  /** The same state as one of the console's four pill tones. */
+  readonly statusTone: string;
   /** The status edge's tone: what the practice's state is. */
   readonly tone: string;
-  /** The same state as one of the console's four pill tones. */
-  readonly badgeTone: string;
   /** True for a practice nobody has to act on, which recedes rather than shouts. */
   readonly isQuiet: boolean;
   /** Where the row opens: the practice's own screen. */
   readonly link: string;
-  readonly branches: number | undefined;
-  readonly staff: number | undefined;
+  readonly branches: Reading | undefined;
+  readonly staff: Reading | undefined;
   readonly onboarded: string;
 }
 
@@ -152,12 +171,24 @@ interface PracticeRow {
  * returns, and searches again for something adjacent - see `Practices.recent`, which
  * is where the list lives so that it survives that round trip.
  *
- * THE BARS ARE A COMPARISON, NOT A CAPACITY. Design §5 asks the row for a seat
- * meter; `ListedOrganization` carries no seat figure of any kind - no limit, no
- * usage - so a meter here would be measuring a number the server never sent. The
- * real one is on the practice screen, where `getOrganizationById` answers with a
- * subscription. What a bar CAN say honestly is how a practice compares with the
- * others on the page, which is the question the counts alone make hard.
+ * THE BARS ARE THE PLAN'S ALLOWANCE, WHICH IS WHAT A METER IS. Design §5 asks the
+ * row for a seat meter. `ListedOrganization` carries no limit of any kind, so the
+ * bars were drawn against the biggest count on the PAGE instead - a scale that
+ * moved with every search, and one that drew a practice with a single branch as
+ * full because it was the only practice on screen, beside a staff bar on that same
+ * row at one of twenty that looked empty. One practice, reported as full in one
+ * column and empty in the next.
+ *
+ * THE LIMITS ARE ONE CALL AWAY, and the console already makes it: `listPlans`
+ * answers with a branch limit and a seat limit per plan (`Plans` - the same figures
+ * the onboarding form counts against), and every row carries the plan it is on. So
+ * both bars are drawn against that practice's own plan, by one rule, and a full bar
+ * means "at the limit" in either column and on every row.
+ *
+ * A PLAN WITH NO LIMITS IS A FIGURE WITH NO BAR. `listPlans` may not have answered
+ * yet, may have failed, or may not carry the plan a practice came back on - and a
+ * bar drawn against a limit nobody sent is the invention this screen used to make.
+ * The count is shown on its own until there is a limit to read it against.
  *
  * §6.1'S FILTERS ARE HERE NOW, AND NOT AS PILLS PARSED OUT OF THE SEARCH BOX. The
  * design has the field parse `trial`, `basic`, `read-only` into removable pills; a
@@ -179,7 +210,7 @@ interface PracticeRow {
  */
 @Component({
   selector: 'app-practice-list',
-  imports: [NgTemplateOutlet, PageHeader, RouterLink],
+  imports: [PageHeader, RouterLink],
   templateUrl: './practice-list.html',
   styleUrl: './practice-list.scss',
   host: { '(document:keydown)': 'onShortcut($event)' },
@@ -198,6 +229,15 @@ export class PracticeList {
   private readonly router = inject(Router);
 
   protected readonly practices = inject(Practices);
+
+  /**
+   * The plans, for the two limits each one carries.
+   *
+   * READ HERE AND NOWHERE ELSE ON THIS SCREEN. The reference-data call is made once
+   * for the console and held, so the board asking for it costs the onboarding form
+   * nothing - and without it the board's bars have no scale to be drawn against.
+   */
+  private readonly plans = inject(Plans);
 
   protected readonly onboardLink = ROUTE_PATHS.onboard;
 
@@ -372,35 +412,13 @@ export class PracticeList {
   protected readonly rows = computed<readonly PracticeRow[]>(() => {
     const term = this.practices.name().trim();
 
-    return this.practices.rows().map((practice, at) => presented(practice, at, term));
+    // THE LIMITS ARE LOOKED UP PER ROW and not once for the board, because two rows
+    // here are routinely on two different plans - which is the whole reason a scale
+    // taken from the page was the wrong scale.
+    return this.practices
+      .rows()
+      .map((practice, at) => presented(practice, at, term, this.plans.limitsOf(practice.plan)));
   });
-
-  /**
-   * The biggest branch and staff counts on the page, which the bars are drawn
-   * against.
-   *
-   * RELATIVE TO THIS PAGE, NOT TO A LIMIT. A practice's seat limit is not in this
-   * response at all, so there is no capacity to draw a bar against - see the class
-   * note. What a bar CAN say honestly is how this practice compares with the others
-   * in front of the reader, which is the question the row shape otherwise makes
-   * hard: design §5 records that the counts sit at a different horizontal position
-   * in every row, so comparing across practices means reading each one. The bars put
-   * that comparison back in a column without pretending to be a capacity meter, and
-   * the figure beside each one is the actual answer.
-   */
-  private readonly largest = computed(() => ({
-    branches: Math.max(1, ...this.rows().map((row) => row.branches ?? 0)),
-    staff: Math.max(1, ...this.rows().map((row) => row.staff ?? 0)),
-  }));
-
-  /** How wide a row's branch bar is drawn, as a percentage of the widest. */
-  protected branchBar(row: PracticeRow): number {
-    return share(row.branches, this.largest().branches);
-  }
-
-  protected staffBar(row: PracticeRow): number {
-    return share(row.staff, this.largest().staff);
-  }
 
   /**
    * The count inside the search field: `4 practices`, or `1 of 4` when filtered.
@@ -608,20 +626,25 @@ export class PracticeList {
  * without one falls back to its position, which is stable for as long as the page
  * on screen is.
  */
-function presented(practice: ListedOrganization, at: number, term: string): PracticeRow {
+function presented(
+  practice: ListedOrganization,
+  at: number,
+  term: string,
+  plan: ListedPlan | undefined,
+): PracticeRow {
   const id = practice.id ?? `row-${at}`;
   const name = (practice.name ?? '').trim();
   const status = STATUSES[practice.status ?? ''];
-  const word = status?.label ?? practice.status ?? '';
   const shown = name === '' ? 'Unnamed practice' : name;
 
-  // ACTIVE IS NOT SAID, and every other status is. The pill carries the plan, which
-  // is the fact that differs between rows; adding "active" to three rows in four
-  // spends the reader's attention on the word that tells them nothing, and leaves
-  // the two rows that do need acting on looking like the rest.
-  const badge = [practice.plan, status?.tone === 'active' ? '' : word.toLowerCase()]
-    .filter((part) => (part ?? '') !== '')
-    .join(' · ');
+  // ACTIVE IS SAID NOW, AND IT USED TO BE THE ONE STATUS THAT WAS NOT. The argument
+  // was that the word tells a reader nothing on three rows in four; what it left
+  // behind was a board where an active practice and a suspended one were the same
+  // row with a different three pixels down the side of it. An edge is a thing
+  // somebody has to be taught. The word is the answer to the question this console
+  // is opened with, and it costs one pill.
+  const word = status?.label ?? (practice.status ?? '').trim();
+  const planWord = (practice.plan ?? '').trim();
 
   const onboardedOn = practice.createdAt === undefined ? '' : on(practice.createdAt);
 
@@ -634,14 +657,19 @@ function presented(practice: ListedOrganization, at: number, term: string): Prac
     // claim the server matched something it never saw.
     parts: name === '' ? [{ text: shown, isHit: false }] : matched(shown, term),
     isUnnamed: name === '',
-    badge: badge === '' ? '—' : badge,
+    // The server's own word for the plan, which is how every other screen in this
+    // console renders it - a plan this build has not been taught is still the plan
+    // the practice is billed on. A dash where none arrived: the pill is the row's
+    // place for a plan, and an empty one reads as a practice nobody put on one.
+    plan: planWord === '' ? '—' : planWord,
+    status: word === '' ? '—' : word,
+    statusTone: status?.pill ?? 'quiet',
     tone: status?.tone ?? 'unknown',
-    badgeTone: status?.pill ?? 'quiet',
     // Closed is the one nobody has to act on, so it recedes. Suspended keeps its
     // weight: it is the row somebody may well have to do something about.
     isQuiet: status?.tone === 'closed',
-    branches: practice.clinicCount,
-    staff: practice.staffCount,
+    branches: reading(practice.clinicCount, plan?.branchLimit),
+    staff: reading(practice.staffCount, plan?.seatLimit),
     onboarded: onboardedOn,
   };
 }
@@ -692,16 +720,40 @@ function matched(name: string, term: string): readonly NamePart[] {
   return parts;
 }
 
-/** A value as a percentage of the largest on the page, floored so a 1 is visible. */
-function share(value: number | undefined, largest: number): number {
-  if (value === undefined || value <= 0) {
-    return 0;
+/**
+ * A count against what the practice's plan allows.
+ *
+ * THE ONE SCALE RULE, AND BOTH COLUMNS GO THROUGH IT. Branches and staff differ
+ * only in which limit they are handed, so a bar of a given length means the same
+ * thing in both - which is exactly what was wrong before, when each column was
+ * drawn against the biggest count of its own kind on the page.
+ *
+ * NO LIMIT, NO BAR AND NO DENOMINATOR. A plan the console has no limits for is not
+ * a plan that allows nothing, and the difference matters: the count is still the
+ * answer and is still shown, without a scale invented to draw it against.
+ */
+function reading(count: number | undefined, limit: number | undefined): Reading | undefined {
+  if (count === undefined) {
+    return undefined;
   }
 
-  // A practice with one branch beside one with forty would otherwise draw a bar
-  // under a pixel wide, which reads as no bar at all - and "no bar" already means
-  // "no count came back".
-  return Math.max(6, Math.round((value / largest) * 100));
+  if (limit === undefined) {
+    return { count, limit: undefined, filled: 0, isOver: false };
+  }
+
+  // A limit of zero divides by nothing. It is a plan entitling the practice to none
+  // of something, so anything used at all is over it and fills the track.
+  const share = limit === 0 ? 100 : Math.min(100, Math.round((count / limit) * 100));
+
+  return {
+    count,
+    limit,
+    // One seat of a hundred rounds to a bar under a pixel wide, which reads as no
+    // bar - and no bar is what a practice using none of something gets, so the two
+    // have to stay apart.
+    filled: count > 0 ? Math.max(2, share) : 0,
+    isOver: count > limit,
+  };
 }
 
 /** `1 Mar 2026`, or nothing for a date that is absent or unreadable. */

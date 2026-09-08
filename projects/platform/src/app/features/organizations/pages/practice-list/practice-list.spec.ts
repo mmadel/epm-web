@@ -11,6 +11,7 @@ import {
   BASE_PATH,
   ListedOrganization,
   ListedOrganizationStatusEnum,
+  ListedPlan,
   PagedResponseListedOrganization,
 } from 'api-client';
 import { API_BASE_URL, provideApiBaseUrl } from 'core';
@@ -30,11 +31,25 @@ import { PracticeList } from './practice-list';
  * only wrong on screen.
  */
 const LIST_URL = 'https://api.test.invalid/api/v1/platform/organizations';
+const PLANS_URL = 'https://api.test.invalid/api/v1/platform/plans';
+
+/**
+ * What `listPlans` answers with, which is where the bars get their scale.
+ *
+ * THE SAME THREE THE ONBOARDING SCREEN'S FIXTURE USES, and in the server's own
+ * words: the plan on a practice and the plan in this list are the same token, and a
+ * fixture that title-cased one of them would be exercising a lookup nothing does.
+ */
+const PLANS: readonly ListedPlan[] = [
+  { plan: 'BASIC', seatLimit: 5, branchLimit: 1 },
+  { plan: 'STANDARD', seatLimit: 20, branchLimit: 5 },
+  { plan: 'PRO', seatLimit: 100, branchLimit: 25 },
+];
 
 const NILE: ListedOrganization = {
   id: 'org-1',
   name: 'Nile Care',
-  plan: 'Standard',
+  plan: 'STANDARD',
   status: ListedOrganizationStatusEnum.Active,
   clinicCount: 2,
   staffCount: 6,
@@ -44,7 +59,7 @@ const NILE: ListedOrganization = {
 const DELTA: ListedOrganization = {
   id: 'org-2',
   name: 'Delta Physio',
-  plan: 'Basic',
+  plan: 'BASIC',
   status: ListedOrganizationStatusEnum.Suspended,
   clinicCount: 1,
   staffCount: 3,
@@ -54,7 +69,7 @@ const DELTA: ListedOrganization = {
 const CAIRO: ListedOrganization = {
   id: 'org-3',
   name: 'Cairo Heart Centre',
-  plan: 'Basic',
+  plan: 'BASIC',
   status: ListedOrganizationStatusEnum.Closed,
   clinicCount: 3,
   staffCount: 12,
@@ -181,6 +196,18 @@ class Harness {
   /** How wide each row's branch bar is drawn, as the style attribute sets it. */
   get branchBars(): readonly string[] {
     return this.all('.cell__bar:not(.cell__bar--staff)').map((bar) => bar.style.inlineSize);
+  }
+
+  /** The same for the staff bar, which is drawn by the same rule against its own limit. */
+  get staffBars(): readonly string[] {
+    return this.all('.cell__bar--staff').map((bar) => bar.style.inlineSize);
+  }
+
+  /** Every pill the board's rows carry, in the order each row says them. */
+  get pills(): readonly string[] {
+    return this.all('.board__rows .pill').map((pill) =>
+      (pill.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
   }
 
   /** Everything the rows say, and nothing the page says around them. */
@@ -472,6 +499,7 @@ let previous = '/';
  */
 async function openList(options?: {
   answer?: PagedResponseListedOrganization | 'unanswered' | 'failed';
+  plans?: readonly ListedPlan[] | 'unanswered' | 'failed';
 }): Promise<Harness> {
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
@@ -491,6 +519,21 @@ async function openList(options?: {
   const harness = new Harness(fixture, TestBed.inject(HttpTestingController));
 
   await harness.settle();
+
+  // THE BARS ARE DRAWN AGAINST WHAT THE PLAN ALLOWS, so the board reads `listPlans`
+  // as it opens. Answered here rather than in each test: every test that reads a
+  // figure needs the limits, and none of them is about the call itself.
+  if (options?.plans !== 'unanswered') {
+    for (const plans of harness.http.match(PLANS_URL)) {
+      if (options?.plans === 'failed') {
+        plans.flush({ code: 'EPM-XXX-000' }, { status: 503, statusText: 'Service Unavailable' });
+      } else {
+        plans.flush([...(options?.plans ?? PLANS)]);
+      }
+    }
+
+    await harness.settle();
+  }
 
   const answer = options?.answer ?? page([NILE, DELTA]);
 
@@ -616,26 +659,85 @@ describe('PracticeList', () => {
 
     // The column headings are `aria-hidden` - five more words before every practice
     // otherwise - so each figure carries its own label instead.
+    //
+    // AND ITS DENOMINATOR. "2" beside a bar is a proportion of something the reader
+    // cannot see; "2 of 5" is the reading. STANDARD allows five branches and twenty
+    // seats, and those two numbers are `listPlans`', not this console's.
     expect(harness.names).toEqual(['Nile Care']);
     expect(harness.figures).toEqual([
-      { branches: 'Branches:2', staff: 'Staff:6', onboarded: 'Onboarded:1 Mar 2026' },
+      { branches: 'Branches:2 of 5', staff: 'Staff:6 of 20', onboarded: 'Onboarded:1 Mar 2026' },
     ]);
   });
 
-  it('draws each count against the biggest practice on the page', async () => {
+  it('draws both bars against the practice’s own plan, by the one rule', async () => {
     const harness = await openList({
       answer: page([
-        { ...NILE, clinicCount: 10 },
-        { ...DELTA, clinicCount: 5 },
-        { ...CAIRO, clinicCount: 1 },
+        // STANDARD: five branches and twenty seats, for both of these.
+        { ...NILE, clinicCount: 1, staffCount: 1 },
+        { ...NILE, id: 'org-9', name: 'Delta Physio', clinicCount: 5, staffCount: 10 },
       ]),
     });
 
-    // Relative to this page and not to a limit: the list response carries no
-    // allowance of any kind, so a bar drawn against one would be invented. The
-    // smallest is floored so that a 1 beside a 10 is still a visible mark rather
-    // than nothing - and nothing already means "no count came back".
-    expect(harness.branchBars).toEqual(['100%', '50%', '10%']);
+    // ONE BRANCH OF FIVE IS A FIFTH OF THE TRACK AND ONE SEAT OF TWENTY IS A
+    // TWENTIETH - on the same row, by the same rule. Drawn against the biggest count
+    // on the page, which is what this replaced, that first row was a full branch bar
+    // beside an empty staff bar for a practice with one of each.
+    expect(harness.branchBars).toEqual(['20%', '100%']);
+    expect(harness.staffBars).toEqual(['5%', '50%']);
+  });
+
+  it('scales the bar to the plan the practice is on, not to the plans beside it', async () => {
+    const harness = await openList({
+      answer: page([
+        // Two branches of five on STANDARD, one of one on BASIC. The smaller
+        // practice is the fuller one, and only a limit can say so.
+        { ...NILE, clinicCount: 2 },
+        { ...DELTA, clinicCount: 1 },
+      ]),
+    });
+
+    expect(harness.figures.map((row) => row.branches)).toEqual([
+      'Branches:2 of 5',
+      'Branches:1 of 1',
+    ]);
+    expect(harness.branchBars).toEqual(['40%', '100%']);
+  });
+
+  it('shows the figure alone when there is no limit to read it against', async () => {
+    const harness = await openList({ answer: page([{ ...NILE, plan: 'ENTERPRISE' }]) });
+
+    // `listPlans` does not carry this plan, so there is nothing to draw a bar
+    // against - and a bar against a limit nobody sent is the capacity meter this
+    // column used to invent. The count is still the answer, and is still said.
+    expect(harness.figures).toEqual([
+      { branches: 'Branches:2', staff: 'Staff:6', onboarded: 'Onboarded:1 Mar 2026' },
+    ]);
+    expect(harness.branchBars).toEqual([]);
+    expect(harness.staffBars).toEqual([]);
+  });
+
+  it('lists the practices anyway when the plans could not be read', async () => {
+    const harness = await openList({ plans: 'failed' });
+
+    // The board is about the practices. A reference-data call that failed costs the
+    // rows their scale and nothing else - it must not cost them their list.
+    expect(harness.names).toEqual(['Nile Care', 'Delta Physio']);
+    expect(harness.figures.map((row) => row.branches)).toEqual(['Branches:2', 'Branches:1']);
+    expect(harness.branchBars).toEqual([]);
+  });
+
+  it('says so when a practice is over what its plan allows', async () => {
+    const harness = await openList({
+      answer: page([{ ...DELTA, clinicCount: 3, staffCount: 9 }]),
+    });
+
+    // BASIC allows one branch and five seats, and nothing stops a practice going
+    // past either (`EPM-ORG-006`) - so this is a fact about the practice rather than
+    // an error. The bar stops at its own track; the figures say the rest.
+    expect(harness.figures.map((row) => row.branches)).toEqual(['Branches:3 of 1']);
+    expect(harness.branchBars).toEqual(['100%']);
+    expect(harness.staffBars).toEqual(['100%']);
+    expect(harness.all('.cell--over')).toHaveLength(2);
   });
 
   it('carries the status on the row’s leading edge', async () => {
@@ -652,17 +754,23 @@ describe('PracticeList', () => {
     ]);
   });
 
-  it('says the plan on the badge, and the status only when it is worth saying', async () => {
+  it('says the plan and the status on every row, the active ones included', async () => {
     const harness = await openList({ answer: page([NILE, DELTA, CAIRO]) });
 
-    // "Active" on three rows in four spends the reader's attention on the word
-    // that tells them nothing, and leaves the rows that need acting on looking
-    // like the rest.
-    expect(harness.all('.pill').map((pill) => (pill.textContent ?? '').trim())).toEqual([
-      'Standard',
-      'Basic · suspended',
-      'Basic · closed',
-    ]);
+    // THE STATUS USED TO BE LEFT OFF AN ACTIVE PRACTICE, on the argument that the
+    // word tells a reader nothing - which left an active row and a suspended one as
+    // the same row with a different three pixels down the side of it. The edge is
+    // still there and is still not the only carrier; the word is what a reader can
+    // read without being taught the colour.
+    expect(harness.pills).toEqual(['STANDARD', 'Active', 'BASIC', 'Suspended', 'BASIC', 'Closed']);
+  });
+
+  it('draws a dash for a plan that did not arrive, rather than an empty pill', async () => {
+    const harness = await openList({ answer: page([{ ...NILE, plan: undefined }]) });
+
+    // The pill is the row's place for a plan, and an empty one reads as a practice
+    // nobody put on one. The status is unaffected: they are two facts now.
+    expect(harness.pills).toEqual(['—', 'Active']);
   });
 
   it('opens the practice from the whole row, with the chevron §5 asks for', async () => {
@@ -740,7 +848,9 @@ describe('PracticeList', () => {
 
     // Not dropped and not blank: a status nobody has styled is still the practice's
     // status, and hiding it would report a state that is not the one the server has.
-    expect(harness.query('.pill')?.textContent?.trim()).toBe('Standard · archived');
+    // The server's own word, uppercase and all - this console does not know enough
+    // about it to word it any other way.
+    expect(harness.pills).toEqual(['STANDARD', 'ARCHIVED']);
     expect(harness.query('.board__rows .practice__edge')?.className).toContain(
       'practice__edge--unknown',
     );
@@ -1114,7 +1224,7 @@ describe('PracticeList', () => {
     // An answer before anything is pressed: a reader who only wanted to know how
     // many are suspended never has to filter at all.
     expect(await harness.counts('Status')).toEqual(['Active1', 'Suspended1', 'Closed1']);
-    expect(await harness.counts('Plan')).toEqual(['Basic2', 'Standard1']);
+    expect(await harness.counts('Plan')).toEqual(['BASIC2', 'STANDARD1']);
 
     await harness.choose('Status', 'Suspended');
 
@@ -1131,7 +1241,7 @@ describe('PracticeList', () => {
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
 
     await harness.choose('Status', 'Suspended');
-    await harness.choose('Plan', 'Basic');
+    await harness.choose('Plan', 'BASIC');
 
     // The server would answer the same thing: it filters by name and by nothing
     // else. Keyed on anything wider, every option pressed re-read the platform.
@@ -1232,15 +1342,15 @@ describe('PracticeList', () => {
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
     await harness.choose('Status', 'Suspended');
-    await harness.choose('Plan', 'Basic');
+    await harness.choose('Plan', 'BASIC');
 
     harness.all('.applied__tag')[0].click();
     await harness.settle();
 
     // "Not that one, the other four still" is the operation somebody narrowing a
     // list performs, and a reset that clears everything cannot do it.
-    expect(harness.tags).toEqual(['Plan Basic']);
-    expect(harness.url).toBe('/?plan=Basic');
+    expect(harness.tags).toEqual(['Plan BASIC']);
+    expect(harness.url).toBe('/?plan=BASIC');
   });
 
   it('orders the whole list from the column heading, not the page it is on', async () => {
@@ -1340,15 +1450,15 @@ describe('PracticeList', () => {
     const harness = await openList({ answer: 'unanswered' });
 
     await harness.answerWhole([[NILE, DELTA, CAIRO]]);
-    await harness.choose('Plan', 'Basic');
+    await harness.choose('Plan', 'BASIC');
 
     await harness.search('cairo');
     await harness.answerWhole([[CAIRO]]);
 
     // A reader who has filtered and then types a name is narrowing that list, not
     // throwing it away - so the name goes to the server and the plan stays applied.
-    expect(harness.url).toBe('/?name=cairo&plan=Basic');
-    expect(harness.tags).toEqual(['Plan Basic']);
+    expect(harness.url).toBe('/?name=cairo&plan=BASIC');
+    expect(harness.tags).toEqual(['Plan BASIC']);
     expect(harness.names).toEqual(['Cairo Heart Centre']);
   });
 
@@ -1369,40 +1479,36 @@ describe('PracticeList', () => {
   // The one action
   // ---------------------------------------------------------------------------
 
-  it('offers "Add a practice" as a row of the board, and as a link', async () => {
+  it('offers "Add a practice" beside the heading, as a link', async () => {
     const harness = await openList();
 
     // A link can be opened in a new tab, copied, and reached with the browser's own
     // controls; a button that calls `navigate` cannot. The schema's noun - onboard,
     // organization - does not appear on this screen.
-    const add = harness.query<HTMLAnchorElement>('.practice__add');
+    const add = harness.query<HTMLAnchorElement>('.page-header .practices__add');
 
     expect(add?.getAttribute('href')).toBe('/onboard');
     expect(add?.textContent?.trim()).toBe('Add a practice');
   });
 
-  it('puts the action above the first practice rather than in the header', async () => {
+  it('keeps the action out of the board, where everything else opens a practice', async () => {
     const harness = await openList();
 
-    // The control that makes a row is the first row. A filled control in the corner
-    // of the header wore the same shape as the status badge on every row under it.
-    const board = harness.query('.board')!;
-
-    expect(board.querySelector('.practice__add')).not.toBeNull();
-    expect(harness.query('.page-header .practice__add')).toBeNull();
-    expect(
-      board.querySelector('.practice__add')!.compareDocumentPosition(harness.all('.practice')[0]) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    // It was the first row of the board, with the same grid, the same height and
+    // the same chevron as the practices under it - an action drawn as a thing that
+    // opens, on top of a list of things that do.
+    expect(harness.query('.board .practices__add')).toBeNull();
+    expect(harness.query('.practice__add')).toBeNull();
+    expect(harness.all('.board__rows .practice__chevron')).toHaveLength(2);
   });
 
   it('keeps the action on screen while the first answer is still coming', async () => {
     const harness = await openList({ answer: 'unanswered' });
 
-    // Without it the first practice lands a row lower than the first placeholder
-    // did, which is the shift the skeleton exists to avoid - and it is the only
-    // thing a reader can actually do while they wait.
-    expect(harness.query('.board--waiting .practice__add')).not.toBeNull();
+    // The heading is on screen before the board is, and the action is beside it -
+    // so the one thing a reader can do while they wait is there while they wait.
+    expect(harness.query('.page-header .practices__add')).not.toBeNull();
+    expect(harness.query('.board--waiting .practice__add')).toBeNull();
   });
 
   it('offers the action when a search matched nothing, which has no board', async () => {

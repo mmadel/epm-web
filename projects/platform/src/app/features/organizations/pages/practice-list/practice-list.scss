@@ -49,15 +49,14 @@
 // The one action
 // ---------------------------------------------------------------------------
 
-// THE ONE SCREEN WHERE THE ACTION CANNOT BE A ROW. Everywhere else on this list it
-// is the first row of the board - see `.practice__add` - but a fresh platform has no
-// board for it to be a row of, and this is the one screen in the console where
-// adding a practice is the only thing there is to do.
+// ONE CONTROL, DRAWN ONCE, STANDING IN TWO PLACES. Beside the heading on every state
+// of this screen, and again in the middle of the card a fresh platform gets - where
+// adding a practice is the only thing there is to do, and a reader should not have to
+// go back up to the heading to find that out.
 
-// SAME ACCENT, SAME PLUS, SAME TINT AS THE ROW, boxed rather than full width because
-// it is standing on its own in the middle of a card. It is not filled: nothing on
-// this screen is any more, and a solid block of accent here would be the only one in
-// the console.
+// IT IS NOT FILLED: nothing on this screen is any more, and a solid block of accent
+// here would be the only one in the console. The tint, the hairline and the plus are
+// what mark it as the action.
 .practices__add {
   display: inline-flex;
   flex: none;
@@ -142,7 +141,11 @@
   // took every spare pixel on a wide monitor, which stranded the figures against
   // the right edge with a gulf of nothing between them and the practice they
   // belong to. Proportional columns keep the row readable across at any width.
-  --practice-columns: 3px minmax(14rem, 1.6fr) minmax(9rem, 1fr) minmax(9rem, 1fr) 8rem 2rem;
+
+  // 16rem AND NOT 14rem: the identity column carries two pills now - the plan and
+  // the status - and at the old floor a name was down to a few characters before
+  // the board was anywhere near narrow enough to drop a column.
+  --practice-columns: 3px minmax(16rem, 1.6fr) minmax(9rem, 1fr) minmax(9rem, 1fr) 8rem 2rem;
 
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -242,8 +245,7 @@
 // sideways as it replaces it. Sharing the selector is what makes that impossible to
 // get wrong - a column added to one cannot miss the other.
 .practice__open,
-.practice__waiting,
-.practice__add {
+.practice__waiting {
   display: grid;
   gap: var(--space-3);
   grid-template-columns: var(--practice-columns);
@@ -290,60 +292,10 @@
   background-color: var(--color-border-strong);
 }
 
-// ---------------------------------------------------------------------------
-// The action, which is a row
-// ---------------------------------------------------------------------------
-
-// A ROW ON THE BOARD IT ADDS TO, at the top, above the first practice. It reads as
-// part of the list rather than as a banner on top of one: the same grid, the same
-// height, the same chevron at the same end. What separates it is that it is the only
-// tinted row and the only one whose words are in the accent.
-
-// A HEAVIER RULE UNDER IT than the one between two practices. It is not a practice,
-// and the line is what says the list starts below it.
-.practice__add {
-  border-block-end: 1px solid var(--color-border);
-  background-color: color-mix(in srgb, var(--color-primary-soft) 55%, var(--color-surface-raised));
-  color: var(--color-primary-deep);
-  text-decoration: none;
-  transition: background-color 120ms ease;
-}
-
-.practice__add:hover {
-  background-color: var(--color-primary-soft);
-}
-
-// Inset, like the practice rows above it and for the same reason: the row has no
-// padding at its leading end, so a ring at its bounds would be drawn off the card.
-.practice__add:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
-}
-
-// THE MARK STARTS WHERE THE NAMES START, and the words sit a glyph's width in from
-// them. That indent is the row saying it is not a practice, and it costs nothing:
-// the column still has one thing at its leading edge all the way down.
-.practice__add-mark {
-  display: inline-flex;
-}
-
-.practice__add-mark svg {
-  inline-size: 1rem;
-  block-size: 1rem;
-}
-
-.practice__add-label {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-}
-
-// `-2` is the last column at both widths - the board drops a column below 60rem, and
-// a chevron placed by number would land in the staff figure there. It is in the
-// accent already rather than only on hover, because the whole row is the accent.
-.practice__add .practice__chevron {
-  grid-column: -2;
-  color: var(--color-primary);
-}
+// EVERY ROW ON THIS BOARD OPENS SOMETHING. The action used to be the first of them -
+// same grid, same height, same chevron - and a chevron is a promise that what it is
+// on can be opened. It is beside the heading now (`.practices__add`), which is where
+// a control that is not a practice belongs.
 
 .practice__identity {
   display: flex;
@@ -351,6 +303,13 @@
   gap: var(--space-2);
   min-inline-size: 0;
   padding-block: var(--space-3);
+}
+
+// THE NAME IS WHAT GIVES WAY, never the pills. Two states on the end of a long name
+// would otherwise be squeezed to nothing - and a status squeezed to nothing is the
+// fact this row was changed to carry.
+.practice__identity .pill {
+  flex: none;
 }
 
 .practice__name {
@@ -396,10 +355,10 @@
 // A figure and its bar
 // ---------------------------------------------------------------------------
 
-// THE BAR IS THE COMPARISON, THE NUMBER IS THE ANSWER. It is drawn against the
-// biggest practice on the page and not against a limit, because the list response
-// carries no allowance of any kind - see the class note. Reading down the column
-// says which practices are the big ones without reading a single figure.
+// THE NUMBER IS THE ANSWER AND THE BAR IS ITS SCALE. Both are drawn against the
+// practice's own plan - `listPlans` carries a branch limit and a seat limit for each
+// one - so a full bar means "at the limit" in either column and on every row, rather
+// than "the biggest of whatever happens to be on screen".
 .cell {
   display: flex;
   flex-direction: column;
@@ -407,9 +366,23 @@
   min-inline-size: 0;
 }
 
+// The count and its limit are one line and never two. A fraction that wraps puts two
+// numbers on top of each other in a column that exists to be read down.
+.cell__reading {
+  white-space: nowrap;
+}
+
 .cell__value {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
+}
+
+// A STEP DOWN AND A STEP QUIETER, which is the treatment the practice screen's own
+// meters give it. The limit is the same on every row of a plan; the count is what
+// differs, and it is what the eye should land on.
+.cell__limit {
+  color: var(--color-muted-text);
+  font-size: var(--font-size-sm);
 }
 
 .cell__track {
@@ -431,6 +404,19 @@
 // as different quantities without introducing a second hue with no meaning.
 .cell__bar--staff {
   background-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-muted-surface));
+}
+
+// OVER WHAT THE PLAN ALLOWS, which is a fact and not a fault - nothing blocks it
+// (`EPM-ORG-006`) - so it is the warning tone rather than the danger one. The figure
+// carries it as well as the bar, because the bar is the first thing to go when the
+// board narrows.
+.cell--over .cell__value,
+.cell--over .cell__limit {
+  color: var(--color-warning-text);
+}
+
+.cell--over .cell__bar {
+  background-color: var(--color-warning-mark);
 }
 
 .cell__absent {
@@ -529,10 +515,12 @@
     display: none;
   }
 
+  // WIDER THAN THE 3.5rem THE BARE COUNTS TOOK, because a cell now reads "12 of 20"
+  // rather than "12". The fraction is what makes the count mean anything, so it is
+  // the date and the bars that go at this width and never the denominator.
   .practice__open,
-  .practice__waiting,
-  .practice__add {
-    grid-template-columns: 3px minmax(0, 1fr) 3.5rem 3.5rem 2rem;
+  .practice__waiting {
+    grid-template-columns: 3px minmax(0, 1fr) 5rem 5rem 2rem;
   }
 
   .practice__onboarded,

@@ -58,9 +58,21 @@ export class Plans {
    */
   readonly haveFailed = computed(() => this.listed.error() !== undefined);
 
-  /** The limits for one plan, by name. `undefined` until the plans have arrived. */
-  limitsOf(name: string): ListedPlan | undefined {
-    return this.all().find((plan) => plan.plan === name);
+  /**
+   * The limits for one plan, by name. `undefined` until the plans have arrived, and
+   * for a plan this response does not carry.
+   *
+   * TRIMMED AND FOLDED, because the name being matched is no longer always one this
+   * list handed out. The practice list looks a limit up by the plan each practice
+   * came back on, and a limit missed over a difference in case would not be an
+   * error anybody sees - it would be a meter quietly absent from a row.
+   */
+  limitsOf(name: string | undefined): ListedPlan | undefined {
+    const wanted = (name ?? '').trim().toLowerCase();
+
+    return wanted === ''
+      ? undefined
+      : this.all().find((plan) => (plan.plan ?? '').trim().toLowerCase() === wanted);
   }
 
   retry(): void {
