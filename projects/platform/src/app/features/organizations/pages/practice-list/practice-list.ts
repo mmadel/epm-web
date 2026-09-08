@@ -21,28 +21,91 @@ import {
 } from '../../data/practice-criteria';
 import { Practices } from '../../data/practices';
 
-/** How a status is worded and toned. Anything unrecognised keeps the server's word. */
+/**
+ * How a status is worded, toned, and explained. Anything unrecognised keeps the
+ * server's word and gets no sentence.
+ *
+ * THE NOTE IS COPY, NOT DATA, and that is what makes it safe to put on the row. Both
+ * sentences are standing product facts about what a status MEANS - `PRODUCT.md` on
+ * suspension being reversible and closure being terminal - rather than anything
+ * about the particular practice. A line that varied per practice would need a field
+ * the list route does not answer with; see the class note.
+ */
 const STATUSES: Readonly<
-  Record<string, { readonly label: string; readonly tone: string; readonly pill: string }>
+  Record<
+    string,
+    {
+      readonly label: string;
+      readonly tone: string;
+      readonly pill: string;
+      readonly note: string;
+    }
+  >
 > = {
-  [ListedOrganizationStatusEnum.Active]: { label: 'Active', tone: 'active', pill: 'active' },
+  // ACTIVE HAS NO SENTENCE. The design's is "Billing current · next renewal 17
+  // September", and neither half of that is in this response - the list route
+  // carries no billing state and the API has no renewal date at all. An invented
+  // one on the most common row on the board is the worst place to put a guess.
+  [ListedOrganizationStatusEnum.Active]: {
+    label: 'Active',
+    tone: 'active',
+    pill: 'active',
+    note: '',
+  },
   [ListedOrganizationStatusEnum.Suspended]: {
     label: 'Suspended',
     tone: 'suspended',
     pill: 'warning',
+    note: 'Read and export only · reversible, staff cannot write',
   },
-  [ListedOrganizationStatusEnum.Closed]: { label: 'Closed', tone: 'closed', pill: 'quiet' },
+  [ListedOrganizationStatusEnum.Closed]: {
+    label: 'Closed',
+    tone: 'closed',
+    pill: 'quiet',
+    note: 'Terminal · record retained, nothing deleted',
+  },
 };
 
 /**
- * `1 Mar 2026`. Western numerals, as everything in this product is - see
+ * How each plan's badge is toned, by the server's own word for it, folded.
+ *
+ * A RAMP AND NOT THREE COLOURS. A plan is a tier, so the three read as one hue
+ * getting stronger with the tier - the quiet chip, the info tint, the accent -
+ * rather than as three unrelated tones. It deliberately borrows none of the status
+ * tones: `warning` on a plan would say a practice needs attention when all it says
+ * is what the practice pays for.
+ *
+ * ANYTHING NOT LISTED IS QUIET, WHICH IS THE WHOLE POINT OF THE FALLBACK. `Plans`
+ * exists so that a plan added to the server's table appears with no frontend change
+ * and no release (T-64 §4); a map that had to be edited for a fourth plan would put
+ * that back. A new plan arrives on the board in the neutral chip, named correctly,
+ * and someone can choose it a tone later.
+ */
+const PLAN_TONES: Readonly<Record<string, string>> = {
+  basic: 'quiet',
+  standard: 'info',
+  pro: 'accent',
+};
+
+/**
+ * `17 August 2026`. Western numerals, as everything in this product is - see
  * `docs/design-tokens.md`, "Numerals: decided, and closed".
+ *
+ * THE MONTH IS SPELT OUT NOW. It was `17 Aug 2026`, abbreviated to fit a 8rem column
+ * that no longer exists: the date sits on its own line under the relative reading,
+ * where there is room for the word and where the two lines are doing different jobs -
+ * "3 weeks ago" is the answer, and the date is the one somebody quotes into a thread.
  */
 const ONBOARDED_ON = new Intl.DateTimeFormat('en-GB', {
   day: 'numeric',
-  month: 'short',
+  month: 'long',
   year: 'numeric',
 });
+
+/** `3 weeks ago`. The reading somebody actually wants; the date is beside it. */
+const SINCE = new Intl.RelativeTimeFormat('en-GB', { numeric: 'auto' });
+
+const DAY = 24 * 60 * 60 * 1000;
 
 /**
  * One column of the board: its name, what it orders by, and how each press reads.
@@ -107,6 +170,8 @@ interface Reading {
   readonly filled: number;
   /** Using more than the plan allows. A fact about the practice, not an error. */
   readonly isOver: boolean;
+  /** `2 of 5`, in words, for the reader who is told rather than shown. */
+  readonly reading: string;
 }
 
 /** One practice, as its row draws it. */
@@ -118,12 +183,16 @@ interface PracticeRow {
   readonly isUnnamed: boolean;
   /** The plan it is billed on, in the server's own word. */
   readonly plan: string;
+  /** That plan's place on the tone ramp. See {@link PLAN_TONES}. */
+  readonly planTone: string;
   /** `Active`, `Suspended`, `Closed` - said on every row, the active ones included. */
   readonly status: string;
-  /** The same state as one of the console's four pill tones. */
-  readonly statusTone: string;
   /** The status edge's tone: what the practice's state is. */
   readonly tone: string;
+  /** What the status means, in one line. Empty where nothing can be said honestly. */
+  readonly note: string;
+  /** `Onboarded 3 weeks ago`, which is the reading rather than the date. */
+  readonly onboardedAgo: string;
   /** True for a practice nobody has to act on, which recedes rather than shouts. */
   readonly isQuiet: boolean;
   /** Where the row opens: the practice's own screen. */
@@ -662,16 +731,46 @@ function presented(
     // the practice is billed on. A dash where none arrived: the pill is the row's
     // place for a plan, and an empty one reads as a practice nobody put on one.
     plan: planWord === '' ? '—' : planWord,
+    planTone: PLAN_TONES[planWord.toLowerCase()] ?? 'quiet',
     status: word === '' ? '—' : word,
-    statusTone: status?.pill ?? 'quiet',
     tone: status?.tone ?? 'unknown',
+    note: status?.note ?? '',
     // Closed is the one nobody has to act on, so it recedes. Suspended keeps its
     // weight: it is the row somebody may well have to do something about.
     isQuiet: status?.tone === 'closed',
     branches: reading(practice.clinicCount, plan?.branchLimit),
     staff: reading(practice.staffCount, plan?.seatLimit),
     onboarded: onboardedOn,
+    onboardedAgo: practice.createdAt === undefined ? '' : `Onboarded ${ago(practice.createdAt)}`,
   };
+}
+
+/**
+ * `3 weeks ago`, from a moment in the past.
+ *
+ * BUCKETED RATHER THAN EXACT, and the buckets are the ones a person uses: days up to
+ * a month, then months, then years. "Onboarded 94 days ago" is a number nobody
+ * converts in their head, and it is the conversion that is the whole point of
+ * putting a relative reading above the date.
+ */
+function ago(value: string): string {
+  const at = Date.parse(value);
+
+  if (Number.isNaN(at)) {
+    return '';
+  }
+
+  const days = Math.round((at - Date.now()) / DAY);
+
+  if (Math.abs(days) < 31) {
+    return SINCE.format(days, 'day');
+  }
+
+  const months = Math.round(days / 30);
+
+  return Math.abs(months) < 12
+    ? SINCE.format(months, 'month')
+    : SINCE.format(Math.round(months / 12), 'year');
 }
 
 /**
@@ -738,7 +837,7 @@ function reading(count: number | undefined, limit: number | undefined): Reading 
   }
 
   if (limit === undefined) {
-    return { count, limit: undefined, filled: 0, isOver: false };
+    return { count, limit: undefined, filled: 0, isOver: false, reading: `${count}` };
   }
 
   // A limit of zero divides by nothing. It is a plan entitling the practice to none
@@ -753,6 +852,7 @@ function reading(count: number | undefined, limit: number | undefined): Reading 
     // have to stay apart.
     filled: count > 0 ? Math.max(2, share) : 0,
     isOver: count > limit,
+    reading: `${count} of ${limit}`,
   };
 }
 

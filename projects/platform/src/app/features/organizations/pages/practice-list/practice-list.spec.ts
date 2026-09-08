@@ -176,38 +176,73 @@ class Harness {
     await this.settle();
   }
 
-  /** Each row's figures, in the columns they are aligned in. */
+  /**
+   * Each row's readings, taken the way a reader who is TOLD them hears them.
+   *
+   * The visible fraction is `2 / 5` and is `aria-hidden`; the string beside it is
+   * `2 of 5`. Asserting on the second is asserting on the one that has to stay a
+   * sentence - the visible half is free to be as terse as the design wants.
+   */
   get figures(): readonly { branches: string; staff: string; onboarded: string }[] {
     return this.all('.practice__open').map((row) => {
-      const cells = [...row.querySelectorAll('.cell')].map((cell) =>
-        (cell.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      const meters = [...row.querySelectorAll('.meter .visually-hidden')].map((one) =>
+        (one.textContent ?? '').replace(/\s+/g, ' ').trim(),
       );
 
       return {
-        branches: cells[0] ?? '',
-        staff: cells[1] ?? '',
-        onboarded: (row.querySelector('.practice__onboarded')?.textContent ?? '')
-          .replace(/\s+/g, ' ')
-          .trim(),
+        branches: meters[0] ?? '',
+        staff: meters[1] ?? '',
+        onboarded: (row.querySelector('.practice__when-lead')?.textContent ?? '').trim(),
       };
     });
   }
 
+  /** What each row shows in place of the reading: `2 / 5`, the design's own form. */
+  get readings(): readonly string[] {
+    return this.all('.meter__value').map((value) =>
+      (value.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+  }
+
+  /** The date under each relative reading. */
+  get dates(): readonly string[] {
+    return this.all('.practice__when-date').map((date) => (date.textContent ?? '').trim());
+  }
+
   /** How wide each row's branch bar is drawn, as the style attribute sets it. */
   get branchBars(): readonly string[] {
-    return this.all('.cell__bar:not(.cell__bar--staff)').map((bar) => bar.style.inlineSize);
+    return this.all('.meter__bar:not(.meter__bar--staff)').map((bar) => bar.style.inlineSize);
   }
 
   /** The same for the staff bar, which is drawn by the same rule against its own limit. */
   get staffBars(): readonly string[] {
-    return this.all('.cell__bar--staff').map((bar) => bar.style.inlineSize);
+    return this.all('.meter__bar--staff').map((bar) => bar.style.inlineSize);
   }
 
-  /** Every pill the board's rows carry, in the order each row says them. */
+  /** The plan each row is billed on, which is the row's one pill. */
   get pills(): readonly string[] {
     return this.all('.board__rows .pill').map((pill) =>
       (pill.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );
+  }
+
+  /** The tone each row's plan badge is wearing, as the class names carry it. */
+  get planTones(): readonly string[] {
+    return this.all('.practice__plan').map(
+      (pill) => [...pill.classList].find((name) => name.startsWith('pill--')) ?? '',
+    );
+  }
+
+  /** The status each row is in: a dot and a word, no longer a pill. */
+  get statuses(): readonly string[] {
+    return this.all('.practice__status').map((status) =>
+      (status.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+  }
+
+  /** The sentence under each name saying what its status means. */
+  get notes(): readonly string[] {
+    return this.all('.practice__note').map((note) => (note.textContent ?? '').trim());
   }
 
   /** Everything the rows say, and nothing the page says around them. */
@@ -565,6 +600,11 @@ describe('PracticeList', () => {
     // The search box debounces before navigating, so the clock is the screen's own.
     // Every test that does not search never advances it, and the timer never fires.
     vi.useFakeTimers();
+
+    // AND THE DATE IS PINNED, because the row reads "onboarded 6 months ago" now.
+    // A relative reading against the real clock is a test that passes today and
+    // fails in November, which is the worst kind: nothing changed but the month.
+    vi.setSystemTime(new Date('2026-09-08T12:00:00Z'));
   });
 
   afterEach(() => {
@@ -665,7 +705,11 @@ describe('PracticeList', () => {
     // seats, and those two numbers are `listPlans`', not this console's.
     expect(harness.names).toEqual(['Nile Care']);
     expect(harness.figures).toEqual([
-      { branches: 'Branches:2 of 5', staff: 'Staff:6 of 20', onboarded: 'Onboarded:1 Mar 2026' },
+      {
+        branches: 'Branches: 2 of 5',
+        staff: 'Staff: 6 of 20',
+        onboarded: 'Onboarded 6 months ago',
+      },
     ]);
   });
 
@@ -697,8 +741,8 @@ describe('PracticeList', () => {
     });
 
     expect(harness.figures.map((row) => row.branches)).toEqual([
-      'Branches:2 of 5',
-      'Branches:1 of 1',
+      'Branches: 2 of 5',
+      'Branches: 1 of 1',
     ]);
     expect(harness.branchBars).toEqual(['40%', '100%']);
   });
@@ -710,7 +754,7 @@ describe('PracticeList', () => {
     // against - and a bar against a limit nobody sent is the capacity meter this
     // column used to invent. The count is still the answer, and is still said.
     expect(harness.figures).toEqual([
-      { branches: 'Branches:2', staff: 'Staff:6', onboarded: 'Onboarded:1 Mar 2026' },
+      { branches: 'Branches: 2', staff: 'Staff: 6', onboarded: 'Onboarded 6 months ago' },
     ]);
     expect(harness.branchBars).toEqual([]);
     expect(harness.staffBars).toEqual([]);
@@ -722,7 +766,7 @@ describe('PracticeList', () => {
     // The board is about the practices. A reference-data call that failed costs the
     // rows their scale and nothing else - it must not cost them their list.
     expect(harness.names).toEqual(['Nile Care', 'Delta Physio']);
-    expect(harness.figures.map((row) => row.branches)).toEqual(['Branches:2', 'Branches:1']);
+    expect(harness.figures.map((row) => row.branches)).toEqual(['Branches: 2', 'Branches: 1']);
     expect(harness.branchBars).toEqual([]);
   });
 
@@ -734,15 +778,19 @@ describe('PracticeList', () => {
     // BASIC allows one branch and five seats, and nothing stops a practice going
     // past either (`EPM-ORG-006`) - so this is a fact about the practice rather than
     // an error. The bar stops at its own track; the figures say the rest.
-    expect(harness.figures.map((row) => row.branches)).toEqual(['Branches:3 of 1']);
+    expect(harness.figures.map((row) => row.branches)).toEqual(['Branches: 3 of 1']);
     expect(harness.branchBars).toEqual(['100%']);
     expect(harness.staffBars).toEqual(['100%']);
-    expect(harness.all('.cell--over')).toHaveLength(2);
+    expect(harness.all('.meter--over')).toHaveLength(2);
   });
 
-  it('carries the status on the row’s leading edge', async () => {
+  it('carries the status on every row’s leading edge', async () => {
     const harness = await openList({ answer: page([NILE, DELTA, CAIRO]) });
 
+    // ON EVERY ROW, so the colour is a column that can be read down rather than a
+    // mark that is on some rows and off others - a difference a reader has to notice
+    // before they can read it. It is never the only carrier: the dot and the word
+    // beside the name say the same thing without a colour.
     const tones = harness
       .all('.board__rows .practice__edge')
       .map((edge) => edge.className.replace('practice__edge ', ''));
@@ -759,10 +807,46 @@ describe('PracticeList', () => {
 
     // THE STATUS USED TO BE LEFT OFF AN ACTIVE PRACTICE, on the argument that the
     // word tells a reader nothing - which left an active row and a suspended one as
-    // the same row with a different three pixels down the side of it. The edge is
-    // still there and is still not the only carrier; the word is what a reader can
-    // read without being taught the colour.
-    expect(harness.pills).toEqual(['STANDARD', 'Active', 'BASIC', 'Suspended', 'BASIC', 'Closed']);
+    // the same row with a different three pixels down the side of it.
+    //
+    // THE PLAN IS THE PILL AND THE STATUS IS A DOT AND A WORD. Two pills said the
+    // two were the same kind of fact; a plan is a label a practice was given, and a
+    // status is a state it is in.
+    expect(harness.pills).toEqual(['STANDARD', 'BASIC', 'BASIC']);
+    expect(harness.statuses).toEqual(['Active', 'Suspended', 'Closed']);
+  });
+
+  it('says what a status means, where the sentence is a standing fact', async () => {
+    const harness = await openList({ answer: page([NILE, DELTA, CAIRO]) });
+
+    // COPY, NOT DATA, which is what makes it safe on the row: both sentences are
+    // what the status MEANS rather than anything about the practice. The active row
+    // gets none - the design's is "Billing current · next renewal 17 September", and
+    // the list route carries no billing state and the API no renewal date at all.
+    expect(harness.notes).toEqual([
+      'Read and export only · reversible, staff cannot write',
+      'Terminal · record retained, nothing deleted',
+    ]);
+  });
+
+  it('tones each plan badge by its tier, and anything new quietly', async () => {
+    const harness = await openList({
+      answer: page([
+        { ...NILE, plan: 'BASIC' },
+        { ...NILE, id: 'org-7', plan: 'STANDARD' },
+        { ...NILE, id: 'org-8', plan: 'PRO' },
+        // The plan `listPlans` has not been taught. It is still named on the row -
+        // it is what the practice is billed on - and it wears the neutral chip
+        // rather than nothing, or a colour meant for another tier.
+        { ...NILE, id: 'org-9', plan: 'ENTERPRISE' },
+      ]),
+    });
+
+    // ONE HUE GETTING STRONGER, not three unrelated colours: a plan is a tier. None
+    // of the status tones is borrowed - `pill--warning` on a plan would say a
+    // practice needs attention when it is only saying what it pays for.
+    expect(harness.planTones).toEqual(['pill--quiet', 'pill--info', 'pill--accent', 'pill--quiet']);
+    expect(harness.pills).toEqual(['BASIC', 'STANDARD', 'PRO', 'ENTERPRISE']);
   });
 
   it('draws a dash for a plan that did not arrive, rather than an empty pill', async () => {
@@ -770,7 +854,18 @@ describe('PracticeList', () => {
 
     // The pill is the row's place for a plan, and an empty one reads as a practice
     // nobody put on one. The status is unaffected: they are two facts now.
-    expect(harness.pills).toEqual(['—', 'Active']);
+    expect(harness.pills).toEqual(['—']);
+    expect(harness.statuses).toEqual(['Active']);
+  });
+
+  it('reads a date twice: how long ago, and which day', async () => {
+    const harness = await openList({ answer: page([NILE]) });
+
+    // "6 months ago" is what somebody scanning the board is after; the date under it
+    // is what they quote into the thread they are answering. The clock is pinned in
+    // `beforeEach`, or the first half of this would fail with the calendar.
+    expect(harness.figures.map((row) => row.onboarded)).toEqual(['Onboarded 6 months ago']);
+    expect(harness.dates).toEqual(['1 March 2026']);
   });
 
   it('opens the practice from the whole row, with the chevron §5 asks for', async () => {
@@ -784,7 +879,7 @@ describe('PracticeList', () => {
       '/practices/org-1',
       '/practices/org-2',
     ]);
-    expect(harness.all('.board__rows .practice__chevron')).toHaveLength(2);
+    expect(harness.all('.board__rows .practice__view')).toHaveLength(2);
   });
 
   it('offers no edit control, because no route would answer one', async () => {
@@ -822,7 +917,7 @@ describe('PracticeList', () => {
 
     // The bar is the same number drawn. Announced as well, it is a second reading
     // of one fact, twice per row, across twenty-five rows.
-    for (const track of harness.all('.cell__track')) {
+    for (const track of harness.all('.meter__track')) {
       expect(track.getAttribute('aria-hidden')).toBe('true');
     }
   });
@@ -836,7 +931,11 @@ describe('PracticeList', () => {
     // different facts. In a column a dash is the honest rendering of the second -
     // and a bar of zero width would read as the first.
     expect(harness.figures).toEqual([
-      { branches: 'Branches:—', staff: 'Staff:—', onboarded: 'Onboarded:1 Mar 2026' },
+      {
+        branches: 'Branches: not sent',
+        staff: 'Staff: not sent',
+        onboarded: 'Onboarded 6 months ago',
+      },
     ]);
     expect(harness.branchBars).toEqual([]);
   });
@@ -850,10 +949,20 @@ describe('PracticeList', () => {
     // status, and hiding it would report a state that is not the one the server has.
     // The server's own word, uppercase and all - this console does not know enough
     // about it to word it any other way.
-    expect(harness.pills).toEqual(['STANDARD', 'ARCHIVED']);
-    expect(harness.query('.board__rows .practice__edge')?.className).toContain(
-      'practice__edge--unknown',
-    );
+    expect(harness.pills).toEqual(['STANDARD']);
+    expect(harness.statuses).toEqual(['ARCHIVED']);
+
+    // AND IT IS NOT MARKED FOR ATTENTION. A status this build has never seen is not
+    // a status it knows to be a problem, and an edge drawn on it would be the screen
+    // guessing that an unrecognised word is a bad one.
+    expect(
+      harness
+        .query('.board__rows .practice__edge')
+        ?.classList.contains('practice__edge--attention'),
+    ).toBe(false);
+
+    // The dot still has a tone, and it is the quiet one for the same reason.
+    expect(harness.query('.practice__dot')?.className).toContain('practice__dot--unknown');
   });
 
   // ---------------------------------------------------------------------------
@@ -866,7 +975,7 @@ describe('PracticeList', () => {
     // Asserted on the rows rather than on the whole screen, because the footnote
     // under them says the words "nothing clinical" on purpose.
     expect(harness.rowText).toContain('Nile Care');
-    expect(harness.rowText).toContain('Branches:');
+    expect(harness.rowText).toContain('Branches');
 
     // The API's noun for a branch is `clinicCount`; it is not the word on screen.
     expect(harness.rowText).not.toContain('clinic');
@@ -1499,7 +1608,7 @@ describe('PracticeList', () => {
     // opens, on top of a list of things that do.
     expect(harness.query('.board .practices__add')).toBeNull();
     expect(harness.query('.practice__add')).toBeNull();
-    expect(harness.all('.board__rows .practice__chevron')).toHaveLength(2);
+    expect(harness.all('.board__rows .practice__view')).toHaveLength(2);
   });
 
   it('keeps the action on screen while the first answer is still coming', async () => {

@@ -115,6 +115,30 @@
   color: var(--color-primary-deep);
 }
 
+// THE TOP OF THE PLAN RAMP, AND IT IS THE ONLY FILLED CHIP IN THE CONSOLE. It was
+// the soft accent pair - #e7eff7 behind #164e83 - sitting beside the info tint's
+// #eaf1fb behind #28518c, which is two pale blues nobody can tell apart without a
+// colour picker. A ramp has to step in WEIGHT and not only in hue: the quiet chip,
+// then the tinted one, then this.
+
+// `--color-text-inverse` is what the token file puts on a filled `--color-primary`,
+// and the pair clears 4.5:1. It is worn by a PLAN and never by a state, which is why
+// it is not `--active` under a second name: a plan pill reading `pill--active` in
+// the DOM would say a practice is running when all it says is what it pays for.
+.pill--accent {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+// THE MIDDLE OF THE PLAN RAMP. A plan is a tier, so the three read as one hue
+// getting stronger - quiet, this, then the accent - rather than as three of the
+// status tones borrowed: `warning` on a plan would say a practice needs attention
+// when it is only saying which plan it is on.
+.pill--info {
+  background-color: var(--color-info-surface);
+  color: var(--color-info-text);
+}
+
 .pill--warning {
   background-color: var(--color-warning-surface);
   color: var(--color-warning-text);
