@@ -1,3 +1,5 @@
+import { StaffRequestRolesEnum } from 'api-client';
+
 import { OrganizationDraft } from './organization-draft';
 
 /**
@@ -40,6 +42,15 @@ export interface Fault {
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
+ * The role the practice needs exactly one of.
+ *
+ * From the generated enum rather than the string `'ORG_ADMIN'`, for the reason
+ * `roles.ts` gives: a role renamed in the API stops this compiling instead of
+ * quietly making the rule match nobody, which would let every draft through.
+ */
+const ORG_ADMIN = StaffRequestRolesEnum.OrgAdmin;
+
+/**
  * Everything this client can tell is wrong, in the order the form reads.
  *
  * THE ORDER IS THE READING ORDER, top to bottom, because the first entry is where
@@ -55,7 +66,9 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * The seat and branch counters are deliberately NOT here. They warn, they never
  * block, and the server owns the limit (§5, `EPM-ORG-006`): a client that refuses
  * to submit at a number the server would have accepted is a form nobody can send
- * for a reason nobody can see.
+ * for a reason nobody can see. The org-admin count in `staffFaults` is the one
+ * count that IS checked here, and the comment on it says why it is not the same
+ * kind of number.
  */
 export function faultsIn(draft: OrganizationDraft): readonly Fault[] {
   return [...practiceFaults(draft), ...branchFaults(draft), ...staffFaults(draft)];
@@ -118,6 +131,30 @@ function staffFaults(draft: OrganizationDraft): readonly Fault[] {
   }
 
   const faults: Fault[] = [];
+
+  // EXACTLY ONE ORG ADMIN (T-112, `EPM-ORG-014`). This is a count, and the note on
+  // `faultsIn` says counts are the server's - so the difference is worth stating.
+  // The seat and branch limits belong to the PLAN: they vary, the server owns them,
+  // and a client refusing at a number is a client inventing a rule. This number does
+  // not vary. Zero is refused and two are refused, whatever the plan, so checking it
+  // here refuses exactly what the server would refuse, one round trip earlier.
+  //
+  // THE SERVER IS STILL THE ANSWER: `EPM-ORG-014` is handled in `server-faults.ts`
+  // and lands in this same place. A build whose idea of the rule has fallen behind
+  // the server's still has to explain the refusal.
+  //
+  // The region and not a row, for the reason the message gives: with nobody ticked
+  // there is no row to mark, and with two ticked neither of them is the mistake.
+  // It is first because it renders above the list, and the first fault is where
+  // focus goes.
+  if (staff.filter((member) => member.roles.includes(ORG_ADMIN)).length !== 1) {
+    faults.push({
+      region: 'staff',
+      message:
+        'A practice needs exactly one person with the Org admin role. Tick it for one of ' +
+        'them and untick it for anyone else.',
+    });
+  }
 
   for (const member of staff) {
     if (member.fullName.trim() === '') {

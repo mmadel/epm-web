@@ -56,6 +56,7 @@ describe('OnboardPractice', () => {
     await harness.addStaff({
       fullName: 'Hassan Ali',
       email: 'hassan@nilecare.eg',
+      roles: ['Doctor', 'Org admin'],
       branches: ['Maadi', 'Zamalek'],
     });
 
@@ -82,6 +83,7 @@ describe('OnboardPractice', () => {
     await harness.addStaff({
       fullName: 'Hassan Ali',
       email: 'hassan@nilecare.eg',
+      roles: ['Doctor', 'Org admin'],
       branches: ['Zamalek'],
     });
 

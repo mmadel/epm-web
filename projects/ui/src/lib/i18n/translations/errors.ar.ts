@@ -49,4 +49,6 @@ export const errorsAr: Record<ErrorsKey, string> = {
     'This is the last person with administrator access, so it cannot be taken away. Give someone else administrator access first.',
   'errors.organization.staff-needs-branch':
     'Every staff member belongs to at least one branch. Pick a branch before saving.',
+  'errors.organization.needs-one-org-admin':
+    'A practice needs exactly one person with administrator access. Give it to one of them and take it off the rest.',
 };

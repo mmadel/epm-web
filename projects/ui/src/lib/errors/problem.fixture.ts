@@ -123,6 +123,16 @@ export const PROBLEM_FIXTURES: Readonly<Record<ErrorCode, ProblemDetails>> = {
     code: 'EPM-ORG-011',
     traceId: '1c85f2a0-943d-4b76-8e21-70a6c3d95f82',
   },
+  // `field` is the array, not a row in it: the fault is that the set of staff has the
+  // wrong number of administrators in it, and there is no index the server could name.
+  'EPM-ORG-014': {
+    type: 'https://errors.epm/EPM-ORG-014',
+    title: 'Onboarding needs exactly one ORG_ADMIN',
+    status: 422,
+    code: 'EPM-ORG-014',
+    traceId: '5e2a71c6-0f38-4d95-b74a-c8106d039271',
+    field: 'staff',
+  },
 };
 
 /**

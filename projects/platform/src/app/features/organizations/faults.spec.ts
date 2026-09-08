@@ -39,11 +39,16 @@ function draftWith(shape: {
 
   const keys = draft.branches().map((branch) => branch.key);
 
-  for (const member of shape.staff ?? [{}]) {
+  // THE FIRST PERSON IS THE ORG ADMIN UNLESS A TEST SAYS OTHERWISE, because a
+  // practice needs exactly one (T-112) and the default here has to be a draft that
+  // is ready to send - every test below that is about some OTHER rule reads the
+  // faults it finds as the faults that rule produced. A test about this rule says so
+  // by setting `roles` itself.
+  for (const [at, member] of (shape.staff ?? [{}]).entries()) {
     draft.setStaff(draft.addStaffEntry(), {
       fullName: member.fullName ?? 'Hassan Ali',
       email: member.email ?? 'hassan@nilecare.eg',
-      roles: member.roles ?? ['DOCTOR'],
+      roles: member.roles ?? (at === 0 ? ['DOCTOR', 'ORG_ADMIN'] : ['DOCTOR']),
       specialityCode: '',
       branchKeys: (member.at ?? [0]).map((at) => keys[at]),
     });
@@ -70,9 +75,13 @@ describe('faultsIn', () => {
     const faults = faultsIn(draftWith({ name: '   ', plan: '', staff: [{ roles: [] }] }));
 
     // Focus goes to the first entry, and a list that reported the staff step before
-    // the practice step would send a reader backwards up their own form.
-    expect(faults.map((fault) => fault.region)).toEqual(['practice', 'practice', 'staff']);
+    // the practice step would send a reader backwards up their own form. Within the
+    // staff step the same rule applies: the org-admin fault renders above the list
+    // and the row's own fault renders inside it, so that is the order they come in.
+    expect(faults.map((fault) => fault.region)).toEqual(['practice', 'practice', 'staff', 'staff']);
     expect(faults[0].field).toBe('name');
+    expect(faults[2].field).toBeUndefined();
+    expect(faults[3].field).toBe('roles');
   });
 
   it('wants a name and a plan on the practice', () => {
@@ -133,11 +142,52 @@ describe('faultsIn', () => {
   });
 
   it('wants a role on every person (criterion 11)', () => {
-    expect(faultsIn(draftWith({ staff: [{ roles: [] }] }))[0]).toMatchObject({
+    // Not `[0]`: a person with no roles also has no ORG_ADMIN, so the rule below
+    // reports the array as well. This is about the row's own fault.
+    expect(
+      faultsIn(draftWith({ staff: [{ roles: [] }] })).find((fault) => fault.field === 'roles'),
+    ).toMatchObject({
       region: 'staff',
       field: 'roles',
       message: 'Give this person at least one role.',
     });
+  });
+
+  it('wants exactly one org admin, and says so against the array (T-112)', () => {
+    // NOBODY HAS IT. The message is about the staff as a whole - there is no row to
+    // mark, and with two admins neither of them would be the mistake either.
+    const none = faultsIn(draftWith({ staff: [{ roles: ['DOCTOR'] }] }));
+
+    expect(none).toHaveLength(1);
+    expect(none[0].region).toBe('staff');
+    expect(none[0].rowKey).toBeUndefined();
+    expect(none[0].field).toBeUndefined();
+    expect(none[0].message).toContain('exactly one person with the Org admin role');
+
+    // TWO HAVE IT, and it is the same fault with the same wording: the rule is
+    // "exactly one", and a message that guessed which way it had been broken would
+    // be wrong half the time.
+    const two = faultsIn(
+      draftWith({
+        staff: [
+          { roles: ['DOCTOR', 'ORG_ADMIN'] },
+          { email: 'mona@nilecare.eg', roles: ['ORG_ADMIN'] },
+        ],
+      }),
+    );
+
+    expect(two).toHaveLength(1);
+    expect(two[0].rowKey).toBeUndefined();
+    expect(two[0].message).toBe(none[0].message);
+
+    // ONE HAS IT, which is the whole of the rule.
+    expect(
+      faultsIn(
+        draftWith({
+          staff: [{ roles: ['DOCTOR', 'ORG_ADMIN'] }, { email: 'mona@nilecare.eg' }],
+        }),
+      ),
+    ).toEqual([]);
   });
 
   it('wants a branch on every person (criterion 12)', () => {

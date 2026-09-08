@@ -107,4 +107,15 @@ const WORDING: Readonly<Record<string, (problem: Problem) => string>> = {
     `This plan covers ${count(problem, 'limit')} staff members and this practice needs ` +
     `${count(problem, 'requested')}. Remove someone, or move the practice to a plan with more ` +
     'seats.',
+
+  // ONE SENTENCE FOR BOTH WAYS OF BREAKING THE RULE - nobody has the role, or more
+  // than one person does. The code says the set is wrong and not how, so a message
+  // that guessed ("you have too many") would be wrong half the time; naming the rule
+  // and then the remedy is right either way.
+  //
+  // It names the role by the label the checkbox carries rather than by `ORG_ADMIN`,
+  // for the reason `roles.ts` gives: the reader ticked a job, not a constant.
+  'EPM-ORG-014': () =>
+    'A practice needs exactly one person with the Org admin role. Tick it for one of them ' +
+    'and untick it for anyone else.',
 };
